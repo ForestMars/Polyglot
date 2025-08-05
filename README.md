@@ -149,7 +149,7 @@ npm run lint         # Run ESLint
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Shadcn/ui](https://ui.shadcn.com/) for the beautiful component library
 - [Radix UI](https://www.radix-ui.com/) for accessible primitives
