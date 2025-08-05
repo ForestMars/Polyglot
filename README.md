@@ -23,7 +23,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 ### Prerequisites
 
 - Node.js 18+ 
-- npm or yarn
+- npm or yarn (bun coming) 
 
 ### Installation
 
