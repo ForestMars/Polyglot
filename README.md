@@ -7,7 +7,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 ![Vite](https://img.shields.io/badge/Vite-5.4.1-purple?style=flat&logo=vite)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.11-38B2AC?style=flat&logo=tailwind-css)
 
-## ✨ Features
+## Features
 
 - **Multi-Provider Support**: Connect to OpenAI, Anthropic, and Google AI services
 - **Beautiful UI**: Glass-morphism design with smooth animations and modern aesthetics
@@ -18,7 +18,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 - **Dark Mode**: Elegant dark theme optimized for extended use
 - **Toast Notifications**: User-friendly feedback for actions and errors
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -46,7 +46,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 4. **Open your browser**
    Navigate to `http://localhost:5173`
 
-## 🔧 Configuration
+## Configuration
 
 ### Setting Up AI Providers
 
@@ -64,7 +64,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 | **Anthropic** | Claude Sonnet 4, Claude Opus 4, Claude 3.5 Haiku |
 | **Google** | Gemini Pro, Gemini Pro Vision |
 
-## 🛠️ Development
+## Development
 
 ### Project Structure
 
@@ -107,7 +107,7 @@ npm run lint         # Run ESLint
 - **Icons**: Lucide React
 - **Animations**: CSS animations with Tailwind
 
-## 🎨 Design System
+## Design System
 
 ### Color Palette
 - **Primary**: Purple gradient (`hsl(263 70% 50%)`)
@@ -121,14 +121,14 @@ npm run lint         # Run ESLint
 - **Responsive Layout**: Adapts to different screen sizes
 - **Accessibility**: Proper ARIA labels and keyboard navigation
 
-## 🔒 Security
+## Security
 
 - API keys are stored locally in browser memory (not persisted)
 - No server-side storage of sensitive data
 - Secure input handling and validation
 - Masked API key display in settings
 
-## 🚧 Current Status
+## Current Status
 
 **Note**: This is currently a frontend-only implementation with simulated API responses. To connect to real AI services, you'll need to:
 
@@ -137,7 +137,7 @@ npm run lint         # Run ESLint
 3. Consider rate limiting and usage tracking
 4. Add message persistence if needed
 
-## 🤝 Contributing
+## ontributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -145,7 +145,7 @@ npm run lint         # Run ESLint
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
@@ -158,4 +158,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ using modern web technologies**
