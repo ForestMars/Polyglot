@@ -1,73 +1,161 @@
-# Welcome to your Lovable project
+# PolyGlut - AI Chat Interface
 
-## Project info
+A modern, elegant AI chat interface built with React, TypeScript, and Tailwind CSS. Connect to multiple AI providers (OpenAI, Anthropic, Google) with a beautiful glass-morphism design.
 
-**URL**: https://lovable.dev/projects/48b80ee2-a3a3-4431-8703-6715baec8797
+![PolyGlut Chat Interface](https://img.shields.io/badge/React-18.3.1-blue?style=flat&logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.5.3-blue?style=flat&logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-5.4.1-purple?style=flat&logo=vite)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.11-38B2AC?style=flat&logo=tailwind-css)
 
-## How can I edit this code?
+## ✨ Features
 
-There are several ways of editing your application.
+- **Multi-Provider Support**: Connect to OpenAI, Anthropic, and Google AI services
+- **Beautiful UI**: Glass-morphism design with smooth animations and modern aesthetics
+- **API Key Management**: Securely store and manage multiple API keys per provider
+- **Model Selection**: Choose from various AI models for each provider
+- **Real-time Chat**: Smooth message flow with typing indicators
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Dark Mode**: Elegant dark theme optimized for extended use
+- **Toast Notifications**: User-friendly feedback for actions and errors
 
-**Use Lovable**
+## 🚀 Quick Start
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/48b80ee2-a3a3-4431-8703-6715baec8797) and start prompting.
+### Prerequisites
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js 18+ 
+- npm or yarn
 
-**Use your preferred IDE**
+### Installation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd polyglut
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-Follow these steps:
+3. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+4. **Open your browser**
+   Navigate to `http://localhost:5173`
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🔧 Configuration
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Setting Up AI Providers
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. **Open Settings**: Click the settings icon (⚙️) in the top-right corner
+2. **Select Provider**: Choose from OpenAI, Anthropic, or Google
+3. **Add API Key**: Click "Add Key" and enter your API credentials
+4. **Choose Model**: Select the AI model you want to use
+5. **Start Chatting**: Begin your conversation!
+
+### Supported Providers & Models
+
+| Provider | Models |
+|----------|--------|
+| **OpenAI** | GPT-4.1, GPT-4o, GPT-4o-mini |
+| **Anthropic** | Claude Sonnet 4, Claude Opus 4, Claude 3.5 Haiku |
+| **Google** | Gemini Pro, Gemini Pro Vision |
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+src/
+├── components/
+│   ├── ChatInterface.tsx    # Main chat component
+│   ├── SettingsPanel.tsx    # Settings management
+│   └── ui/                  # Shadcn/ui components
+├── pages/
+│   ├── Index.tsx           # Main page
+│   └── NotFound.tsx        # 404 page
+├── hooks/
+│   └── use-toast.ts        # Toast notifications
+├── lib/
+│   └── utils.ts            # Utility functions
+└── App.tsx                 # Root component
 ```
 
-**Edit a file directly in GitHub**
+### Available Scripts
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+# Development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run build:dev    # Build for development
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+```
 
-**Use GitHub Codespaces**
+### Tech Stack
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **Frontend**: React 18.3.1, TypeScript 5.5.3
+- **Build Tool**: Vite 5.4.1
+- **Styling**: Tailwind CSS 3.4.11
+- **UI Components**: Shadcn/ui with Radix UI
+- **State Management**: React Query (TanStack Query)
+- **Routing**: React Router DOM
+- **Forms**: React Hook Form with Zod validation
+- **Icons**: Lucide React
+- **Animations**: CSS animations with Tailwind
 
-## What technologies are used for this project?
+## 🎨 Design System
 
-This project is built with:
+### Color Palette
+- **Primary**: Purple gradient (`hsl(263 70% 50%)`)
+- **Background**: Dark gradient with glass effect
+- **Chat Bubbles**: User messages in purple, AI responses in muted gray
+- **Glass Effect**: Backdrop blur with semi-transparent backgrounds
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Key Design Features
+- **Glass-morphism**: Semi-transparent panels with backdrop blur
+- **Smooth Animations**: Message slide-in and typing indicators
+- **Responsive Layout**: Adapts to different screen sizes
+- **Accessibility**: Proper ARIA labels and keyboard navigation
 
-## How can I deploy this project?
+## 🔒 Security
 
-Simply open [Lovable](https://lovable.dev/projects/48b80ee2-a3a3-4431-8703-6715baec8797) and click on Share -> Publish.
+- API keys are stored locally in browser memory (not persisted)
+- No server-side storage of sensitive data
+- Secure input handling and validation
+- Masked API key display in settings
 
-## Can I connect a custom domain to my Lovable project?
+## 🚧 Current Status
 
-Yes, you can!
+**Note**: This is currently a frontend-only implementation with simulated API responses. To connect to real AI services, you'll need to:
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+1. Implement actual API calls in `ChatInterface.tsx`
+2. Add proper error handling for API failures
+3. Consider rate limiting and usage tracking
+4. Add message persistence if needed
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Shadcn/ui](https://ui.shadcn.com/) for the beautiful component library
+- [Radix UI](https://www.radix-ui.com/) for accessible primitives
+- [Tailwind CSS](https://tailwindcss.com/) for the utility-first styling
+- [Lucide](https://lucide.dev/) for the beautiful icons
+
+---
+
+**Built with ❤️ using modern web technologies**
