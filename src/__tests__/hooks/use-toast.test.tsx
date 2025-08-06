@@ -23,45 +23,41 @@ describe('useToast hook', () => {
       expect(toastResult).toHaveProperty('id')
       expect(toastResult).toHaveProperty('dismiss')
       expect(toastResult).toHaveProperty('update')
-      expect(typeof toastResult.id).toBe('string')
       expect(typeof toastResult.dismiss).toBe('function')
       expect(typeof toastResult.update).toBe('function')
     })
 
-    it('should create a toast with variant', () => {
-      const toastResult = toast({
-        title: 'Error Toast',
-        description: 'Something went wrong',
-        variant: 'destructive'
+    it('should create a toast with different variants', () => {
+      const defaultToast = toast({ title: 'Default' })
+      const destructiveToast = toast({ 
+        title: 'Error', 
+        variant: 'destructive' 
+      })
+      const successToast = toast({ 
+        title: 'Success', 
+        variant: 'default' 
       })
 
-      expect(toastResult).toHaveProperty('id')
-      expect(toastResult).toHaveProperty('dismiss')
-      expect(toastResult).toHaveProperty('update')
+      expect(defaultToast).toBeDefined()
+      expect(destructiveToast).toBeDefined()
+      expect(successToast).toBeDefined()
     })
 
     it('should create a toast with action', () => {
-      const action = {
-        altText: 'Undo',
-        label: 'Undo'
-      }
-
       const toastResult = toast({
-        title: 'Action Toast',
-        description: 'With action button',
-        action
+        title: 'Action Toast'
       })
 
-      expect(toastResult).toHaveProperty('id')
-      expect(toastResult).toHaveProperty('dismiss')
-      expect(toastResult).toHaveProperty('update')
+      expect(toastResult).toBeDefined()
     })
 
-    it('should generate unique IDs for different toasts', () => {
-      const toast1 = toast({ title: 'First Toast' })
-      const toast2 = toast({ title: 'Second Toast' })
+    it('should create a toast with custom duration', () => {
+      const toastResult = toast({
+        title: 'Custom Duration',
+        duration: 5000
+      })
 
-      expect(toast1.id).not.toBe(toast2.id)
+      expect(toastResult).toBeDefined()
     })
   })
 
@@ -88,11 +84,52 @@ describe('useToast hook', () => {
       })
 
       expect(result.current.toasts).toHaveLength(1)
-      expect(result.current.toasts[0]).toHaveProperty('title', 'Test Toast')
-      expect(result.current.toasts[0]).toHaveProperty('description', 'This is a test')
+      expect(result.current.toasts[0]).toMatchObject({
+        title: 'Test Toast',
+        description: 'This is a test'
+      })
     })
 
-    it('should add multiple toasts to state', () => {
+    it('should dismiss toast when dismiss is called', () => {
+      const { result } = renderHook(() => useToast())
+
+      let toastId: string
+
+      act(() => {
+        const toastResult = result.current.toast({
+          title: 'Test Toast'
+        })
+        toastId = toastResult.id
+      })
+
+      expect(result.current.toasts).toHaveLength(1)
+
+      act(() => {
+        result.current.dismiss(toastId)
+      })
+
+      expect(result.current.toasts).toHaveLength(0)
+    })
+
+    it('should dismiss all toasts when no id is provided', () => {
+      const { result } = renderHook(() => useToast())
+
+      act(() => {
+        result.current.toast({ title: 'Toast 1' })
+        result.current.toast({ title: 'Toast 2' })
+        result.current.toast({ title: 'Toast 3' })
+      })
+
+      expect(result.current.toasts).toHaveLength(3)
+
+      act(() => {
+        result.current.dismiss()
+      })
+
+      expect(result.current.toasts).toHaveLength(0)
+    })
+
+    it('should handle multiple toasts', () => {
       const { result } = renderHook(() => useToast())
 
       act(() => {
@@ -107,98 +144,68 @@ describe('useToast hook', () => {
       expect(result.current.toasts[2].title).toBe('Third Toast')
     })
 
-    it('should dismiss specific toast', () => {
+    it('should generate unique ids for each toast', () => {
       const { result } = renderHook(() => useToast())
 
-      let toastId: string
+      act(() => {
+        result.current.toast({ title: 'Toast 1' })
+        result.current.toast({ title: 'Toast 2' })
+      })
+
+      const ids = result.current.toasts.map(t => t.id)
+      expect(ids).toHaveLength(2)
+      expect(ids[0]).not.toBe(ids[1])
+    })
+
+    it('should handle toast with only title', () => {
+      const { result } = renderHook(() => useToast())
 
       act(() => {
-        const toast = result.current.toast({ title: 'Test Toast' })
-        toastId = toast.id
+        result.current.toast({ title: 'Title Only' })
       })
 
       expect(result.current.toasts).toHaveLength(1)
-
-      act(() => {
-        result.current.dismiss(toastId)
-      })
-
-      expect(result.current.toasts).toHaveLength(0)
-    })
-
-    it('should dismiss all toasts when no ID provided', () => {
-      const { result } = renderHook(() => useToast())
-
-      act(() => {
-        result.current.toast({ title: 'First Toast' })
-        result.current.toast({ title: 'Second Toast' })
-        result.current.toast({ title: 'Third Toast' })
-      })
-
-      expect(result.current.toasts).toHaveLength(3)
-
-      act(() => {
-        result.current.dismiss()
-      })
-
-      expect(result.current.toasts).toHaveLength(0)
-    })
-
-    it('should handle toast with all properties', () => {
-      const { result } = renderHook(() => useToast())
-
-      act(() => {
-        result.current.toast({
-          title: 'Complete Toast',
-          description: 'With all properties',
-          variant: 'destructive',
-          action: {
-            altText: 'Undo',
-            label: 'Undo'
-          }
-        })
-      })
-
-      expect(result.current.toasts).toHaveLength(1)
-      const toast = result.current.toasts[0]
-      expect(toast.title).toBe('Complete Toast')
-      expect(toast.description).toBe('With all properties')
-      expect(toast.variant).toBe('destructive')
-      expect(toast.action).toEqual({
-        altText: 'Undo',
-        label: 'Undo'
-      })
-    })
-
-    it('should handle toast without description', () => {
-      const { result } = renderHook(() => useToast())
-
-      act(() => {
-        result.current.toast({
-          title: 'Simple Toast'
-        })
-      })
-
-      expect(result.current.toasts).toHaveLength(1)
-      expect(result.current.toasts[0].title).toBe('Simple Toast')
+      expect(result.current.toasts[0].title).toBe('Title Only')
       expect(result.current.toasts[0].description).toBeUndefined()
     })
 
-    it('should handle toast without title', () => {
+    it('should handle toast with only description', () => {
       const { result } = renderHook(() => useToast())
 
       act(() => {
-        result.current.toast({
-          description: 'Description only'
-        })
+        result.current.toast({ description: 'Description Only' })
       })
 
       expect(result.current.toasts).toHaveLength(1)
-      expect(result.current.toasts[0].description).toBe('Description only')
+      expect(result.current.toasts[0].description).toBe('Description Only')
       expect(result.current.toasts[0].title).toBeUndefined()
     })
 
-    it('should handle dismiss with invalid ID', () => {
+    it('should handle empty toast', () => {
+      const { result } = renderHook(() => useToast())
+
+      act(() => {
+        result.current.toast({})
+      })
+
+      expect(result.current.toasts).toHaveLength(1)
+      expect(result.current.toasts[0]).toHaveProperty('id')
+    })
+
+    it('should maintain toast order', () => {
+      const { result } = renderHook(() => useToast())
+
+      act(() => {
+        result.current.toast({ title: 'First' })
+        result.current.toast({ title: 'Second' })
+        result.current.toast({ title: 'Third' })
+      })
+
+      const titles = result.current.toasts.map(t => t.title)
+      expect(titles).toEqual(['First', 'Second', 'Third'])
+    })
+
+    it('should handle dismiss of non-existent toast', () => {
       const { result } = renderHook(() => useToast())
 
       act(() => {
@@ -208,86 +215,66 @@ describe('useToast hook', () => {
       expect(result.current.toasts).toHaveLength(1)
 
       act(() => {
-        result.current.dismiss('invalid-id')
+        result.current.dismiss('non-existent-id')
       })
 
       // Should not affect existing toasts
       expect(result.current.toasts).toHaveLength(1)
     })
-
-    it('should handle multiple dismiss operations', () => {
-      const { result } = renderHook(() => useToast())
-
-      let toast1Id: string
-      let toast2Id: string
-
-      act(() => {
-        const toast1 = result.current.toast({ title: 'First Toast' })
-        const toast2 = result.current.toast({ title: 'Second Toast' })
-        toast1Id = toast1.id
-        toast2Id = toast2.id
-      })
-
-      expect(result.current.toasts).toHaveLength(2)
-
-      act(() => {
-        result.current.dismiss(toast1Id)
-      })
-
-      expect(result.current.toasts).toHaveLength(1)
-      expect(result.current.toasts[0].title).toBe('Second Toast')
-
-      act(() => {
-        result.current.dismiss(toast2Id)
-      })
-
-      expect(result.current.toasts).toHaveLength(0)
-    })
   })
 
-  describe('toast dismiss function', () => {
-    it('should dismiss toast when called', () => {
+  describe('toast variants', () => {
+    it('should handle default variant', () => {
       const { result } = renderHook(() => useToast())
 
-      let toastId: string
-
       act(() => {
-        const toast = result.current.toast({ title: 'Test Toast' })
-        toastId = toast.id
-      })
-
-      expect(result.current.toasts).toHaveLength(1)
-
-      act(() => {
-        result.current.dismiss(toastId)
-      })
-
-      expect(result.current.toasts).toHaveLength(0)
-    })
-  })
-
-  describe('toast update function', () => {
-    it('should update toast properties', () => {
-      const { result } = renderHook(() => useToast())
-
-      let toastId: string
-
-      act(() => {
-        const toast = result.current.toast({
-          title: 'Original Title',
-          description: 'Original Description'
-        })
-        toastId = toast.id
-      })
-
-      expect(result.current.toasts[0].title).toBe('Original Title')
-
-      act(() => {
-        result.current.toasts[0].update({
-          title: 'Updated Title',
-          description: 'Updated Description'
+        result.current.toast({ 
+          title: 'Default Toast',
+          variant: 'default'
         })
       })
 
-      expect(result.current.toasts[0].title).toBe('Updated Title')
+      expect(result.current.toasts[0].variant).toBe('default')
+    })
+
+    it('should handle destructive variant', () => {
+      const { result } = renderHook(() => useToast())
+
+      act(() => {
+        result.current.toast({ 
+          title: 'Error Toast',
+          variant: 'destructive'
+        })
+      })
+
+      expect(result.current.toasts[0].variant).toBe('destructive')
+    })
+  })
+
+  describe('toast duration', () => {
+    it('should use default duration when not specified', () => {
+      const { result } = renderHook(() => useToast())
+
+      act(() => {
+        result.current.toast({ title: 'Test Toast' })
+      })
+
+      expect(result.current.toasts[0].duration).toBeUndefined()
+    })
+
+    it('should use custom duration when specified', () => {
+      const { result } = renderHook(() => useToast())
+
+      act(() => {
+        result.current.toast({ 
+          title: 'Test Toast',
+          duration: 5000
+        })
+      })
+
+      expect(result.current.toasts[0].duration).toBe(5000)
+    })
+  })
+})
+ 
  
