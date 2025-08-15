@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SettingsPanel } from './SettingsPanel';
 import { useToast } from '@/hooks/use-toast';
+import { ApiService } from '@/services/api';
 
 export interface Message {
   id: string;
@@ -20,6 +21,8 @@ export interface Provider {
   apiKeys: { id: string; name: string; key: string }[];
   models: string[];
   defaultModel: string;
+  isLocal?: boolean; // For Ollama and other local providers
+  baseUrl?: string; // For Ollama's local endpoint
 }
 
 export const ChatInterface = () => {
@@ -51,12 +54,22 @@ export const ChatInterface = () => {
       apiKeys: [],
       models: ['gemini-pro', 'gemini-pro-vision'],
       defaultModel: 'gemini-pro'
+    },
+    {
+      id: 'ollama',
+      name: 'Ollama (Local)',
+      apiKeys: [],
+      models: ['llama3.2', 'llama3.2:3b', 'llama3.2:8b', 'llama3.2:70b', 'mistral', 'codellama', 'phi3'],
+      defaultModel: 'llama3.2',
+      isLocal: true,
+      baseUrl: 'http://localhost:11434'
     }
   ]);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
+  const apiService = new ApiService();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -67,10 +80,24 @@ export const ChatInterface = () => {
   const handleSendMessage = async () => {
     if (!input.trim()) return;
     
-    if (!selectedProvider || !selectedApiKey || !selectedModel) {
+    const currentProvider = providers.find(p => p.id === selectedProvider);
+    if (!currentProvider) return;
+
+    // For local providers like Ollama, API key is not required
+    if (!currentProvider.isLocal && (!selectedApiKey || !selectedModel)) {
       toast({
         title: "Configuration Required",
         description: "Please select a provider, API key, and model in settings.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // For Ollama, model is required but API key is not
+    if (currentProvider.isLocal && !selectedModel) {
+      toast({
+        title: "Configuration Required",
+        description: "Please select a model for Ollama in settings.",
         variant: "destructive"
       });
       return;
@@ -89,22 +116,36 @@ export const ChatInterface = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call - replace with actual implementation
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const chatRequest = {
+        provider: selectedProvider,
+        model: selectedModel,
+        messages: [
+          ...messages.map(msg => ({ 
+            role: msg.role, 
+            content: msg.content 
+          })),
+          { role: 'user' as const, content: input.trim() }
+        ],
+        apiKey: selectedApiKey,
+        baseUrl: currentProvider.baseUrl
+      };
+
+      const response = await apiService.sendMessage(chatRequest);
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `This is a simulated response from ${providers.find(p => p.id === selectedProvider)?.name} using model ${selectedModel}. Your message was: "${userMessage.content}"`,
-        timestamp: new Date(),
+        content: response.content,
+        timestamp: response.timestamp,
         provider: selectedProvider
       };
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
+      console.error('Chat error:', error);
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to send message. Please try again.",
         variant: "destructive"
       });
     } finally {

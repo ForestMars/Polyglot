@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import type { Provider } from './ChatInterface';
+import { OllamaStatus } from './OllamaStatus';
 
 interface SettingsPanelProps {
   providers: Provider[];
@@ -139,8 +140,8 @@ export const SettingsPanel = ({
           </Select>
         </div>
 
-        {/* API Key Selection */}
-        {selectedProvider && (
+        {/* API Key Selection - Only show for non-local providers */}
+        {selectedProvider && !currentProvider?.isLocal && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label>API Key</Label>
@@ -250,8 +251,40 @@ export const SettingsPanel = ({
           </div>
         )}
 
+        {/* Ollama Configuration - Only show for Ollama */}
+        {selectedProvider && currentProvider?.isLocal && (
+          <div className="space-y-3">
+            <Label>Ollama Configuration</Label>
+            <div className="space-y-2">
+              <div>
+                <Label htmlFor="baseUrl" className="text-sm">Base URL</Label>
+                <Input
+                  id="baseUrl"
+                  value={currentProvider.baseUrl || 'http://localhost:11434'}
+                  onChange={(e) => {
+                    const updatedProviders = providers.map(p => 
+                      p.id === selectedProvider 
+                        ? { ...p, baseUrl: e.target.value }
+                        : p
+                    );
+                    setProviders(updatedProviders);
+                  }}
+                  placeholder="http://localhost:11434"
+                  className="glass-panel"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  URL where Ollama is running (default: http://localhost:11434)
+                </p>
+              </div>
+              
+              {/* Ollama Status Component */}
+              <OllamaStatus baseUrl={currentProvider.baseUrl || 'http://localhost:11434'} />
+            </div>
+          </div>
+        )}
+
         {/* Model Selection */}
-        {selectedProvider && selectedApiKey && (
+        {selectedProvider && (currentProvider?.isLocal || selectedApiKey) && (
           <div className="space-y-3">
             <Label>Model</Label>
             <Select value={selectedModel} onValueChange={setSelectedModel}>
@@ -270,7 +303,7 @@ export const SettingsPanel = ({
         )}
 
         {/* Current Configuration Summary */}
-        {selectedProvider && selectedApiKey && selectedModel && (
+        {selectedProvider && selectedModel && (currentProvider?.isLocal || selectedApiKey) && (
           <Card className="glass-panel">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Current Configuration</CardTitle>
@@ -280,10 +313,18 @@ export const SettingsPanel = ({
                 <span className="text-muted-foreground">Provider:</span>
                 <span>{currentProvider?.name}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">API Key:</span>
-                <span>{currentApiKey?.name}</span>
-              </div>
+              {!currentProvider?.isLocal && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">API Key:</span>
+                  <span>{currentApiKey?.name}</span>
+                </div>
+              )}
+              {currentProvider?.isLocal && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Base URL:</span>
+                  <span className="text-xs font-mono">{currentProvider.baseUrl}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Model:</span>
                 <span>{selectedModel}</span>
