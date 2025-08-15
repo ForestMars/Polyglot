@@ -26,6 +26,15 @@ export const mockProviders: Provider[] = [
     apiKeys: [],
     models: ['gemini-pro', 'gemini-pro-vision'],
     defaultModel: 'gemini-pro'
+  },
+  {
+    id: 'ollama',
+    name: 'Ollama (Local)',
+    apiKeys: [],
+    models: ['llama3.2', 'llama3.2:3b', 'llama3.2:8b', 'llama3.2:70b', 'mistral', 'codellama', 'phi3'],
+    defaultModel: 'llama3.2',
+    isLocal: true,
+    baseUrl: 'http://localhost:11434'
   }
 ]
 
@@ -50,5 +59,14 @@ export const mockEmptyProviders: Provider[] = [
     apiKeys: [],
     models: ['gemini-pro', 'gemini-pro-vision'],
     defaultModel: 'gemini-pro'
+  },
+  {
+    id: 'ollama',
+    name: 'Ollama (Local)',
+    apiKeys: [],
+    models: ['llama3.2', 'llama3.2:3b', 'llama3.2:8b', 'llama3.2:70b', 'mistral', 'codellama', 'phi3'],
+    defaultModel: 'llama3.2',
+    isLocal: true,
+    baseUrl: 'http://localhost:11434'
   }
 ] 

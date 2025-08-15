@@ -9,9 +9,10 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 
 ## Features
 
-- **Multi-Provider Support**: Connect to OpenAI, Anthropic, and Google AI services
+- **Multi-Provider Support**: Connect to OpenAI, Anthropic, Google AI services, and Ollama (local)
 - **Beautiful UI**: Glass-morphism design with smooth animations and modern aesthetics
 - **API Key Management**: Securely store and manage multiple API keys per provider
+- **Local AI Support**: Run AI models locally with Ollama (no API keys required)
 - **Model Selection**: Choose from various AI models for each provider
 - **Real-time Chat**: Smooth message flow with typing indicators
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
@@ -57,19 +58,36 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 
 ### Setting Up AI Providers
 
+#### Cloud Providers (OpenAI, Anthropic, Google)
 1. **Open Settings**: Click the settings icon (⚙️) in the top-right corner
 2. **Select Provider**: Choose from OpenAI, Anthropic, or Google
 3. **Add API Key**: Click "Add Key" and enter your API credentials
 4. **Choose Model**: Select the AI model you want to use
 5. **Start Chatting**: Begin your conversation!
 
+#### Local Provider (Ollama)
+1. **Install Ollama**: Follow the [official installation guide](https://ollama.ai/download)
+2. **Pull Models**: Download the models you want to use:
+   ```bash
+   ollama pull llama3.2
+   ollama pull mistral
+   ollama pull codellama
+   ```
+3. **Start Ollama**: Ensure Ollama is running (it starts automatically on most systems)
+4. **Configure in App**: 
+   - Open Settings and select "Ollama (Local)"
+   - Verify the base URL (default: http://localhost:11434)
+   - Select your preferred model
+5. **Start Chatting**: Begin your conversation with local AI models!
+
 ### Supported Providers & Models
 
-| Provider | Models |
-|----------|--------|
-| **OpenAI** | GPT-4.1, GPT-4o, GPT-4o-mini |
-| **Anthropic** | Claude Sonnet 4, Claude Opus 4, Claude 3.5 Haiku |
-| **Google** | Gemini Pro, Gemini Pro Vision |
+| Provider | Models | Type |
+|----------|--------|------|
+| **OpenAI** | GPT-4.1, GPT-4o, GPT-4o-mini | Cloud |
+| **Anthropic** | Claude Sonnet 4, Claude Opus 4, Claude 3.5 Haiku | Cloud |
+| **Google** | Gemini Pro, Gemini Pro Vision | Cloud |
+| **Ollama** | Llama 3.2, Mistral, CodeLlama, Phi-3 | Local |
 
 ## Development
 
