@@ -2,10 +2,10 @@
 
 A modern, elegant AI chat interface built with React, TypeScript, and Tailwind CSS. Connect to multiple AI providers (OpenAI, Anthropic, Google) with a beautiful glass-morphism design.
 
-![PolyGlut Chat Interface](https://img.shields.io/badge/React-18.3.1-blue?style=flat&logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.5.3-blue?style=flat&logo=typescript)
-![Vite](https://img.shields.io/badge/Vite-5.4.1-purple?style=flat&logo=vite)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.11-38B2AC?style=flat&logo=tailwind-css)
+[![React](https://img.shields.io/badge/React-18.3.1-blue?style=flat&logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5.3-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.4.1-purple?style=flat&logo=vite)](https://vitejs.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.11-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
 
 ## Features
 
@@ -17,19 +17,20 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Dark Mode**: Elegant dark theme optimized for extended use
 - **Toast Notifications**: User-friendly feedback for actions and errors
+- **Testing**: Comprehensive test suite with Vitest and React Testing Library
 
 ## Quick Start
 
 ### Prerequisites
 
 - Node.js 18+ 
-- npm or yarn (bun coming) 
+- npm or yarn (bun support coming soon)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/yourusername/polyglut.git
    cd polyglut
    ```
 
@@ -38,12 +39,18 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
    npm install
    ```
 
-3. **Start the development server**
+3. **Set up environment variables** (optional for development)
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your API keys if testing real integrations
+   ```
+
+4. **Start the development server**
    ```bash
    npm run dev
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    Navigate to `http://localhost:5173`
 
 ## Configuration
@@ -78,9 +85,13 @@ src/
 │   ├── Index.tsx           # Main page
 │   └── NotFound.tsx        # 404 page
 ├── hooks/
+│   ├── use-mobile.tsx      # Mobile detection hook
 │   └── use-toast.ts        # Toast notifications
 ├── lib/
 │   └── utils.ts            # Utility functions
+├── __tests__/              # Test files
+│   ├── hooks/              # Hook tests
+│   └── utils/              # Utility tests
 └── App.tsx                 # Root component
 ```
 
@@ -92,7 +103,16 @@ npm run dev          # Start development server
 npm run build        # Build for production
 npm run build:dev    # Build for development
 npm run preview      # Preview production build
+
+# Testing
+npm run test         # Run tests in watch mode
+npm run test:ui      # Run tests with UI
+npm run test:run     # Run tests once
+npm run coverage     # Generate coverage report
+
+# Code Quality
 npm run lint         # Run ESLint
+npm run type-check   # TypeScript type checking
 ```
 
 ### Tech Stack
@@ -106,6 +126,23 @@ npm run lint         # Run ESLint
 - **Forms**: React Hook Form with Zod validation
 - **Icons**: Lucide React
 - **Animations**: CSS animations with Tailwind
+- **Testing**: Vitest, React Testing Library, MSW
+
+## Testing
+
+The project includes a comprehensive test suite:
+
+- **Unit Tests**: Component and hook testing with React Testing Library
+- **Mock Service Worker**: API mocking for consistent test results
+- **Test Utilities**: Custom render functions and test helpers
+- **Coverage**: Code coverage reporting with Vitest
+
+Run tests with:
+```bash
+npm run test        # Watch mode
+npm run test:run    # Single run
+npm run coverage    # Coverage report
+```
 
 ## Design System
 
@@ -137,13 +174,40 @@ npm run lint         # Run ESLint
 3. Consider rate limiting and usage tracking
 4. Add message persistence if needed
 
-## ontributing
+## Deployment
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist/` directory, ready for deployment to any static hosting service like:
+- Vercel
+- Netlify
+- GitHub Pages
+- AWS S3 + CloudFront
+
+### Environment Variables
+
+For production deployment, you may need to set environment variables:
+- `VITE_APP_TITLE`: Application title
+- `VITE_APP_DESCRIPTION`: Application description
+
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow the existing code style and TypeScript patterns
+- Add tests for new features
+- Ensure all tests pass before submitting PRs
+- Update documentation as needed
 
 ## License
 
@@ -155,6 +219,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Radix UI](https://www.radix-ui.com/) for accessible primitives
 - [Tailwind CSS](https://tailwindcss.com/) for the utility-first styling
 - [Lucide](https://lucide.dev/) for the beautiful icons
-
----
+- [Vitest](https://vitest.dev/) for the fast testing framework
 
