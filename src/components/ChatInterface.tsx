@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { SettingsPanel } from './SettingsPanel';
 import { useToast } from '@/hooks/use-toast';
 import { ApiService } from '@/services/api';
+import { Badge } from '@/components/ui/badge';
 
 export interface Message {
   id: string;
@@ -65,6 +66,7 @@ export const ChatInterface = () => {
       baseUrl: 'http://localhost:11434'
     }
   ]);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -76,6 +78,26 @@ export const ChatInterface = () => {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // Fetch models when Ollama is selected
+  useEffect(() => {
+    if (selectedProvider === 'ollama') {
+      const fetchModels = async () => {
+        try {
+          const response = await fetch('http://localhost:11434/api/tags');
+          if (response.ok) {
+            const data = await response.json();
+            setAvailableModels(data.models?.map((m: any) => m.name) || []);
+          }
+        } catch (error) {
+          console.error('Failed to fetch models:', error);
+        }
+      };
+      fetchModels();
+    } else {
+      setAvailableModels([]);
+    }
+  }, [selectedProvider]);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -177,6 +199,29 @@ export const ChatInterface = () => {
                 <p className="text-sm text-muted-foreground">
                   {currentProvider?.name} • {selectedModel}
                 </p>
+              )}
+              {/* Show available models for Ollama */}
+              {selectedProvider === 'ollama' && availableModels.length > 0 && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                  <span>Available models:</span>
+                  <div className="flex gap-1">
+                    {availableModels.slice(0, 3).map((model) => (
+                      <Badge 
+                        key={model} 
+                        variant="outline" 
+                        className="text-xs cursor-pointer hover:bg-primary/10 transition-colors"
+                        onClick={() => setSelectedModel(model)}
+                      >
+                        {model}
+                      </Badge>
+                    ))}
+                    {availableModels.length > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{availableModels.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>
