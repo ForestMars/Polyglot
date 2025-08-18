@@ -183,7 +183,8 @@ export const ChatInterface = () => {
   };
 
   const currentProvider = providers.find(p => p.id === selectedProvider);
-  const hasValidConfig = selectedProvider && selectedApiKey && selectedModel;
+  const hasValidConfig = selectedProvider && selectedModel && 
+    (currentProvider?.isLocal || selectedApiKey);
 
   return (
     <div className="flex h-screen bg-background">
