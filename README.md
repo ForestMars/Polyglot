@@ -52,7 +52,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
    ```
 
 5. **Open your browser**
-   Navigate to `http://localhost:5173`
+   Navigate to `http://localhost:8080`
 
 ## Configuration
 
