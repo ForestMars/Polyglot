@@ -87,7 +87,15 @@ export const ChatInterface = () => {
           const response = await fetch('http://localhost:11434/api/tags');
           if (response.ok) {
             const data = await response.json();
-            setAvailableModels(data.models?.map((m: any) => m.name) || []);
+            const modelNames = data.models?.map((m: any) => m.name) || [];
+            setAvailableModels(modelNames);
+            
+            // Update the providers array with actual available models
+            setProviders(prev => prev.map(provider => 
+              provider.id === 'ollama' 
+                ? { ...provider, models: modelNames, defaultModel: modelNames[0] }
+                : provider
+            ));
           }
         } catch (error) {
           console.error('Failed to fetch models:', error);
@@ -98,6 +106,17 @@ export const ChatInterface = () => {
       setAvailableModels([]);
     }
   }, [selectedProvider]);
+
+  // Update the providers array to use actual available models for Ollama
+  useEffect(() => {
+    if (selectedProvider === 'ollama' && availableModels.length > 0) {
+      setProviders(prev => prev.map(provider => 
+        provider.id === 'ollama' 
+          ? { ...provider, models: availableModels, defaultModel: availableModels[0] }
+          : provider
+      ));
+    }
+  }, [availableModels, selectedProvider]);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
