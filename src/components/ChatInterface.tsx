@@ -156,6 +156,9 @@ export const ChatInterface = () => {
     setInput('');
     setIsLoading(true);
 
+    // Start timing
+    const startTime = Date.now();
+
     try {
       const chatRequest = {
         provider: selectedProvider,
@@ -173,10 +176,17 @@ export const ChatInterface = () => {
 
       const response = await apiService.sendMessage(chatRequest);
       
+      // Calculate response time
+      const responseTime = Date.now() - startTime;
+      const responseTimeSeconds = (responseTime / 1000).toFixed(1);
+      
+      // Prepend timing info to response content
+      const timedContent = `Thought for ${responseTimeSeconds} seconds\n\n${response.content}`;
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.content,
+        content: timedContent,
         timestamp: response.timestamp,
         provider: selectedProvider
       };
