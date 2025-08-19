@@ -203,11 +203,12 @@ export const ChatInterface = () => {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
 
+    let conversationId = conversationState.currentConversation?.id;
+
     try {
       setIsLoading(true);
 
       // Create or update conversation
-      let conversationId = conversationState.currentConversation?.id;
       if (!conversationId && conversationState.createConversation) {
         const newConversation = await conversationState.createConversation(
           selectedProvider,
@@ -219,56 +220,76 @@ export const ChatInterface = () => {
       // Get the API key for the selected provider
       const apiKey = settings?.[selectedApiKey] || '';
 
-      // Call the API service to get the AI response
-      // TODO: Implement the actual API call
-      console.log('Sending message:', { selectedProvider, selectedModel, messages, apiKey });
-      // Simulate API response
-      const response = {
-        provider: selectedProvider,
-        model: selectedModel,
-        messages: [...messages, userMessage],
-        apiKey,
-        onChunk: (chunk: string) => {
-          setMessages(prev => {
-            const lastMessage = prev[prev.length - 1];
-            if (lastMessage?.role === 'assistant') {
-              return [
-                ...prev.slice(0, -1),
-                {
-                  ...lastMessage,
-                  content: lastMessage.content + chunk
-                }
-              ];
-            }
-            return [
-              ...prev,
-              {
-                id: Date.now().toString(),
-                role: 'assistant' as const,
-                content: chunk,
-                timestamp: new Date()
-              }
-            ];
-          });
-        }
+      // Create the assistant message placeholder
+      const assistantMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        provider: selectedProvider
       };
 
-      // Update conversation with the complete response
-      if (conversationId && conversationState.addMessage) {
-        // Add the assistant's response to the conversation
-        // Get the last assistant message content
-        const lastAssistantMessage = [...messages].reverse().find(m => m.role === 'assistant');
-        const assistantMessage: Message = {
-          id: `msg_${Date.now()}`,
-          role: 'assistant',
-          content: lastAssistantMessage?.content || '',
-          timestamp: new Date(),
-          provider: selectedProvider
-        };
-        await conversationState.addMessage(assistantMessage);
+      // Add the assistant message to the UI immediately
+      setMessages(prev => [...prev, assistantMessage]);
+
+      // Filter out system messages before sending to the API
+      const filteredMessages = 
+        [...messages, userMessage]
+          .filter((msg): msg is Message => 
+            msg.role === 'user' || msg.role === 'assistant'
+          )
+          .map(({ role, content }) => ({ 
+            role: role as 'user' | 'assistant', 
+            content 
+          }));
+
+      // Call the API service to get the AI response
+      const apiService = new ApiService();
+      const response = await apiService.sendMessage({
+        provider: selectedProvider,
+        model: selectedModel,
+        messages: filteredMessages,
+        apiKey,
+        baseUrl: selectedProvider === 'ollama' ? 'http://localhost:11434' : undefined
+      });
+
+      // Update the assistant message with the response
+      setMessages(prev => {
+        const messageIndex = prev.findIndex(m => m.id === assistantMessage.id);
+        if (messageIndex !== -1) {
+          const updatedMessages = [...prev];
+          updatedMessages[messageIndex] = {
+            ...updatedMessages[messageIndex],
+            content: response.content
+          };
+          return updatedMessages;
+        }
+        return prev;
+      });
+
+      // Add the assistant's response to the conversation
+      if (conversationState.addMessage) {
+        await conversationState.addMessage({
+          ...assistantMessage,
+          content: response.content
+        });
       }
     } catch (error) {
       console.error('Error sending message:', error);
+      // Update the assistant message with the error
+      setMessages(prev => {
+        const messageIndex = prev.findIndex(m => m.role === 'assistant' && m.content === '');
+        if (messageIndex !== -1) {
+          const updatedMessages = [...prev];
+          updatedMessages[messageIndex] = {
+            ...updatedMessages[messageIndex],
+            content: 'Sorry, there was an error processing your message. Please try again.'
+          };
+          return updatedMessages;
+        }
+        return prev;
+      });
+      
       toast({
         title: 'Error',
         description: 'Failed to send message. Please try again.',
