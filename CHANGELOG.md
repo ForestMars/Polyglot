@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.2.5] - 2025-08-19
+
+### Added
+- **Data Export/Import System**: Users can now export their chat history and settings as downloadable JSON files
+- **Cross-Browser Data Transfer**: Easy transfer of Polyglut data between different browsers and devices
+- **Data Transfer UI**: New section in Settings panel with Export and Import buttons
+- **File Downloads**: Automatic download of conversations.json, settings.json, and storage-index.json
+- **Data Validation**: Import validation to ensure data integrity and prevent corruption
+- **User Documentation**: README.md in data/ directory explaining how to use the export/import functionality
+
+### Changed
+- **StorageService**: Enhanced with exportToFiles() and importFromFiles() methods
+- **SettingsPanel**: Added Data Transfer section with export/import functionality
+- **File Handling**: Improved file I/O with proper blob creation and FileReader API
+
+### Technical Improvements
+- **Download System**: Uses Blob API and programmatic file downloads for better user experience
+- **Import Validation**: Robust validation of imported data structures before applying
+- **Error Handling**: Comprehensive error handling with user-friendly toast notifications
+- **File Type Support**: Accepts .json files for data import with multiple file selection
+
 ## [0.2.4] - 2025-08-18
 
 ### Added
