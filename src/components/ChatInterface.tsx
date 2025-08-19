@@ -385,7 +385,7 @@ export const ChatInterface = () => {
           <div className="flex items-center gap-3">
             <Bot className="w-8 h-8 text-primary" />
             <div>
-              <h1 className="text-xl font-bold">AI Chat Interface</h1>
+              <h1 className="text-xl font-bold">Polyglut Chat</h1>
               {conversationState.currentConversation && (
                 <p className="text-sm text-muted-foreground">
                   {conversationState.currentConversation.title}
@@ -447,7 +447,7 @@ export const ChatInterface = () => {
             {messages.length === 0 && (
               <div className="text-center py-12">
                 <Bot className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Welcome to AI Chat</h3>
+                <h3 className="text-lg font-medium mb-2">Welcome to Polyglut Chat</h3>
                 <p className="text-muted-foreground">
                   {hasValidConfig 
                     ? "Start a conversation by typing a message below."
