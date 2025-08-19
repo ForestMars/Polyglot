@@ -49,38 +49,41 @@ export class ApiService {
     messages: Array<{ role: 'user' | 'assistant'; content: string }>,
     baseUrl?: string
   ): Promise<ChatResponse> {
-    // Update base URL if provided
-    if (baseUrl) {
-      this.ollamaService = new OllamaService(baseUrl);
-    }
+    // Always create a new instance with the provided base URL or use the default
+    const ollamaService = new OllamaService(baseUrl);
 
-    // Check if Ollama is running
-    const isHealthy = await this.ollamaService.healthCheck();
-    if (!isHealthy) {
-      throw new Error('Ollama is not running. Please start Ollama and ensure it\'s accessible at the configured URL.');
-    }
-
-    const ollamaRequest: OllamaRequest = {
-      model,
-      messages: messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      })),
-      stream: false,
-      options: {
-        temperature: 0.7,
-        top_p: 0.9,
+    try {
+      // Check if Ollama is running
+      const isHealthy = await ollamaService.healthCheck();
+      if (!isHealthy) {
+        throw new Error('Ollama is not running. Please start Ollama and ensure it\'s accessible at the configured URL.');
       }
-    };
 
-    const response = await this.ollamaService.chat(ollamaRequest);
+      const ollamaRequest: OllamaRequest = {
+        model,
+        messages: messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        })),
+        stream: false,
+        options: {
+          temperature: 0.7,
+          top_p: 0.9,
+        }
+      };
 
-    return {
-      content: response.message.content,
-      provider: 'ollama',
-      model: response.model,
-      timestamp: new Date(response.created_at)
-    };
+      const response = await ollamaService.chat(ollamaRequest);
+
+      return {
+        content: response.message.content,
+        provider: 'ollama',
+        model: response.model,
+        timestamp: new Date(response.created_at)
+      };
+    } catch (error) {
+      console.error('Ollama request failed:', error);
+      throw error;
+    }
   }
 
   private async handleOpenAIRequest(

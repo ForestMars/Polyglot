@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Send, Settings, Bot, User, Loader2, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -58,8 +58,7 @@ export const ChatInterface = () => {
       apiKeys: [],
       models: ['llama3.2', 'llama3.2:3b', 'llama3.2:8b', 'llama3.2:70b', 'mistral', 'codellama', 'phi3'],
       defaultModel: 'llama3.2',
-      isLocal: true,
-      baseUrl: 'http://localhost:11434'
+      isLocal: true
     }
   ]);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
@@ -68,33 +67,38 @@ export const ChatInterface = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
-  const apiService = new ApiService();
+
+  // Get settings first to ensure we have the latest Ollama base URL
+  const { 
+    settings, 
+    updateSetting, 
+    isLoading: settingsLoading 
+  } = useSettings();
   
-  // Use the new centralized state management hooks
+  // Get the Ollama base URL from settings or use default
+  const ollamaBaseUrl = settings?.ollamaBaseUrl || 'http://localhost:11434';
+  
+  // Initialize API service
+  const apiService = useMemo(() => new ApiService(), []);
+  
+  // Use the conversation state management
   const { 
     state: conversationState, 
     createConversation, 
     loadConversation, 
     addMessage, 
     switchModel,
-    searchConversations,
-    getConversationStats
+    searchConversations
   } = useConversationState();
   
-  const { 
-    settings, 
-    updateSetting, 
-    isLoading: settingsLoading 
-  } = useSettings();
-
   // Initialize settings from the settings service
   useEffect(() => {
     if (settings) {
       setShowSidebar(!settings.sidebarCollapsed);
-      // Don't auto-set provider/model - let user choose explicitly
     }
   }, [settings]);
 
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
