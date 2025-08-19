@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2025-08-18
+
+### Added
+- **Complete UI Integration**: Full integration of centralized state management system
+  - ChatInterface now uses useConversationState and useSettings hooks
+  - ConversationSidebar fully integrated with new state management
+  - Real-time conversation state synchronization across all components
+  - Automatic conversation persistence and auto-save functionality
+- **Enhanced User Experience**: Seamless conversation management workflow
+  - Conversation creation, loading, and switching with full context preservation
+  - Model switching mid-conversation with visual feedback
+  - Real-time conversation list updates and filtering
+  - Responsive sidebar with conversation actions (archive, delete, restore)
+- **Performance Optimizations**: Efficient state management and rendering
+  - Centralized state updates with observer pattern
+  - Optimized re-renders and background operations
+  - Efficient conversation filtering and search
+  - Background auto-save without blocking UI
+
+### Changed
+- **Component Architecture**: Moved from direct service calls to centralized hooks
+  - ChatInterface now uses useConversationState instead of direct StorageService calls
+  - ConversationSidebar integrated with centralized state management
+  - All conversation operations now go through the state manager
+- **State Management**: Unified conversation and settings state across the application
+  - Single source of truth for all conversation data
+  - Real-time synchronization between components
+  - Automatic state persistence and recovery
+
+### Technical Improvements
+- **Hook Integration**: Complete integration of Phase 3 services
+  - useConversationState provides all conversation operations
+  - useSettings manages application preferences and persistence
+  - Proper async/await handling for all state operations
+- **Error Handling**: Comprehensive error boundaries and user feedback
+  - Toast notifications for all user actions
+  - Graceful fallbacks for failed operations
+  - User-friendly error messages and recovery options
+- **Type Safety**: Full TypeScript integration with proper interfaces
+  - Correct function signatures for all hooks
+  - Proper async operation handling
+  - Type-safe conversation and message handling
+
 ## [0.2.3] - 2025-08-18
 
 ### Added
@@ -175,7 +218,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Model Switching**: Supports seamless model switching mid-conversation with full context preservation and tracking
 - **State Management**: Complete centralized state management with real-time persistence
 - **Current Status**: All core conversation persistence features implemented and tested
-- **Next Phase**: UI integration and final UX refinements (v0.2.4)
+- **Feature Complete**: All 4 phases of conversation persistence feature have been completed:
+  - Phase 1 (v0.2.1): Storage Service Layer ✅
+  - Phase 2 (v0.2.2): UI Components ✅
+  - Phase 3 (v0.2.3): State Management & File System Implementation ✅
+  - Phase 4 (v0.2.4): UI Integration & Final UX Refinements ✅
 - **Future Plans**: Database migration for settings, cloud sync capabilities, conversation sharing, and desktop app version
 
 ## Contributing
