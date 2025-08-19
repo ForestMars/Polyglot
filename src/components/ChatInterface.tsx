@@ -428,7 +428,11 @@ export const ChatInterface = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => setShowSettings(!showSettings)}
+              onClick={() => {
+                console.log('Settings button clicked, current showSettings:', showSettings);
+                setShowSettings(!showSettings);
+                console.log('Setting showSettings to:', !showSettings);
+              }}
               className="glass-panel"
             >
               <Settings className="w-4 h-4" />
