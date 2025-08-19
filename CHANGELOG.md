@@ -5,9 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - Current Development
+## [0.0.2] - Current Development
 
-### Added
+### Added in 0.0.2
 - **Ollama Integration**: Complete local AI model support with Ollama service
   - OllamaService class with chat, generate, and listModels methods
   - Health check functionality for Ollama connection status
@@ -32,6 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mock service worker for API testing
   - Hook testing utilities and custom render functions
   - Test coverage reporting
+### Added in 0.0.1
+- **Storage Service Layer**
+    - Added src/services/storage.ts
+    - File-based persistence for conversations and settings
+    - CRUD operations for handling conversations
+    - Auto-save functionality
+
 
 ### Changed
 - **Project Structure**: Reorganized codebase for better maintainability
