@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { SettingsService, AppSettings } from '@/services/settingsService';
 
 export const useSettings = () => {
@@ -6,7 +6,8 @@ export const useSettings = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const settingsService = new SettingsService();
+  // Create a single instance of SettingsService
+  const settingsService = useMemo(() => new SettingsService(), []);
 
   // Load settings on mount
   useEffect(() => {

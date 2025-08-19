@@ -63,7 +63,7 @@ export const ChatInterface = () => {
     }
   ]);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false); // Temporarily disabled for debugging
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -428,11 +428,7 @@ export const ChatInterface = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => {
-                console.log('Settings button clicked, current showSettings:', showSettings);
-                setShowSettings(!showSettings);
-                console.log('Setting showSettings to:', !showSettings);
-              }}
+              onClick={() => setShowSettings(!showSettings)}
               className="glass-panel"
             >
               <Settings className="w-4 h-4" />
@@ -535,8 +531,15 @@ export const ChatInterface = () => {
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="relative">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowSettings(false);
+            }
+          }}
+        >
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
             <SettingsPanel
               providers={providers}
               setProviders={setProviders}

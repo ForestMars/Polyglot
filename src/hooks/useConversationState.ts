@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ConversationStateManager, ConversationState, ConversationFilters } from '@/services/conversationStateManager';
 import { Conversation, Message } from '@/types/conversation';
 
@@ -11,22 +11,20 @@ export const useConversationState = () => {
     lastUpdated: new Date()
   });
   
-  const stateManagerRef = useRef<ConversationStateManager | null>(null);
+  // Create a single instance of the state manager
+  const stateManager = useMemo(() => new ConversationStateManager(), []);
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
   // Initialize state manager
   useEffect(() => {
     const initializeManager = async () => {
       try {
-        const manager = new ConversationStateManager();
-        stateManagerRef.current = manager;
-        
         // Subscribe to state changes
-        const unsubscribe = manager.subscribe(setState);
+        const unsubscribe = stateManager.subscribe(setState);
         unsubscribeRef.current = unsubscribe;
         
         // Initialize the manager
-        await manager.initialize();
+        await stateManager.initialize();
       } catch (error) {
         console.error('Failed to initialize conversation state manager:', error);
         setState(prev => ({
@@ -43,129 +41,47 @@ export const useConversationState = () => {
       if (unsubscribeRef.current) {
         unsubscribeRef.current();
       }
-      if (stateManagerRef.current) {
-        stateManagerRef.current.destroy();
-      }
+      stateManager.destroy();
     };
-  }, []);
+  }, [stateManager]);
 
   // Conversation operations
   const createConversation = useCallback(async (provider: string, model: string) => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    return await stateManagerRef.current.createConversation(provider, model);
-  }, []);
+    return await stateManager.createConversation(provider, model);
+  }, [stateManager]);
 
   const loadConversation = useCallback(async (id: string) => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    return await stateManagerRef.current.loadConversation(id);
-  }, []);
+    return await stateManager.loadConversation(id);
+  }, [stateManager]);
 
   const addMessage = useCallback(async (message: Message) => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    return await stateManagerRef.current.addMessage(message);
-  }, []);
+    return await stateManager.addMessage(message);
+  }, [stateManager]);
 
   const switchModel = useCallback(async (newModel: string) => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    return await stateManagerRef.current.switchModel(newModel);
-  }, []);
+    return await stateManager.switchModel(newModel);
+  }, [stateManager]);
 
   const toggleArchive = useCallback(async (conversationId: string) => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    return await stateManagerRef.current.toggleArchive(conversationId);
-  }, []);
+    return await stateManager.toggleArchive(conversationId);
+  }, [stateManager]);
 
   const deleteConversation = useCallback(async (conversationId: string) => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    return await stateManagerRef.current.deleteConversation(conversationId);
-  }, []);
+    return await stateManager.deleteConversation(conversationId);
+  }, [stateManager]);
 
   const searchConversations = useCallback(async (filters: ConversationFilters) => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    return await stateManagerRef.current.searchConversations(filters);
-  }, []);
-
-  const getConversationStats = useCallback(() => {
-    if (!stateManagerRef.current) {
-      return {
-        total: 0,
-        active: 0,
-        archived: 0,
-        byProvider: {},
-        byModel: {}
-      };
-    }
-    return stateManagerRef.current.getConversationStats();
-  }, []);
-
-  const exportConversation = useCallback(async (conversationId: string) => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    return await stateManagerRef.current.exportConversation(conversationId);
-  }, []);
-
-  const importConversation = useCallback(async (jsonData: string) => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    return await stateManagerRef.current.importConversation(jsonData);
-  }, []);
-
-  const cleanupOldConversations = useCallback(async (maxAge: number) => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    return await stateManagerRef.current.cleanupOldConversations(maxAge);
-  }, []);
-
-  // Utility functions
-  const getCurrentConversation = useCallback(() => {
-    return state.currentConversation;
-  }, [state.currentConversation]);
-
-  const getConversations = useCallback(() => {
-    return state.conversations;
-  }, [state.conversations]);
-
-  const isLoading = useCallback(() => {
-    return state.isLoading;
-  }, [state.isLoading]);
-
-  const hasError = useCallback(() => {
-    return state.error !== null;
-  }, [state.error]);
-
-  const getError = useCallback(() => {
-    return state.error;
-  }, [state.error]);
+    return await stateManager.searchConversations(filters);
+  }, [stateManager]);
 
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
   }, []);
 
   const refreshConversations = useCallback(async () => {
-    if (!stateManagerRef.current) {
-      throw new Error('State manager not initialized');
-    }
-    
     // Force reload conversations
-    await stateManagerRef.current.initialize();
-  }, []);
+    await stateManager.initialize();
+  }, [stateManager]);
 
   return {
     // State
@@ -179,26 +95,11 @@ export const useConversationState = () => {
     toggleArchive,
     deleteConversation,
     searchConversations,
-    
-    // Utility operations
-    exportConversation,
-    importConversation,
-    cleanupOldConversations,
-    
-    // State utilities
-    getCurrentConversation,
-    getConversations,
-    getConversationStats,
-    isLoading,
-    hasError,
-    getError,
     clearError,
     refreshConversations,
-    
-    // Raw state values for convenience
     conversations: state.conversations,
     currentConversation: state.currentConversation,
-    isLoadingState: state.isLoading,
+    isLoading: state.isLoading,
     error: state.error,
     lastUpdated: state.lastUpdated
   };

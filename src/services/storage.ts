@@ -85,12 +85,27 @@ export class StorageService {
       const indexData = await this.readFile(this.indexFile);
       const index = JSON.parse(indexData);
       
-      // Load conversation metadata (without full message content)
+      // Load only the metadata for each conversation
       const conversations: Conversation[] = [];
       for (const conversationId of index.conversationIds) {
         try {
-          const conversation = await this.loadConversation(conversationId);
-          conversations.push(conversation);
+          const conversationFile = `${this.conversationsDir}/${conversationId}.json`;
+          const data = await this.readFile(conversationFile);
+          const conversation = JSON.parse(data);
+          
+          // Only keep the metadata we need for the list view
+          conversations.push({
+            id: conversation.id,
+            title: conversation.title || 'New Conversation',
+            provider: conversation.provider,
+            model: conversation.model,
+            isArchived: conversation.isArchived || false,
+            createdAt: new Date(conversation.createdAt),
+            lastModified: new Date(conversation.lastModified),
+            // Initialize empty arrays for the rest to maintain type safety
+            messages: [],
+            modelHistory: []
+          });
         } catch (error) {
           console.warn(`Failed to load conversation ${conversationId}:`, error);
           // Continue loading other conversations

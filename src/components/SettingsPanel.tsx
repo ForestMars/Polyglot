@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { X, Plus, Trash2, Key, Settings as SettingsIcon, Download, Upload, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,9 @@ import { useToast } from '@/hooks/use-toast';
 import type { Provider } from './ChatInterface';
 import { OllamaStatus } from './OllamaStatus';
 import { StorageService } from '@/services/storage';
+
+// Create a single instance of StorageService
+const storageService = new StorageService();
 
 interface SettingsPanelProps {
   providers: Provider[];
@@ -50,9 +53,11 @@ export const SettingsPanel = ({
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  const storageService = new StorageService();
 
-  const currentProvider = providers.find(p => p.id === selectedProvider);
+  const currentProvider = useMemo(() => 
+    providers.find(p => p.id === selectedProvider),
+    [providers, selectedProvider]
+  );
   const currentApiKey = currentProvider?.apiKeys.find(k => k.id === selectedApiKey);
 
   const handleAddApiKey = () => {
@@ -183,13 +188,10 @@ export const SettingsPanel = ({
   return (
     <div className="w-96 max-h-[80vh] glass-panel rounded-lg shadow-2xl overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <SettingsIcon className="w-5 h-5" />
-          <h2 className="font-semibold">Settings</h2>
-        </div>
+      <div className="flex items-center justify-between p-4 border-b">
+        <h2 className="text-lg font-semibold">Settings</h2>
         <Button variant="ghost" size="sm" onClick={onClose}>
-          <X className="w-4 h-4" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
 
@@ -278,7 +280,7 @@ export const SettingsPanel = ({
 
         {/* Provider Selection */}
         <div className="space-y-3">
-          <Label>AI Provider</Label>
+          <Label>Provider</Label>
           <Select value={selectedProvider} onValueChange={setSelectedProvider}>
             <SelectTrigger className="glass-panel">
               <SelectValue placeholder="Select provider" />
@@ -293,76 +295,76 @@ export const SettingsPanel = ({
           </Select>
         </div>
 
-        {/* API Key Selection - Only show for non-local providers */}
+        {/* API Key Management - Only show for non-local providers */}
         {selectedProvider && !currentProvider?.isLocal && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>API Key</Label>
-              <Dialog open={showAddKeyDialog} onOpenChange={setShowAddKeyDialog}>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setSelectedProviderForKey(selectedProvider)}
-                    className="text-xs"
-                  >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Add Key
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="glass-panel">
-                  <DialogHeader>
-                    <DialogTitle>Add API Key</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="provider">Provider</Label>
-                      <Select value={selectedProviderForKey} onValueChange={setSelectedProviderForKey}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select provider" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {providers.map(provider => (
-                            <SelectItem key={provider.id} value={provider.id}>
-                              {provider.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="keyName">Key Name</Label>
-                      <Input
-                        id="keyName"
-                        value={newKeyName}
-                        onChange={(e) => setNewKeyName(e.target.value)}
-                        placeholder="e.g., Personal Key, Client A"
-                        className="glass-panel"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="keyValue">API Key</Label>
-                      <Input
-                        id="keyValue"
-                        type="password"
-                        value={newKeyValue}
-                        onChange={(e) => setNewKeyValue(e.target.value)}
-                        placeholder="sk-..."
-                        className="glass-panel"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button onClick={handleAddApiKey} className="flex-1">
-                        Add Key
-                      </Button>
-                      <Button variant="outline" onClick={() => setShowAddKeyDialog(false)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <Label>API Keys</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddKeyDialog(true)}
+                className="h-8"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Key
+              </Button>
             </div>
+
+            {/* Add API Key Dialog */}
+            <Dialog open={showAddKeyDialog} onOpenChange={setShowAddKeyDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add API Key</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="provider">Provider</Label>
+                    <Select value={selectedProviderForKey} onValueChange={setSelectedProviderForKey}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {providers.map(provider => (
+                          <SelectItem key={provider.id} value={provider.id}>
+                            {provider.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="keyName">Key Name</Label>
+                    <Input
+                      id="keyName"
+                      value={newKeyName}
+                      onChange={(e) => setNewKeyName(e.target.value)}
+                      placeholder="e.g., Personal Key, Client A"
+                      className="glass-panel"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="keyValue">API Key</Label>
+                    <Input
+                      id="keyValue"
+                      type="password"
+                      value={newKeyValue}
+                      onChange={(e) => setNewKeyValue(e.target.value)}
+                      placeholder="sk-..."
+                      className="glass-panel"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleAddApiKey} className="flex-1">
+                      Add Key
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowAddKeyDialog(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             
             {currentProvider?.apiKeys.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
@@ -393,7 +395,7 @@ export const SettingsPanel = ({
                           onClick={() => handleDeleteApiKey(selectedProvider, apiKey.id)}
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardContent>
