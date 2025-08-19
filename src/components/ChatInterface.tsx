@@ -1,12 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Settings, Bot, User, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Settings, Bot, User, Loader2, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SettingsPanel } from './SettingsPanel';
+import { ConversationSidebar } from './ConversationSidebar';
 import { useToast } from '@/hooks/use-toast';
 import { ApiService } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
+import { StorageService } from '@/services/storage';
+import { ConversationUtils } from '@/services/conversationUtils';
+import { Conversation, Message as ConversationMessage } from '@/types/conversation';
 
 export interface Message {
   id: string;
@@ -67,11 +71,15 @@ export const ChatInterface = () => {
     }
   ]);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   const apiService = new ApiService();
+  const storageService = new StorageService();
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -144,6 +152,26 @@ export const ChatInterface = () => {
       return;
     }
 
+    // Create conversation if none exists
+    if (!currentConversation) {
+      const newConversation = ConversationUtils.createConversation(
+        selectedProvider,
+        selectedModel
+      );
+      setCurrentConversation(newConversation);
+    }
+
+    // Handle model switching if needed
+    let updatedConversation = currentConversation;
+    if (currentConversation && currentConversation.currentModel !== selectedModel) {
+      updatedConversation = ConversationUtils.recordModelChange(
+        currentConversation,
+        currentConversation.currentModel,
+        selectedModel
+      );
+      setCurrentConversation(updatedConversation);
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -211,12 +239,153 @@ export const ChatInterface = () => {
     }
   };
 
+  // Conversation management functions
+  const handleNewConversation = useCallback(async () => {
+    try {
+      // Create new conversation
+      const newConversation = ConversationUtils.createConversation(
+        selectedProvider || 'ollama',
+        selectedModel || 'llama3.2'
+      );
+      
+      // Save to storage
+      await storageService.saveConversation(newConversation);
+      
+      // Set as current conversation
+      setCurrentConversation(newConversation);
+      setMessages([]);
+      
+      // Update conversations list
+      await loadConversations();
+      
+      toast({
+        title: "New Conversation",
+        description: "Started a new conversation"
+      });
+    } catch (error) {
+      console.error('Failed to create new conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create new conversation",
+        variant: "destructive"
+      });
+    }
+  }, [selectedProvider, selectedModel, storageService, toast]);
+
+  const handleConversationSelect = useCallback(async (conversation: Conversation) => {
+    try {
+      // Load the selected conversation
+      const loadedConversation = await storageService.loadConversation(conversation.id);
+      
+      // Set as current conversation
+      setCurrentConversation(loadedConversation);
+      setMessages(loadedConversation.messages);
+      
+      // Update provider and model selection
+      setSelectedProvider(loadedConversation.provider);
+      setSelectedModel(loadedConversation.currentModel);
+      
+      toast({
+        title: "Conversation Loaded",
+        description: `Switched to "${loadedConversation.title}"`
+      });
+    } catch (error) {
+      console.error('Failed to load conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load conversation",
+        variant: "destructive"
+      });
+    }
+  }, [storageService, toast]);
+
+  const loadConversations = useCallback(async () => {
+    try {
+      const loadedConversations = await storageService.listConversations();
+      setConversations(loadedConversations);
+    } catch (error) {
+      console.error('Failed to load conversations:', error);
+    }
+  }, [storageService]);
+
+  // Load conversations on mount
+  useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
+
+  // Auto-save conversation when messages change
+  useEffect(() => {
+    if (currentConversation && messages.length > 0) {
+      const updatedConversation = {
+        ...currentConversation,
+        messages: messages.map(msg => ({
+          id: msg.id,
+          role: msg.role as 'user' | 'assistant' | 'system',
+          content: msg.content,
+          timestamp: msg.timestamp,
+          provider: msg.provider
+        }))
+      };
+      
+      // Auto-save in background
+      storageService.autoSaveConversation(updatedConversation);
+    }
+  }, [messages, currentConversation, storageService]);
+
+  // Handle model switching
+  const handleModelChange = useCallback(async (newModel: string) => {
+    if (newModel === selectedModel || !currentConversation) return;
+
+    try {
+      // Record model change in conversation
+      const updatedConversation = ConversationUtils.recordModelChange(
+        currentConversation,
+        selectedModel,
+        newModel
+      );
+
+      // Update conversation state
+      setCurrentConversation(updatedConversation);
+      setSelectedModel(newModel);
+
+      // Save to storage
+      await storageService.saveConversation(updatedConversation);
+
+      // Show notification
+      toast({
+        title: "Model Changed",
+        description: `Switched to ${newModel}`,
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Failed to update model:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update model",
+        variant: "destructive"
+      });
+    }
+  }, [selectedModel, currentConversation, storageService, toast]);
+
   const currentProvider = providers.find(p => p.id === selectedProvider);
   const hasValidConfig = selectedProvider && selectedModel && 
     (currentProvider?.isLocal || selectedApiKey);
 
   return (
     <div className="flex h-screen bg-background">
+      {/* Conversation Sidebar */}
+      {showSidebar && (
+        <div className="w-80 border-r border-border lg:block">
+          <ConversationSidebar
+            currentConversationId={currentConversation?.id}
+            onConversationSelect={handleConversationSelect}
+            onNewConversation={handleNewConversation}
+            selectedProvider={selectedProvider}
+            selectedModel={selectedModel}
+          />
+        </div>
+      )}
+      
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1">
         {/* Header */}
@@ -225,7 +394,12 @@ export const ChatInterface = () => {
             <Bot className="w-8 h-8 text-primary" />
             <div>
               <h1 className="text-xl font-bold">AI Chat Interface</h1>
-              {hasValidConfig && (
+              {currentConversation && (
+                <p className="text-sm text-muted-foreground">
+                  {currentConversation.title}
+                </p>
+              )}
+              {hasValidConfig && !currentConversation && (
                 <p className="text-sm text-muted-foreground">
                   {currentProvider?.name} • {selectedModel}
                 </p>
@@ -240,7 +414,7 @@ export const ChatInterface = () => {
                         key={model} 
                         variant="outline" 
                         className="text-xs cursor-pointer hover:bg-primary/10 transition-colors"
-                        onClick={() => setSelectedModel(model)}
+                        onClick={() => handleModelChange(model)}
                       >
                         {model}
                       </Badge>
@@ -255,14 +429,24 @@ export const ChatInterface = () => {
               )}
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setShowSettings(!showSettings)}
-            className="glass-panel"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="glass-panel"
+            >
+              <Menu className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowSettings(!showSettings)}
+              className="glass-panel"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Messages */}
