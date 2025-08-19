@@ -192,29 +192,28 @@ export const ChatInterface = () => {
     if (!input.trim() || !selectedProvider || !selectedModel) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `msg_${Date.now()}`,
       role: 'user',
-      content: input,
+      content: input.trim(),
       timestamp: new Date(),
       provider: selectedProvider
     };
 
-    // Add user message to the chat
+    // Add user message to local state
     setMessages(prev => [...prev, userMessage]);
     setInput('');
-
-    let conversationId = conversationState.currentConversation?.id;
 
     try {
       setIsLoading(true);
 
-      // Create or update conversation
-      if (!conversationId && conversationState.createConversation) {
-        const newConversation = await conversationState.createConversation(
-          selectedProvider,
-          selectedModel
-        );
-        conversationId = newConversation.id;
+      // Create new conversation if needed
+      if (!conversationState.currentConversation?.id && conversationState.createConversation) {
+        await conversationState.createConversation(selectedProvider, selectedModel);
+      }
+
+      // Add user message to the conversation
+      if (conversationState.addMessage) {
+        await conversationState.addMessage(userMessage);
       }
 
       // Get the API key for the selected provider
@@ -222,7 +221,7 @@ export const ChatInterface = () => {
 
       // Create the assistant message placeholder
       const assistantMessage: Message = {
-        id: `msg_${Date.now()}`,
+        id: `msg_${Date.now() + 1}`,
         role: 'assistant',
         content: '',
         timestamp: new Date(),
@@ -232,16 +231,18 @@ export const ChatInterface = () => {
       // Add the assistant message to the UI immediately
       setMessages(prev => [...prev, assistantMessage]);
 
+      // Get all messages including the new user message
+      const allMessages = [...messages, userMessage];
+
       // Filter out system messages before sending to the API
-      const filteredMessages = 
-        [...messages, userMessage]
-          .filter((msg): msg is Message => 
-            msg.role === 'user' || msg.role === 'assistant'
-          )
-          .map(({ role, content }) => ({ 
-            role: role as 'user' | 'assistant', 
-            content 
-          }));
+      const filteredMessages = allMessages
+        .filter((msg): msg is Message => 
+          msg.role === 'user' || msg.role === 'assistant'
+        )
+        .map(({ role, content }) => ({ 
+          role: role as 'user' | 'assistant', 
+          content 
+        }));
 
       // Call the API service to get the AI response
       const apiService = new ApiService();
@@ -254,25 +255,26 @@ export const ChatInterface = () => {
       });
 
       // Update the assistant message with the response
+      const updatedAssistantMessage = {
+        ...assistantMessage,
+        content: response.content,
+        timestamp: new Date()
+      };
+
+      // Update local state
       setMessages(prev => {
         const messageIndex = prev.findIndex(m => m.id === assistantMessage.id);
         if (messageIndex !== -1) {
           const updatedMessages = [...prev];
-          updatedMessages[messageIndex] = {
-            ...updatedMessages[messageIndex],
-            content: response.content
-          };
+          updatedMessages[messageIndex] = updatedAssistantMessage;
           return updatedMessages;
         }
-        return prev;
+        return [...prev, updatedAssistantMessage];
       });
 
       // Add the assistant's response to the conversation
       if (conversationState.addMessage) {
-        await conversationState.addMessage({
-          ...assistantMessage,
-          content: response.content
-        });
+        await conversationState.addMessage(updatedAssistantMessage);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -381,6 +383,11 @@ export const ChatInterface = () => {
               <Menu className="h-5 w-5" />
             </Button>
             <h1 className="ml-2 text-lg font-semibold">Polyglut</h1>
+            {selectedModel && (
+              <span className="ml-2 text-sm text-muted-foreground">
+                {selectedModel.split('/').pop()}
+              </span>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             <Button

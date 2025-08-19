@@ -327,13 +327,13 @@ export const ConversationSidebar = ({
   return (
     <div className="flex flex-col h-full bg-background border-r border-border">
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Conversations</h2>
+      <div className="p-4 pb-2 border-b border-border">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold mr-4">Conversations</h2>
           <Button
             onClick={onNewConversation}
             size="sm"
-            className="h-8 px-3"
+            className="h-8 px-3 whitespace-nowrap"
           >
             <Plus className="w-4 h-4 mr-1" />
             New Chat
