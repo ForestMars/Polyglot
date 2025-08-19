@@ -12,289 +12,265 @@ import { ApiService } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
 import { Conversation, Message } from '@/types/conversation';
 
+// Default providers configuration
+const DEFAULT_PROVIDERS = [
+  {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    apiKeys: [],
+    models: [
+      'openai/gpt-4-turbo',
+      'anthropic/claude-3-opus',
+      'google/gemini-pro',
+      'meta-llama/llama-3-70b-instruct',
+      'mistralai/mistral-large-latest'
+    ],
+    defaultModel: 'openai/gpt-4-turbo'
+  },
+  {
+    id: 'together',
+    name: 'TogetherAI',
+    apiKeys: [],
+    models: [
+      'meta-llama/Llama-3-70b-chat-hf',
+      'mistralai/Mixtral-8x7B-Instruct-v0.1',
+      'Qwen/Qwen1.5-72B-Chat',
+      'codellama/CodeLlama-70b-Instruct-hf'
+    ],
+    defaultModel: 'meta-llama/Llama-3-70b-chat-hf'
+  },
+  {
+    id: 'groq',
+    name: 'Groq',
+    apiKeys: [],
+    models: [
+      'mixtral-8x7b-32768',
+      'llama3-70b-8192',
+      'llama3-8b-8192'
+    ],
+    defaultModel: 'mixtral-8x7b-32768'
+  },
+  {
+    id: 'openai',
+    name: 'OpenAI',
+    apiKeys: [],
+    models: ['gpt-4.1-2025-04-14', 'gpt-4o', 'gpt-4o-mini'],
+    defaultModel: 'gpt-4.1-2025-04-14'
+  },
+  {
+    id: 'anthropic',
+    name: 'Anthropic',
+    apiKeys: [],
+    models: ['claude-sonnet-4-20250514', 'claude-opus-4-20250514', 'claude-3-5-haiku-20241022'],
+    defaultModel: 'claude-sonnet-4-20250514'
+  },
+  {
+    id: 'google',
+    name: 'Google',
+    apiKeys: [],
+    models: ['gemini-pro', 'gemini-pro-vision'],
+    defaultModel: 'gemini-pro'
+  },
+  {
+    id: 'ollama',
+    name: 'Ollama (Local)',
+    apiKeys: [],
+    models: ['llama3.2', 'llama3.2:3b', 'llama3.2:8b', 'llama3.2:70b', 'mistral', 'codellama', 'phi3'],
+    defaultModel: 'llama3.2',
+    isLocal: true
+  }
+];
+
 export interface Provider {
   id: string;
   name: string;
   apiKeys: { id: string; name: string; key: string }[];
   models: string[];
   defaultModel: string;
-  isLocal?: boolean; // For Ollama and other local providers
-  baseUrl?: string; // For Ollama's local endpoint
+  isLocal?: boolean;
+  baseUrl?: string;
 }
 
 export const ChatInterface = () => {
+  // State management
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<string>('');
-  const [selectedApiKey, setSelectedApiKey] = useState<string>('');
-  const [selectedModel, setSelectedModel] = useState<string>('');
-  const [providers, setProviders] = useState<Provider[]>([
-    {
-      id: 'openrouter',
-      name: 'OpenRouter',
-      apiKeys: [],
-      models: [
-        'openai/gpt-4-turbo',
-        'anthropic/claude-3-opus',
-        'google/gemini-pro',
-        'meta-llama/llama-3-70b-instruct',
-        'mistralai/mistral-large-latest'
-      ],
-      defaultModel: 'openai/gpt-4-turbo'
-    },
-    {
-      id: 'together',
-      name: 'TogetherAI',
-      apiKeys: [],
-      models: [
-        'meta-llama/Llama-3-70b-chat-hf',
-        'mistralai/Mixtral-8x7B-Instruct-v0.1',
-        'Qwen/Qwen1.5-72B-Chat',
-        'codellama/CodeLlama-70b-Instruct-hf'
-      ],
-      defaultModel: 'meta-llama/Llama-3-70b-chat-hf'
-    },
-    {
-      id: 'groq',
-      name: 'Groq',
-      apiKeys: [],
-      models: [
-        'mixtral-8x7b-32768',
-        'llama3-70b-8192',
-        'llama3-8b-8192'
-      ],
-      defaultModel: 'mixtral-8x7b-32768'
-    },
-    {
-      id: 'openai',
-      name: 'OpenAI',
-      apiKeys: [],
-      models: ['gpt-4.1-2025-04-14', 'gpt-4o', 'gpt-4o-mini'],
-      defaultModel: 'gpt-4.1-2025-04-14'
-    },
-    {
-      id: 'anthropic',
-      name: 'Anthropic',
-      apiKeys: [],
-      models: ['claude-sonnet-4-20250514', 'claude-opus-4-20250514', 'claude-3-5-haiku-20241022'],
-      defaultModel: 'claude-sonnet-4-20250514'
-    },
-    {
-      id: 'google',
-      name: 'Google',
-      apiKeys: [],
-      models: ['gemini-pro', 'gemini-pro-vision'],
-      defaultModel: 'gemini-pro'
-    },
-    {
-      id: 'ollama',
-      name: 'Ollama (Local)',
-      apiKeys: [],
-      models: ['llama3.2', 'llama3.2:3b', 'llama3.2:8b', 'llama3.2:70b', 'mistral', 'codellama', 'phi3'],
-      defaultModel: 'llama3.2',
-      isLocal: true
-    }
-  ]);
+  const [showSidebar, setShowSidebar] = useState(true);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [showSidebar, setShowSidebar] = useState(false); // Temporarily disabled for debugging
+  const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
+  const [providers, setProviders] = useState<Provider[]>(DEFAULT_PROVIDERS);
 
+  // Refs
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const switchConversationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Hooks
+  const { settings, updateSetting, isLoading: isSettingsLoading } = useSettings();
   const { toast } = useToast();
+  const conversationState = useConversationState();
 
-  // Get settings first to ensure we have the latest Ollama base URL
-  const { 
-    settings, 
-    updateSetting, 
-    isLoading: settingsLoading 
-  } = useSettings();
-  
-  // Get the Ollama base URL from settings or use default
-  const ollamaBaseUrl = settings?.ollamaBaseUrl || 'http://localhost:11434';
-  
-  // Initialize API service
-  const apiService = useMemo(() => new ApiService(), []);
-  
-  // Use the conversation state management
-  const { 
-    state: conversationState, 
-    createConversation, 
-    loadConversation, 
-    addMessage, 
-    switchModel,
-    searchConversations
-  } = useConversationState();
-  
-  // Sync local messages with current conversation
-  useEffect(() => {
-    if (conversationState.currentConversation) {
-      // Only update if the conversation has actually changed
-      if (!messages.length || 
-          (messages[0] && conversationState.currentConversation.messages[0] && 
-           messages[0].id !== conversationState.currentConversation.messages[0].id)) {
-        setMessages(conversationState.currentConversation.messages);
-      }
-    } else {
-      setMessages([]);
-    }
-  }, [conversationState.currentConversation?.id]); // Only depend on ID to prevent unnecessary updates
-  
-  // Initialize settings from the settings service
-  useEffect(() => {
-    if (settings) {
-      setShowSidebar(!settings.sidebarCollapsed);
-    }
-  }, [settings]);
+  // Derived state from settings
+  const selectedProvider = settings?.selectedProvider || '';
+  const selectedApiKey = settings?.selectedApiKey || '';
+  const selectedModel = settings?.selectedModel || '';
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-    }
-  }, [messages]);
+  // Get current provider details
+  const currentProvider = useMemo(() =>
+    providers.find(p => p.id === selectedProvider),
+    [providers, selectedProvider]
+  );
 
-  // Fetch models when Ollama is selected
+  // Check if settings are properly configured
+  const isConfigured = selectedProvider && selectedModel && (currentProvider?.isLocal || selectedApiKey);
+
+  // Fetch models when provider changes
   useEffect(() => {
-    if (selectedProvider === 'ollama') {
-      const fetchModels = async () => {
-        try {
+    const fetchModels = async () => {
+      try {
+        if (selectedProvider === 'ollama') {
           const response = await fetch('http://localhost:11434/api/tags');
-          if (response.ok) {
-            const data = await response.json();
-            const modelNames = data.models?.map((m: { name: string }) => m.name) || [];
-            setAvailableModels(modelNames);
-            
-            // Update the providers array with actual available models
-            setProviders(prev => prev.map(provider => 
-              provider.id === 'ollama' 
-                ? { ...provider, models: modelNames, defaultModel: modelNames[0] }
+          const data = await response.json();
+          const modelNames = data.models?.map((m: any) => m.name) || [];
+          setAvailableModels(modelNames);
+
+          setProviders(prev =>
+            prev.map(provider =>
+              provider.id === 'ollama'
+                ? { ...provider, models: modelNames, defaultModel: modelNames[0] || 'llama3.2' }
                 : provider
-            ));
+            )
+          );
+        } else if (selectedProvider) {
+          const provider = DEFAULT_PROVIDERS.find(p => p.id === selectedProvider);
+          if (provider) {
+            setAvailableModels(provider.models);
           }
-        } catch (error) {
-          console.error('Failed to fetch models:', error);
+        } else {
+          setAvailableModels([]);
         }
-      };
-      fetchModels();
-    } else {
-      setAvailableModels([]);
-    }
+      } catch (error) {
+        console.error('Failed to fetch models:', error);
+        setAvailableModels([]);
+      }
+    };
+
+    fetchModels();
   }, [selectedProvider]);
 
-  // Update the providers array to use actual available models for Ollama
-  useEffect(() => {
-    if (selectedProvider === 'ollama' && availableModels.length > 0) {
-      setProviders(prev => prev.map(provider => 
-        provider.id === 'ollama' 
-          ? { ...provider, models: availableModels, defaultModel: availableModels[0] }
-          : provider
-      ));
-    }
-  }, [availableModels, selectedProvider]);
+  // Handle provider change
+  const handleProviderChange = async (providerId: string) => {
+    // Update settings
+    await updateSetting('selectedProvider', providerId);
+    await updateSetting('selectedModel', '');
 
+    // Update available models for the selected provider
+    const provider = providers.find(p => p.id === providerId);
+    if (provider) {
+      setAvailableModels(provider.models);
+    }
+  };
+
+  // Handle API key change
+  const handleApiKeyChange = async (keyId: string) => {
+    await updateSetting('selectedApiKey', keyId);
+  };
+
+  // Handle new conversation
+  const handleNewConversation = useCallback(async () => {
+    if (conversationState.createConversation && selectedProvider && selectedModel) {
+      await conversationState.createConversation(selectedProvider, selectedModel);
+    }
+    setMessages([]);
+    setInput('');
+  }, [conversationState, selectedProvider, selectedModel]);
+
+  // Handle send message
   const handleSendMessage = async () => {
-    if (!input.trim()) return;
-    
-    const currentProvider = providers.find(p => p.id === selectedProvider);
-    if (!currentProvider) return;
-
-    // For local providers like Ollama, API key is not required
-    if (!currentProvider.isLocal && (!selectedApiKey || !selectedModel)) {
-      toast({
-        title: "Configuration Required",
-        description: "Please select a provider, API key, and model in settings.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // For Ollama, model is required but API key is not
-    if (currentProvider.isLocal && !selectedModel) {
-      toast({
-        title: "Configuration Required",
-        description: "Please select a model for Ollama in settings.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Create conversation if none exists
-    if (!conversationState.currentConversation) {
-      const newConversation = await createConversation(
-        selectedProvider,
-        selectedModel
-      );
-    }
-
-    // Handle model switching if needed
-    if (conversationState.currentConversation && conversationState.currentConversation.currentModel !== selectedModel) {
-      await switchModel(selectedModel);
-    }
+    if (!input.trim() || !selectedProvider || !selectedModel) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input.trim(),
-      timestamp: new Date(),
-      provider: selectedProvider
+      content: input,
+      timestamp: new Date()
     };
 
-    await addMessage(userMessage);
+    // Add user message to the chat
+    setMessages(prev => [...prev, userMessage]);
     setInput('');
-    setIsLoading(true);
-
-    // Start timing
-    const startTime = Date.now();
 
     try {
-      const chatRequest = {
+      setIsLoading(true);
+
+      // Create or update conversation
+      let conversationId = conversationState.currentConversation?.id;
+      if (!conversationId && conversationState.createConversation) {
+        const newConversation = await conversationState.createConversation(
+          selectedProvider,
+          selectedModel
+        );
+        conversationId = newConversation.id;
+      }
+
+      // Get the API key for the selected provider
+      const apiKey = settings?.apiKeys?.find(k => k.id === selectedApiKey)?.key || '';
+
+      // Call the API service to get the AI response
+      const response = await ApiService.sendMessage({
         provider: selectedProvider,
         model: selectedModel,
-        messages: [
-          ...messages
-            .filter(msg => msg.role === 'user' || msg.role === 'assistant')
-            .map(msg => ({ 
-              role: msg.role as 'user' | 'assistant', 
-              content: msg.content 
-            })),
-          { role: 'user' as const, content: input.trim() }
-        ],
-        apiKey: selectedApiKey,
-        baseUrl: currentProvider.baseUrl
-      };
+        messages: [...messages, userMessage],
+        apiKey,
+        conversationId,
+        onChunk: (chunk: string) => {
+          setMessages(prev => {
+            const lastMessage = prev[prev.length - 1];
+            if (lastMessage?.role === 'assistant') {
+              return [
+                ...prev.slice(0, -1),
+                {
+                  ...lastMessage,
+                  content: lastMessage.content + chunk
+                }
+              ];
+            }
+            return [
+              ...prev,
+              {
+                id: Date.now().toString(),
+                role: 'assistant' as const,
+                content: chunk,
+                timestamp: new Date()
+              }
+            ];
+          });
+        }
+      });
 
-      const response = await apiService.sendMessage(chatRequest);
-      
-      // Calculate response time
-      const responseTime = Date.now() - startTime;
-      const responseTimeSeconds = (responseTime / 1000).toFixed(1);
-      
-      // Prepend timing info to response content
-      const timedContent = `Thought for ${responseTimeSeconds} seconds\n\n${response.content}`;
-      
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: timedContent,
-        timestamp: response.timestamp,
-        provider: selectedProvider
-      };
-
-      await addMessage(assistantMessage);
+      // Update conversation with the complete response
+      if (conversationId && conversationState.createConversation) {
+        // Create a new conversation with the same provider and model
+        await conversationState.createConversation(
+          selectedProvider,
+          selectedModel
+        );
+      }
     } catch (error) {
-      console.error('Chat error:', error);
+      console.error('Error sending message:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to send message. Please try again.",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to send message. Please try again.',
+        variant: 'destructive'
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Handle key press in the input
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -302,227 +278,135 @@ export const ChatInterface = () => {
     }
   };
 
-  // Conversation management functions
-  const handleNewConversation = useCallback(async () => {
-    try {
-      // Create new conversation
-      const newConversation = await createConversation(
-        selectedProvider || 'ollama',
-        selectedModel || 'llama3.2'
-      );
-      
-      // Clear messages for new conversation
-      setMessages([]);
-      
-      toast({
-        title: "New Conversation",
-        description: "Started a new conversation"
-      });
-    } catch (error) {
-      console.error('Failed to create new conversation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create new conversation",
-        variant: "destructive"
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth'
       });
     }
-  }, [selectedProvider, selectedModel, createConversation, toast]);
+  }, [messages]);
 
-  const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
-  const switchConversationTimeoutRef = useRef<NodeJS.Timeout>();
+  // Check if we have a valid configuration
+  const hasValidConfig = selectedProvider && selectedModel && (currentProvider?.isLocal || selectedApiKey);
 
+  // Handle conversation selection
   const handleConversationSelect = useCallback(async (conversation: Conversation) => {
-    // Don't allow switching if already switching or clicking the same conversation
     if (isSwitchingConversation || conversationState.currentConversation?.id === conversation.id) {
       return;
     }
-    
+
+    setIsSwitchingConversation(true);
     try {
-      setIsSwitchingConversation(true);
-      
-      // Clear any pending timeouts
-      if (switchConversationTimeoutRef.current) {
-        clearTimeout(switchConversationTimeoutRef.current);
-      }
-      
-      // Show loading state immediately
-      setMessages([]);
-      
-      // Use a timeout to ensure UI updates before heavy operation
-      switchConversationTimeoutRef.current = setTimeout(async () => {
-        try {
-          // Load the selected conversation
-          const loadedConversation = await loadConversation(conversation.id);
-          
-          // Update provider and model selection
-          setSelectedProvider(loadedConversation.provider);
-          setSelectedModel(loadedConversation.currentModel);
-          
-          // The messages will be updated via the useEffect that watches conversationState
-          
-          toast({
-            title: "Conversation Loaded",
-            description: `Switched to "${loadedConversation.title}"`
-          });
-        } catch (error) {
-          console.error('Failed to load conversation:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load conversation",
-            variant: "destructive"
-          });
-        } finally {
-          setIsSwitchingConversation(false);
-        }
-      }, 100); // Small delay to ensure UI updates
-      
+      // Load the selected conversation
+      await conversationState.loadConversation(conversation.id);
+      // Update messages with the loaded conversation's messages
+      setMessages(conversation.messages || []);
     } catch (error) {
-      console.error('Error in conversation switch:', error);
+      console.error('Failed to load conversation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load conversation',
+        variant: 'destructive'
+      });
+    } finally {
       setIsSwitchingConversation(false);
     }
-  }, [loadConversation, toast, isSwitchingConversation, conversationState.currentConversation]);
+  }, [conversationState, isSwitchingConversation, toast]);
 
-  const loadConversations = useCallback(async () => {
-    try {
-      // Use empty filters to get all conversations
-      await searchConversations({
-        searchQuery: '',
-        provider: '',
-        model: '',
-        showArchived: false
-      });
-    } catch (error) {
-      console.error('Failed to load conversations:', error);
-    }
-  }, [searchConversations]);
-
-  // Load conversations on mount
+  // Load current conversation messages
   useEffect(() => {
-    loadConversations();
-  }, [loadConversations]);
+    if (conversationState.currentConversation) {
+      setMessages(conversationState.currentConversation.messages || []);
+    } else {
 
-  // Auto-save conversation when messages change
-  useEffect(() => {
-    if (conversationState.currentConversation && messages.length > 0) {
-      // The state manager handles auto-saving automatically
-      // No need to manually call auto-save
-    }
-  }, [messages, conversationState.currentConversation]);
+// Load current conversation messages
+useEffect(() => {
+  if (conversationState.currentConversation) {
+    setMessages(conversationState.currentConversation.messages || []);
+  } else {
+    setMessages([]);
+  }
+}, [conversationState.currentConversation]);
 
-  // Handle model switching
-  const handleModelChange = useCallback(async (newModel: string) => {
-    if (newModel === selectedModel || !conversationState.currentConversation) return;
+return (
+  <div className="flex h-screen bg-gray-50">
+    {/* Sidebar */}
+    <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}>
+      <ConversationSidebar
+        conversations={conversationState.conversations || []}
+        currentConversationId={conversationState.currentConversation?.id || ''}
+        onSelectConversation={handleConversationSelect}
+        onNewConversation={handleNewConversation}
+        onDeleteConversation={async (id) => {
+          if (conversationState.deleteConversation) {
+            await conversationState.deleteConversation(id);
+          }
+        }}
+      />
+    </div>
 
-    try {
-      // Switch model using the state manager
-      await switchModel(newModel);
-
-      // Update local state
-      setSelectedModel(newModel);
-
-      // Show notification
-      toast({
-        title: "Model Changed",
-        description: `Switched to ${newModel}`,
-        duration: 2000
-      });
-    } catch (error) {
-      console.error('Failed to update model:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update model",
-        variant: "destructive"
-      });
-    }
-  }, [selectedModel, conversationState.currentConversation, switchModel, toast]);
-
-  const currentProvider = providers.find(p => p.id === selectedProvider);
-  const hasValidConfig = selectedProvider && selectedModel && 
-    (currentProvider?.isLocal || selectedApiKey);
-
-  return (
-    <div className="flex h-screen bg-background">
-      {/* Conversation Sidebar */}
-      {showSidebar && (
-        <div className="w-80 border-r border-border lg:block">
-          <ConversationSidebar
-            currentConversationId={conversationState.currentConversation?.id}
-            onConversationSelect={handleConversationSelect}
-            onNewConversation={handleNewConversation}
-            selectedProvider={selectedProvider}
-            selectedModel={selectedModel}
-          />
+    {/* Main Chat Area */}
+    <div className="flex flex-col flex-1">
+      {/* Header */}
+      <header className="flex h-16 items-center justify-between border-b bg-white px-4 shadow-sm">
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setShowSidebar(!showSidebar)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <h1 className="ml-2 text-lg font-semibold">Polyglut</h1>
         </div>
-      )}
-      
-      {/* Main Chat Area */}
-      <div className="flex flex-col flex-1">
-        {/* Header */}
-        <div className="glass-panel border-b p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Bot className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="text-xl font-bold">Polyglut Chat</h1>
-              {conversationState.currentConversation && (
-                <p className="text-sm text-muted-foreground">
-                  {conversationState.currentConversation.title}
-                </p>
-              )}
-              {hasValidConfig && !conversationState.currentConversation && (
-                <p className="text-sm text-muted-foreground">
-                  {currentProvider?.name} • {selectedModel}
-                </p>
-              )}
-              {/* Show available models for Ollama */}
-              {selectedProvider === 'ollama' && availableModels.length > 0 && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                  <span>Available models:</span>
-                  <div className="flex gap-1">
-                    {availableModels.slice(0, 3).map((model) => (
-                      <Badge 
-                        key={model} 
-                        variant="outline" 
-                        className="text-xs cursor-pointer hover:bg-primary/10 transition-colors"
-                        onClick={() => handleModelChange(model)}
-                      >
-                        {model}
-                      </Badge>
-                    ))}
-                    {availableModels.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{availableModels.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              )}
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSettings(true)}
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </Button>
+        </div>
+      </header>
+
+      {/* Messages */}
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+        <div className="space-y-4 max-w-4xl mx-auto">
+          {messages.length === 0 && (
+            <div className="text-center py-12">
+              <Bot className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Welcome to Polyglut Chat</h3>
+              <p className="text-muted-foreground">
+                {hasValidConfig 
+                  ? "Start a conversation by typing a message below."
+                  : "Configure your API settings to get started."
+                }
+              </p>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowSidebar(!showSidebar)}
-              className="glass-panel"
+          )}
+          
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex items-start gap-3 animate-message-in ${
+                message.role === 'user' ? 'flex-row-reverse' : ''
+              }`}
             >
-              <Menu className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setShowSettings(!showSettings)}
-              className="glass-panel"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-          <div className="space-y-4 max-w-4xl mx-auto">
-            {messages.length === 0 && (
-              <div className="text-center py-12">
+              <div className={`p-2 rounded-full ${
+                message.role === 'user' 
+                  ? 'chat-bubble-user' 
+                  : 'glass-panel'
+              }`}>
+                {message.role === 'user' ? (
+                  <User className="w-4 h-4" />
+                ) : (
+                  <Bot className="w-4 h-4" />
+                )}
                 <Bot className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">Welcome to Polyglut Chat</h3>
                 <p className="text-muted-foreground">
