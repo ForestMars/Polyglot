@@ -1,4 +1,7 @@
 import { OllamaService, type OllamaRequest, type OllamaResponse } from './ollama';
+import { OpenRouterService } from './providers/openrouter';
+import { TogetherService } from './providers/together';
+import { GroqService } from './providers/groq';
 
 export interface ChatRequest {
   provider: string;
@@ -17,9 +20,33 @@ export interface ChatResponse {
 
 export class ApiService {
   private ollamaService: OllamaService;
+  private openRouterService: OpenRouterService | null = null;
+  private togetherService: TogetherService | null = null;
+  private groqService: GroqService | null = null;
 
   constructor() {
     this.ollamaService = new OllamaService();
+  }
+
+  private getOpenRouterService(apiKey: string): OpenRouterService {
+    if (!this.openRouterService || this.openRouterService['apiKey'] !== apiKey) {
+      this.openRouterService = new OpenRouterService(apiKey);
+    }
+    return this.openRouterService;
+  }
+
+  private getTogetherService(apiKey: string): TogetherService {
+    if (!this.togetherService || this.togetherService['apiKey'] !== apiKey) {
+      this.togetherService = new TogetherService(apiKey);
+    }
+    return this.togetherService;
+  }
+
+  private getGroqService(apiKey: string): GroqService {
+    if (!this.groqService || this.groqService['apiKey'] !== apiKey) {
+      this.groqService = new GroqService(apiKey);
+    }
+    return this.groqService;
   }
 
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
@@ -35,6 +62,12 @@ export class ApiService {
           return await this.handleAnthropicRequest(model, messages, request.apiKey);
         case 'google':
           return await this.handleGoogleRequest(model, messages, request.apiKey);
+        case 'openrouter':
+          return await this.handleOpenRouterRequest(model, messages, request.apiKey);
+        case 'together':
+          return await this.handleTogetherRequest(model, messages, request.apiKey);
+        case 'groq':
+          return await this.handleGroqRequest(model, messages, request.apiKey);
         default:
           throw new Error(`Unsupported provider: ${provider}`);
       }
@@ -159,6 +192,84 @@ export class ApiService {
     };
   }
 
+  private async handleOpenRouterRequest(
+    model: string,
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    apiKey?: string
+  ): Promise<ChatResponse> {
+    if (!apiKey) {
+      throw new Error('OpenRouter API key is required');
+    }
+
+    const openRouterService = this.getOpenRouterService(apiKey);
+    const response = await openRouterService.chat({
+      model,
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
+    });
+
+    return {
+      content: response.content,
+      provider: 'openrouter',
+      model: response.model,
+      timestamp: new Date(response.created_at * 1000)
+    };
+  }
+
+  private async handleTogetherRequest(
+    model: string,
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    apiKey?: string
+  ): Promise<ChatResponse> {
+    if (!apiKey) {
+      throw new Error('TogetherAI API key is required');
+    }
+
+    const togetherService = this.getTogetherService(apiKey);
+    const response = await togetherService.chat({
+      model,
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
+    });
+
+    return {
+      content: response.content,
+      provider: 'together',
+      model: response.model,
+      timestamp: new Date(response.created_at * 1000)
+    };
+  }
+
+  private async handleGroqRequest(
+    model: string,
+    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    apiKey?: string
+  ): Promise<ChatResponse> {
+    if (!apiKey) {
+      throw new Error('Groq API key is required');
+    }
+
+    const groqService = this.getGroqService(apiKey);
+    const response = await groqService.chat({
+      model,
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
+    });
+
+    return {
+      content: response.content,
+      provider: 'groq',
+      model: response.model,
+      timestamp: new Date(response.created_at * 1000)
+    };
+  }
+
   async checkProviderHealth(provider: string, baseUrl?: string): Promise<boolean> {
     switch (provider) {
       case 'ollama':
@@ -166,8 +277,11 @@ export class ApiService {
         return await ollamaService.healthCheck();
       case 'openai':
       case 'anthropic':
+      case 'openrouter':
+      case 'together':
+      case 'groq':
       case 'google':
-        // TODO: Implement health checks for cloud providers
+        // Basic health check for cloud providers - just check if API key is provided
         return true;
       default:
         return false;

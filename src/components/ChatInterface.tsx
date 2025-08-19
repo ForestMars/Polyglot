@@ -32,6 +32,42 @@ export const ChatInterface = () => {
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [providers, setProviders] = useState<Provider[]>([
     {
+      id: 'openrouter',
+      name: 'OpenRouter',
+      apiKeys: [],
+      models: [
+        'openai/gpt-4-turbo',
+        'anthropic/claude-3-opus',
+        'google/gemini-pro',
+        'meta-llama/llama-3-70b-instruct',
+        'mistralai/mistral-large-latest'
+      ],
+      defaultModel: 'openai/gpt-4-turbo'
+    },
+    {
+      id: 'together',
+      name: 'TogetherAI',
+      apiKeys: [],
+      models: [
+        'meta-llama/Llama-3-70b-chat-hf',
+        'mistralai/Mixtral-8x7B-Instruct-v0.1',
+        'Qwen/Qwen1.5-72B-Chat',
+        'codellama/CodeLlama-70b-Instruct-hf'
+      ],
+      defaultModel: 'meta-llama/Llama-3-70b-chat-hf'
+    },
+    {
+      id: 'groq',
+      name: 'Groq',
+      apiKeys: [],
+      models: [
+        'mixtral-8x7b-32768',
+        'llama3-70b-8192',
+        'llama3-8b-8192'
+      ],
+      defaultModel: 'mixtral-8x7b-32768'
+    },
+    {
       id: 'openai',
       name: 'OpenAI',
       apiKeys: [],
