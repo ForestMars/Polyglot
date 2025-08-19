@@ -49,12 +49,17 @@ export class ApiService {
     messages: Array<{ role: 'user' | 'assistant'; content: string }>,
     baseUrl?: string
   ): Promise<ChatResponse> {
+    console.log('[handleOllamaRequest] Starting request with model:', model);
+    console.log('[handleOllamaRequest] Base URL:', baseUrl || 'default');
+    
     // Always create a new instance with the provided base URL or use the default
     const ollamaService = new OllamaService(baseUrl);
 
     try {
-      // Check if Ollama is running
+      console.log('[handleOllamaRequest] Checking Ollama health...');
       const isHealthy = await ollamaService.healthCheck();
+      console.log('[handleOllamaRequest] Health check result:', isHealthy);
+      
       if (!isHealthy) {
         throw new Error('Ollama is not running. Please start Ollama and ensure it\'s accessible at the configured URL.');
       }
@@ -72,7 +77,14 @@ export class ApiService {
         }
       };
 
+      console.log('[handleOllamaRequest] Sending request to Ollama:', JSON.stringify(ollamaRequest, null, 2));
+      
+      const startTime = Date.now();
       const response = await ollamaService.chat(ollamaRequest);
+      const endTime = Date.now();
+      
+      console.log(`[handleOllamaRequest] Received response in ${endTime - startTime}ms`);
+      console.log('[handleOllamaRequest] Response:', JSON.stringify(response, null, 2));
 
       return {
         content: response.message.content,
@@ -81,7 +93,7 @@ export class ApiService {
         timestamp: new Date(response.created_at)
       };
     } catch (error) {
-      console.error('Ollama request failed:', error);
+      console.error('[handleOllamaRequest] Request failed:', error);
       throw error;
     }
   }

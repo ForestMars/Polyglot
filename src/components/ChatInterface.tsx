@@ -91,6 +91,15 @@ export const ChatInterface = () => {
     searchConversations
   } = useConversationState();
   
+  // Sync local messages with current conversation
+  useEffect(() => {
+    if (conversationState.currentConversation) {
+      setMessages(conversationState.currentConversation.messages);
+    } else {
+      setMessages([]);
+    }
+  }, [conversationState.currentConversation]);
+  
   // Initialize settings from the settings service
   useEffect(() => {
     if (settings) {

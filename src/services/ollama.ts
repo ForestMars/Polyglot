@@ -97,10 +97,29 @@ export class OllamaService {
   }
 
   async healthCheck(): Promise<boolean> {
+    const url = `${this.baseUrl}/api/tags`;
+    console.log(`[OllamaService] Checking health at: ${url}`);
+    
     try {
-      const response = await fetch(`${this.baseUrl}/api/tags`);
+      const startTime = Date.now();
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      const endTime = Date.now();
+      
+      console.log(`[OllamaService] Health check response: ${response.status} ${response.statusText} (${endTime - startTime}ms)`);
+      
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'No error details');
+        console.error(`[OllamaService] Health check failed: ${response.status} ${response.statusText} - ${errorText}`);
+      }
+      
       return response.ok;
-    } catch {
+    } catch (error) {
+      console.error('[OllamaService] Health check error:', error);
       return false;
     }
   }
