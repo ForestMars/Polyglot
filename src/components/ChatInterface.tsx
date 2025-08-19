@@ -195,7 +195,8 @@ export const ChatInterface = () => {
       id: Date.now().toString(),
       role: 'user',
       content: input,
-      timestamp: new Date()
+      timestamp: new Date(),
+      provider: selectedProvider
     };
 
     // Add user message to the chat
@@ -216,15 +217,17 @@ export const ChatInterface = () => {
       }
 
       // Get the API key for the selected provider
-      const apiKey = settings?.apiKeys?.find(k => k.id === selectedApiKey)?.key || '';
+      const apiKey = settings?.[selectedApiKey] || '';
 
       // Call the API service to get the AI response
-      const response = await ApiService.sendMessage({
+      // TODO: Implement the actual API call
+      console.log('Sending message:', { selectedProvider, selectedModel, messages, apiKey });
+      // Simulate API response
+      const response = {
         provider: selectedProvider,
         model: selectedModel,
         messages: [...messages, userMessage],
         apiKey,
-        conversationId,
         onChunk: (chunk: string) => {
           setMessages(prev => {
             const lastMessage = prev[prev.length - 1];
@@ -248,15 +251,21 @@ export const ChatInterface = () => {
             ];
           });
         }
-      });
+      };
 
       // Update conversation with the complete response
-      if (conversationId && conversationState.createConversation) {
-        // Create a new conversation with the same provider and model
-        await conversationState.createConversation(
-          selectedProvider,
-          selectedModel
-        );
+      if (conversationId && conversationState.addMessage) {
+        // Add the assistant's response to the conversation
+        // Get the last assistant message content
+        const lastAssistantMessage = [...messages].reverse().find(m => m.role === 'assistant');
+        const assistantMessage: Message = {
+          id: `msg_${Date.now()}`,
+          role: 'assistant',
+          content: lastAssistantMessage?.content || '',
+          timestamp: new Date(),
+          provider: selectedProvider
+        };
+        await conversationState.addMessage(assistantMessage);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -320,93 +329,55 @@ export const ChatInterface = () => {
     if (conversationState.currentConversation) {
       setMessages(conversationState.currentConversation.messages || []);
     } else {
+      setMessages([]);
+    }
+  }, [conversationState.currentConversation]);
 
-// Load current conversation messages
-useEffect(() => {
-  if (conversationState.currentConversation) {
-    setMessages(conversationState.currentConversation.messages || []);
-  } else {
-    setMessages([]);
-  }
-}, [conversationState.currentConversation]);
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}>
+        <ConversationSidebar
+          currentConversationId={conversationState.currentConversation?.id}
+          onConversationSelect={handleConversationSelect}
+          onNewConversation={handleNewConversation}
+          selectedProvider={selectedProvider}
+          selectedModel={selectedModel}
+        />
+      </div>
 
-return (
-  <div className="flex h-screen bg-gray-50">
-    {/* Sidebar */}
-    <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}>
-      <ConversationSidebar
-        conversations={conversationState.conversations || []}
-        currentConversationId={conversationState.currentConversation?.id || ''}
-        onSelectConversation={handleConversationSelect}
-        onNewConversation={handleNewConversation}
-        onDeleteConversation={async (id) => {
-          if (conversationState.deleteConversation) {
-            await conversationState.deleteConversation(id);
-          }
-        }}
-      />
-    </div>
-
-    {/* Main Chat Area */}
-    <div className="flex flex-col flex-1">
-      {/* Header */}
-      <header className="flex h-16 items-center justify-between border-b bg-white px-4 shadow-sm">
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setShowSidebar(!showSidebar)}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <h1 className="ml-2 text-lg font-semibold">Polyglut</h1>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowSettings(true)}
-          >
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-          </Button>
-        </div>
-      </header>
-
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-        <div className="space-y-4 max-w-4xl mx-auto">
-          {messages.length === 0 && (
-            <div className="text-center py-12">
-              <Bot className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Welcome to Polyglut Chat</h3>
-              <p className="text-muted-foreground">
-                {hasValidConfig 
-                  ? "Start a conversation by typing a message below."
-                  : "Configure your API settings to get started."
-                }
-              </p>
-            </div>
-          )}
-          
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex items-start gap-3 animate-message-in ${
-                message.role === 'user' ? 'flex-row-reverse' : ''
-              }`}
+      {/* Main Chat Area */}
+      <div className="flex flex-col flex-1 bg-background">
+        {/* Header */}
+        <header className="flex h-16 items-center justify-between border-b bg-card px-4 shadow-sm">
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setShowSidebar(!showSidebar)}
             >
-              <div className={`p-2 rounded-full ${
-                message.role === 'user' 
-                  ? 'chat-bubble-user' 
-                  : 'glass-panel'
-              }`}>
-                {message.role === 'user' ? (
-                  <User className="w-4 h-4" />
-                ) : (
-                  <Bot className="w-4 h-4" />
-                )}
+              <Menu className="h-5 w-5" />
+            </Button>
+            <h1 className="ml-2 text-lg font-semibold">Polyglut</h1>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSettings(true)}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Button>
+          </div>
+        </header>
+
+        {/* Messages */}
+        <ScrollArea className="flex-1 p-4 bg-background" ref={scrollAreaRef}>
+          <div className="space-y-4 max-w-4xl mx-auto">
+            {messages.length === 0 && (
+              <div className="text-center py-12">
                 <Bot className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">Welcome to Polyglut Chat</h3>
                 <p className="text-muted-foreground">
@@ -417,7 +388,6 @@ return (
                 </p>
               </div>
             )}
-            
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -427,48 +397,42 @@ return (
               >
                 <div className={`p-2 rounded-full ${
                   message.role === 'user' 
-                    ? 'chat-bubble-user' 
-                    : 'glass-panel'
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted'
                 }`}>
                   {message.role === 'user' ? (
-                    <User className="w-4 h-4" />
+                    <User className="h-4 w-4" />
                   ) : (
-                    <Bot className="w-4 h-4" />
+                    <Bot className="h-4 w-4" />
                   )}
                 </div>
-                <div
-                  className={`max-w-[70%] p-4 rounded-2xl ${
+                <div className="flex-1">
+                  <div className={`p-4 rounded-lg ${
                     message.role === 'user'
-                      ? 'chat-bubble-user rounded-tr-md'
-                      : 'chat-bubble-ai rounded-tl-md'
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{message.content}</p>
-                  <p className="text-xs opacity-70 mt-2">
-                    {message.timestamp.toLocaleTimeString()}
+                      ? 'bg-primary text-primary-foreground rounded-tr-none'
+                      : 'bg-muted rounded-tl-none'
+                  }`}>
+                    <p className="whitespace-pre-wrap">{message.content}</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {new Date(message.timestamp).toLocaleTimeString()}
                   </p>
                 </div>
+                {isLoading && (
+                  <div className="chat-bubble-ai rounded-tl-md p-4 rounded-2xl">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="animate-typing">Thinking...</span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
-            
-            {isLoading && (
-              <div className="flex items-start gap-3 animate-message-in">
-                <div className="glass-panel p-2 rounded-full">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <div className="chat-bubble-ai rounded-tl-md p-4 rounded-2xl">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="animate-typing">Thinking...</span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </ScrollArea>
 
         {/* Input Area */}
-        <div className="glass-panel border-t p-4">
+        <div className="bg-card border-t p-4 shadow-sm">
           <div className="max-w-4xl mx-auto">
             <div className="flex gap-3">
               <div className="flex-1 relative">
@@ -510,11 +474,11 @@ return (
               providers={providers}
               setProviders={setProviders}
               selectedProvider={selectedProvider}
-              setSelectedProvider={setSelectedProvider}
+              setSelectedProvider={async (providerId) => await updateSetting('selectedProvider', providerId)}
               selectedApiKey={selectedApiKey}
-              setSelectedApiKey={setSelectedApiKey}
+              setSelectedApiKey={async (keyId) => await updateSetting('selectedApiKey', keyId)}
               selectedModel={selectedModel}
-              setSelectedModel={setSelectedModel}
+              setSelectedModel={async (model) => await updateSetting('selectedModel', model)}
               onClose={() => setShowSettings(false)}
             />
           </div>
