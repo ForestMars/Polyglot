@@ -10,33 +10,33 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 ## Features
 
 - **Multi-Provider Support**: Connect to OpenAI, Anthropic, Google AI services, and Ollama (local)
-- **🗂️ Conversation Persistence**: Complete conversation management with automatic saving and history
+- **Conversation Persistence**: Complete conversation management with automatic saving and history
 - **Beautiful UI**: Glass-morphism design with smooth animations and modern aesthetics
 - **API Key Management**: Securely store and manage multiple API keys per provider
 - **Local AI Support**: Run AI models locally with Ollama (no API keys required)
 - **Model Selection**: Choose from various AI models for each provider
-- **🔄 Model Switching**: Switch AI models mid-conversation with full context preservation
+- **Model Switching**: Switch AI models mid-conversation with full context preservation
 - **Real-time Chat**: Smooth message flow with typing indicators
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Dark Mode**: Elegant dark theme optimized for extended use
 - **Toast Notifications**: User-friendly feedback for actions and errors
 - **Testing**: Comprehensive test suite with Vitest and React Testing Library
 
-## 🗂️ Conversation Persistence
+## Conversation Persistence
 
 PolyGlut now includes a **complete conversation management system** that keeps your AI chat history safe and organized:
 
-### ✨ Key Features
+### Key Features
 
-- **🔒 Automatic Persistence**: Every conversation is automatically saved to your browser
-- **📚 Conversation History**: Browse and search through all your past conversations
-- **🔄 Model Switching**: Switch AI models mid-conversation with full context preservation
-- **📁 Archive System**: Archive old conversations to keep your sidebar organized
-- **🔍 Smart Search**: Find conversations by title, content, or model used
-- **⚡ Real-time Sync**: Changes sync instantly across all components
-- **📱 Cross-Session**: Your conversations persist even after closing the browser
+- **Automatic Persistence**: Every conversation is automatically saved to your browser
+- **Conversation History**: Browse and search through all your past conversations
+- **Model Switching**: Switch AI models mid-conversation with full context preservation
+- **Archive System**: Archive old conversations to keep your sidebar organized
+- **Smart Search**: Find conversations by title, content, or model used
+- **Real-time Sync**: Changes sync instantly across all components
+- **Cross-Session**: Your conversations persist even after closing the browser
 
-### 🎯 Use Cases
+### Use Cases
 
 - **Research & Learning**: Keep track of AI-assisted research across multiple sessions
 - **Code Development**: Maintain context while iterating on coding problems
@@ -44,7 +44,7 @@ PolyGlut now includes a **complete conversation management system** that keeps y
 - **Model Comparison**: Easily compare responses from different AI models
 - **Knowledge Management**: Organize and retrieve AI-generated insights
 
-### 🚀 Getting Started
+### Getting Started
 
 1. **Start a conversation** - Your first message automatically creates a new conversation
 2. **Switch models** - Click on model badges in the chat header to switch AI models
