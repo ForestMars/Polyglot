@@ -1,14 +1,24 @@
-import { useState } from 'react';
-import { X, Plus, Trash2, Key, Settings as SettingsIcon } from 'lucide-react';
+import { useState, useRef, useMemo } from 'react';
+import { X, Plus, Trash2, Key, Settings as SettingsIcon, Download, Upload, FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import type { Provider } from './ChatInterface';
 import { OllamaStatus } from './OllamaStatus';
+import { StorageService } from '@/services/storage';
+
+// Create a single instance of StorageService
+const storageService = new StorageService();
 
 interface SettingsPanelProps {
   providers: Provider[];
@@ -37,9 +47,17 @@ export const SettingsPanel = ({
   const [newKeyValue, setNewKeyValue] = useState('');
   const [showAddKeyDialog, setShowAddKeyDialog] = useState(false);
   const [selectedProviderForKey, setSelectedProviderForKey] = useState('');
+  const [showArchivedChats, setShowArchivedChats] = useState(false);
+  const [ollamaBaseUrl, setOllamaBaseUrl] = useState('http://localhost:11434');
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const currentProvider = providers.find(p => p.id === selectedProvider);
+  const currentProvider = useMemo(() => 
+    providers.find(p => p.id === selectedProvider),
+    [providers, selectedProvider]
+  );
   const currentApiKey = currentProvider?.apiKeys.find(k => k.id === selectedApiKey);
 
   const handleAddApiKey = () => {
@@ -103,29 +121,166 @@ export const SettingsPanel = ({
     });
   };
 
+  const handleDeleteProvider = (providerId: string) => {
+    setProviders(providers.filter(p => p.id !== providerId));
+    if (selectedProvider === providerId) {
+      setSelectedProvider('');
+      setSelectedModel('');
+    }
+  };
+
+  const handleExportData = async () => {
+    setIsExporting(true);
+    try {
+      await storageService.exportToFiles();
+      toast({
+        title: "Export Successful",
+        description: "Your data has been exported as downloadable files. Save them to your data/ directory.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImportData = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsImporting(true);
+    try {
+      await storageService.importFromFiles(files);
+      toast({
+        title: "Import Successful",
+        description: "Your data has been imported successfully. The page will refresh to apply changes.",
+      });
+      // Refresh the page to apply imported settings
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+      toast({
+        title: "Import Failed",
+        description: "Failed to import data. Please check your files and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
   const maskApiKey = (key: string) => {
     if (key.length <= 8) return key;
     return key.substring(0, 4) + '...' + key.substring(key.length - 4);
   };
 
   return (
-    <div className="w-96 glass-panel border-l h-full overflow-hidden flex flex-col">
+    <div className="w-96 max-h-[80vh] glass-panel rounded-lg shadow-2xl overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <SettingsIcon className="w-5 h-5" />
-          <h2 className="font-semibold">Settings</h2>
-        </div>
+      <div className="flex items-center justify-between p-4 border-b">
+        <h2 className="text-lg font-semibold">Settings</h2>
         <Button variant="ghost" size="sm" onClick={onClose}>
-          <X className="w-4 h-4" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <SettingsIcon className="h-5 w-5" />
+              General Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="showArchived">Show Archived Chats</Label>
+              <input
+                id="showArchived"
+                type="checkbox"
+                checked={showArchivedChats}
+                onChange={(e) => setShowArchivedChats(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="ollamaUrl">Ollama Base URL</Label>
+              <Input
+                id="ollamaUrl"
+                value={ollamaBaseUrl}
+                onChange={(e) => setOllamaBaseUrl(e.target.value)}
+                placeholder="http://localhost:11434"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FolderOpen className="h-5 w-5" />
+              Data Transfer
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Export your data to transfer between browsers</Label>
+              <Button 
+                onClick={handleExportData} 
+                disabled={isExporting}
+                className="w-full"
+                variant="outline"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {isExporting ? 'Exporting...' : 'Export Data'}
+              </Button>
+              <p className="text-sm text-gray-600">
+                Downloads conversations.json, settings.json, and storage-index.json
+              </p>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Import data from another browser</Label>
+              <Button 
+                onClick={triggerFileUpload} 
+                disabled={isImporting}
+                className="w-full"
+                variant="outline"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {isImporting ? 'Importing...' : 'Import Data'}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".json"
+                onChange={handleImportData}
+                className="hidden"
+              />
+              <p className="text-sm text-gray-600">
+                Select the exported JSON files to restore your data
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Provider Selection */}
         <div className="space-y-3">
-          <Label>AI Provider</Label>
+          <Label>Provider</Label>
           <Select value={selectedProvider} onValueChange={setSelectedProvider}>
             <SelectTrigger className="glass-panel">
               <SelectValue placeholder="Select provider" />
@@ -140,76 +295,76 @@ export const SettingsPanel = ({
           </Select>
         </div>
 
-        {/* API Key Selection - Only show for non-local providers */}
+        {/* API Key Management - Only show for non-local providers */}
         {selectedProvider && !currentProvider?.isLocal && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label>API Key</Label>
-              <Dialog open={showAddKeyDialog} onOpenChange={setShowAddKeyDialog}>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setSelectedProviderForKey(selectedProvider)}
-                    className="text-xs"
-                  >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Add Key
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="glass-panel">
-                  <DialogHeader>
-                    <DialogTitle>Add API Key</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="provider">Provider</Label>
-                      <Select value={selectedProviderForKey} onValueChange={setSelectedProviderForKey}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select provider" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {providers.map(provider => (
-                            <SelectItem key={provider.id} value={provider.id}>
-                              {provider.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="keyName">Key Name</Label>
-                      <Input
-                        id="keyName"
-                        value={newKeyName}
-                        onChange={(e) => setNewKeyName(e.target.value)}
-                        placeholder="e.g., Personal Key, Client A"
-                        className="glass-panel"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="keyValue">API Key</Label>
-                      <Input
-                        id="keyValue"
-                        type="password"
-                        value={newKeyValue}
-                        onChange={(e) => setNewKeyValue(e.target.value)}
-                        placeholder="sk-..."
-                        className="glass-panel"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Button onClick={handleAddApiKey} className="flex-1">
-                        Add Key
-                      </Button>
-                      <Button variant="outline" onClick={() => setShowAddKeyDialog(false)}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+              <Label>API Keys</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddKeyDialog(true)}
+                className="h-8"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Key
+              </Button>
             </div>
+
+            {/* Add API Key Dialog */}
+            <Dialog open={showAddKeyDialog} onOpenChange={setShowAddKeyDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add API Key</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="provider">Provider</Label>
+                    <Select value={selectedProviderForKey} onValueChange={setSelectedProviderForKey}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {providers.map(provider => (
+                          <SelectItem key={provider.id} value={provider.id}>
+                            {provider.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="keyName">Key Name</Label>
+                    <Input
+                      id="keyName"
+                      value={newKeyName}
+                      onChange={(e) => setNewKeyName(e.target.value)}
+                      placeholder="e.g., Personal Key, Client A"
+                      className="glass-panel"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="keyValue">API Key</Label>
+                    <Input
+                      id="keyValue"
+                      type="password"
+                      value={newKeyValue}
+                      onChange={(e) => setNewKeyValue(e.target.value)}
+                      placeholder="sk-..."
+                      className="glass-panel"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleAddApiKey} className="flex-1">
+                      Add Key
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowAddKeyDialog(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             
             {currentProvider?.apiKeys.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
@@ -240,7 +395,7 @@ export const SettingsPanel = ({
                           onClick={() => handleDeleteApiKey(selectedProvider, apiKey.id)}
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardContent>

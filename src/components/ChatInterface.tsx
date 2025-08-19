@@ -1,20 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Settings, Bot, User, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Settings, Bot, User, Loader2, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SettingsPanel } from './SettingsPanel';
+import { ConversationSidebar } from './ConversationSidebar';
 import { useToast } from '@/hooks/use-toast';
+import { useConversationState } from '@/hooks/useConversationState';
+import { useSettings } from '@/hooks/useSettings';
 import { ApiService } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
-
-export interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  provider?: string;
-}
+import { Conversation, Message } from '@/types/conversation';
 
 export interface Provider {
   id: string;
@@ -67,11 +63,37 @@ export const ChatInterface = () => {
     }
   ]);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [showSidebar, setShowSidebar] = useState(false); // Temporarily disabled for debugging
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   const apiService = new ApiService();
+  
+  // Use the new centralized state management hooks
+  const { 
+    state: conversationState, 
+    createConversation, 
+    loadConversation, 
+    addMessage, 
+    switchModel,
+    searchConversations,
+    getConversationStats
+  } = useConversationState();
+  
+  const { 
+    settings, 
+    updateSetting, 
+    isLoading: settingsLoading 
+  } = useSettings();
+
+  // Initialize settings from the settings service
+  useEffect(() => {
+    if (settings) {
+      setShowSidebar(!settings.sidebarCollapsed);
+      // Don't auto-set provider/model - let user choose explicitly
+    }
+  }, [settings]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -87,7 +109,7 @@ export const ChatInterface = () => {
           const response = await fetch('http://localhost:11434/api/tags');
           if (response.ok) {
             const data = await response.json();
-            const modelNames = data.models?.map((m: any) => m.name) || [];
+            const modelNames = data.models?.map((m: { name: string }) => m.name) || [];
             setAvailableModels(modelNames);
             
             // Update the providers array with actual available models
@@ -144,6 +166,19 @@ export const ChatInterface = () => {
       return;
     }
 
+    // Create conversation if none exists
+    if (!conversationState.currentConversation) {
+      const newConversation = await createConversation(
+        selectedProvider,
+        selectedModel
+      );
+    }
+
+    // Handle model switching if needed
+    if (conversationState.currentConversation && conversationState.currentConversation.currentModel !== selectedModel) {
+      await switchModel(selectedModel);
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -152,7 +187,7 @@ export const ChatInterface = () => {
       provider: selectedProvider
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    await addMessage(userMessage);
     setInput('');
     setIsLoading(true);
 
@@ -164,10 +199,12 @@ export const ChatInterface = () => {
         provider: selectedProvider,
         model: selectedModel,
         messages: [
-          ...messages.map(msg => ({ 
-            role: msg.role, 
-            content: msg.content 
-          })),
+          ...messages
+            .filter(msg => msg.role === 'user' || msg.role === 'assistant')
+            .map(msg => ({ 
+              role: msg.role as 'user' | 'assistant', 
+              content: msg.content 
+            })),
           { role: 'user' as const, content: input.trim() }
         ],
         apiKey: selectedApiKey,
@@ -191,7 +228,7 @@ export const ChatInterface = () => {
         provider: selectedProvider
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      await addMessage(assistantMessage);
     } catch (error) {
       console.error('Chat error:', error);
       toast({
@@ -211,12 +248,131 @@ export const ChatInterface = () => {
     }
   };
 
+  // Conversation management functions
+  const handleNewConversation = useCallback(async () => {
+    try {
+      // Create new conversation
+      const newConversation = await createConversation(
+        selectedProvider || 'ollama',
+        selectedModel || 'llama3.2'
+      );
+      
+      // Clear messages for new conversation
+      setMessages([]);
+      
+      toast({
+        title: "New Conversation",
+        description: "Started a new conversation"
+      });
+    } catch (error) {
+      console.error('Failed to create new conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create new conversation",
+        variant: "destructive"
+      });
+    }
+  }, [selectedProvider, selectedModel, createConversation, toast]);
+
+  const handleConversationSelect = useCallback(async (conversation: Conversation) => {
+    try {
+      // Load the selected conversation
+      const loadedConversation = await loadConversation(conversation.id);
+      
+      // Set messages from loaded conversation
+      setMessages(loadedConversation.messages);
+      
+      // Update provider and model selection
+      setSelectedProvider(loadedConversation.provider);
+      setSelectedModel(loadedConversation.currentModel);
+      
+      toast({
+        title: "Conversation Loaded",
+        description: `Switched to "${loadedConversation.title}"`
+      });
+    } catch (error) {
+      console.error('Failed to load conversation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load conversation",
+        variant: "destructive"
+      });
+    }
+  }, [loadConversation, toast]);
+
+  const loadConversations = useCallback(async () => {
+    try {
+      // Use empty filters to get all conversations
+      await searchConversations({
+        searchQuery: '',
+        provider: '',
+        model: '',
+        showArchived: false
+      });
+    } catch (error) {
+      console.error('Failed to load conversations:', error);
+    }
+  }, [searchConversations]);
+
+  // Load conversations on mount
+  useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
+
+  // Auto-save conversation when messages change
+  useEffect(() => {
+    if (conversationState.currentConversation && messages.length > 0) {
+      // The state manager handles auto-saving automatically
+      // No need to manually call auto-save
+    }
+  }, [messages, conversationState.currentConversation]);
+
+  // Handle model switching
+  const handleModelChange = useCallback(async (newModel: string) => {
+    if (newModel === selectedModel || !conversationState.currentConversation) return;
+
+    try {
+      // Switch model using the state manager
+      await switchModel(newModel);
+
+      // Update local state
+      setSelectedModel(newModel);
+
+      // Show notification
+      toast({
+        title: "Model Changed",
+        description: `Switched to ${newModel}`,
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Failed to update model:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update model",
+        variant: "destructive"
+      });
+    }
+  }, [selectedModel, conversationState.currentConversation, switchModel, toast]);
+
   const currentProvider = providers.find(p => p.id === selectedProvider);
   const hasValidConfig = selectedProvider && selectedModel && 
     (currentProvider?.isLocal || selectedApiKey);
 
   return (
     <div className="flex h-screen bg-background">
+      {/* Conversation Sidebar */}
+      {showSidebar && (
+        <div className="w-80 border-r border-border lg:block">
+          <ConversationSidebar
+            currentConversationId={conversationState.currentConversation?.id}
+            onConversationSelect={handleConversationSelect}
+            onNewConversation={handleNewConversation}
+            selectedProvider={selectedProvider}
+            selectedModel={selectedModel}
+          />
+        </div>
+      )}
+      
       {/* Main Chat Area */}
       <div className="flex flex-col flex-1">
         {/* Header */}
@@ -224,8 +380,13 @@ export const ChatInterface = () => {
           <div className="flex items-center gap-3">
             <Bot className="w-8 h-8 text-primary" />
             <div>
-              <h1 className="text-xl font-bold">AI Chat Interface</h1>
-              {hasValidConfig && (
+              <h1 className="text-xl font-bold">Polyglut Chat</h1>
+              {conversationState.currentConversation && (
+                <p className="text-sm text-muted-foreground">
+                  {conversationState.currentConversation.title}
+                </p>
+              )}
+              {hasValidConfig && !conversationState.currentConversation && (
                 <p className="text-sm text-muted-foreground">
                   {currentProvider?.name} • {selectedModel}
                 </p>
@@ -240,7 +401,7 @@ export const ChatInterface = () => {
                         key={model} 
                         variant="outline" 
                         className="text-xs cursor-pointer hover:bg-primary/10 transition-colors"
-                        onClick={() => setSelectedModel(model)}
+                        onClick={() => handleModelChange(model)}
                       >
                         {model}
                       </Badge>
@@ -255,14 +416,24 @@ export const ChatInterface = () => {
               )}
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setShowSettings(!showSettings)}
-            className="glass-panel"
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSidebar(!showSidebar)}
+              className="glass-panel"
+            >
+              <Menu className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowSettings(!showSettings)}
+              className="glass-panel"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -271,7 +442,7 @@ export const ChatInterface = () => {
             {messages.length === 0 && (
               <div className="text-center py-12">
                 <Bot className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Welcome to AI Chat</h3>
+                <h3 className="text-lg font-medium mb-2">Welcome to Polyglut Chat</h3>
                 <p className="text-muted-foreground">
                   {hasValidConfig 
                     ? "Start a conversation by typing a message below."
@@ -360,17 +531,28 @@ export const ChatInterface = () => {
 
       {/* Settings Panel */}
       {showSettings && (
-        <SettingsPanel
-          providers={providers}
-          setProviders={setProviders}
-          selectedProvider={selectedProvider}
-          setSelectedProvider={setSelectedProvider}
-          selectedApiKey={selectedApiKey}
-          setSelectedApiKey={setSelectedApiKey}
-          selectedModel={selectedModel}
-          setSelectedModel={setSelectedModel}
-          onClose={() => setShowSettings(false)}
-        />
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowSettings(false);
+            }
+          }}
+        >
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <SettingsPanel
+              providers={providers}
+              setProviders={setProviders}
+              selectedProvider={selectedProvider}
+              setSelectedProvider={setSelectedProvider}
+              selectedApiKey={selectedApiKey}
+              setSelectedApiKey={setSelectedApiKey}
+              selectedModel={selectedModel}
+              setSelectedModel={setSelectedModel}
+              onClose={() => setShowSettings(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

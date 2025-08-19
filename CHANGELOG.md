@@ -5,7 +5,145 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - Current Development
+## [Unreleased]
+
+## [0.2.5] - 2025-08-19
+
+### Added
+- **Data Export/Import System**: Users can now export their chat history and settings as downloadable JSON files
+- **Cross-Browser Data Transfer**: Easy transfer of Polyglut data between different browsers and devices
+- **Data Transfer UI**: New section in Settings panel with Export and Import buttons
+- **File Downloads**: Automatic download of conversations.json, settings.json, and storage-index.json
+- **Data Validation**: Import validation to ensure data integrity and prevent corruption
+- **User Documentation**: README.md in data/ directory explaining how to use the export/import functionality
+
+### Changed
+- **StorageService**: Enhanced with exportToFiles() and importFromFiles() methods
+- **SettingsPanel**: Added Data Transfer section with export/import functionality
+- **File Handling**: Improved file I/O with proper blob creation and FileReader API
+
+### Technical Improvements
+- **Download System**: Uses Blob API and programmatic file downloads for better user experience
+- **Import Validation**: Robust validation of imported data structures before applying
+- **Error Handling**: Comprehensive error handling with user-friendly toast notifications
+- **File Type Support**: Accepts .json files for data import with multiple file selection
+
+## [0.2.4] - 2025-08-18
+
+### Added
+- **Complete UI Integration**: Full integration of centralized state management system
+  - ChatInterface now uses useConversationState and useSettings hooks
+  - ConversationSidebar fully integrated with new state management
+  - Real-time conversation state synchronization across all components
+  - Automatic conversation persistence and auto-save functionality
+- **Enhanced User Experience**: Seamless conversation management workflow
+  - Conversation creation, loading, and switching with full context preservation
+  - Model switching mid-conversation with visual feedback
+  - Real-time conversation list updates and filtering
+  - Responsive sidebar with conversation actions (archive, delete, restore)
+- **Performance Optimizations**: Efficient state management and rendering
+  - Centralized state updates with observer pattern
+  - Optimized re-renders and background operations
+  - Efficient conversation filtering and search
+  - Background auto-save without blocking UI
+
+### Changed
+- **Component Architecture**: Moved from direct service calls to centralized hooks
+  - ChatInterface now uses useConversationState instead of direct StorageService calls
+  - ConversationSidebar integrated with centralized state management
+  - All conversation operations now go through the state manager
+- **State Management**: Unified conversation and settings state across the application
+  - Single source of truth for all conversation data
+  - Real-time synchronization between components
+  - Automatic state persistence and recovery
+
+### Technical Improvements
+- **Hook Integration**: Complete integration of Phase 3 services
+  - useConversationState provides all conversation operations
+  - useSettings manages application preferences and persistence
+  - Proper async/await handling for all state operations
+- **Error Handling**: Comprehensive error boundaries and user feedback
+  - Toast notifications for all user actions
+  - Graceful fallbacks for failed operations
+  - User-friendly error messages and recovery options
+- **Type Safety**: Full TypeScript integration with proper interfaces
+  - Correct function signatures for all hooks
+  - Proper async operation handling
+  - Type-safe conversation and message handling
+
+## [0.2.3] - 2025-08-18
+
+### Added
+- **Settings Service**: Comprehensive settings management and persistence
+  - UI preferences (theme, sidebar state, timestamps, model info)
+  - Chat preferences (default provider/model, auto-save intervals)
+  - Advanced settings (debug mode, analytics, backup configuration)
+  - Type-safe validation with fallback defaults
+  - Import/export functionality for settings backup
+- **Conversation State Manager**: Centralized conversation state management
+  - Real-time state synchronization across components
+  - Configurable auto-save with background persistence
+  - Advanced search and filtering capabilities
+  - Conversation statistics and analytics
+  - Import/export for conversation backup and restore
+- **React Hooks**: Easy integration with existing components
+  - useConversationState: Complete conversation management
+  - useSettings: Settings persistence and validation
+  - Automatic lifecycle management and cleanup
+- **Web Storage Implementation**: Real persistence for web environment
+  - localStorage integration with data validation
+  - Error handling with graceful fallbacks
+  - Efficient storage and retrieval operations
+
+### Changed
+- **Storage Architecture**: Moved from stubbed operations to real web storage
+- **State Management**: Centralized all conversation and settings state
+- **Data Persistence**: Real-time saving of user preferences and conversations
+- **Error Handling**: Comprehensive error boundaries and recovery mechanisms
+
+### Technical Improvements
+- **Observer Pattern**: State changes automatically propagate to subscribers
+- **Type Safety**: Full TypeScript integration with runtime validation
+- **Performance**: Optimized state updates and background operations
+- **Testing**: Comprehensive test suite with mocking and validation
+- **Scalability**: Easy extensibility for future features
+
+## [0.2.2] - 2025-08-18
+
+### Added 
+- **Conversation Management UI**: Complete conversation sidebar with intuitive navigation
+  - ConversationSidebar component with search, filtering, and archiving
+  - Real-time conversation list with smart date formatting
+  - Provider-specific icons and model badges
+  - Right-click context menus for conversation actions
+- **Enhanced ChatInterface Integration**: Seamless conversation management
+  - Auto-conversation creation on first message
+  - Conversation switching with full context preservation
+  - Real-time conversation title display in header
+  - Collapsible sidebar with responsive design
+- **Model Switching Mid-Conversation**: Complete implementation with tracking
+  - Click-to-switch model badges in chat header
+  - Model change recording with timestamps
+  - Seamless context preservation across model changes
+  - Visual feedback for model switches
+- **Auto-Save Functionality**: Background conversation persistence
+  - Automatic saving after each message
+  - Non-blocking background operations
+  - Error handling with user feedback
+
+### Changed
+- **ChatInterface Layout**: Added sidebar integration with toggle functionality
+- **Message Handling**: Enhanced to work with conversation persistence
+- **Provider Validation**: Improved logic for local vs. cloud providers
+- **State Management**: Centralized conversation and model state
+
+### Technical Improvements
+- **Storage Integration**: Full CRUD operations for conversation management
+- **Error Handling**: Comprehensive error boundaries and user notifications
+- **Performance**: Optimized re-renders and efficient state updates
+- **Responsive Design**: Mobile-friendly sidebar with collapsible layout
+
+## [0.2.1] - 2025-08-18
 
 ### Added
 - **Ollama Integration**: Complete local AI model support with Ollama service
@@ -32,6 +170,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mock service worker for API testing
   - Hook testing utilities and custom render functions
   - Test coverage reporting
+### Added in 0.0.1
+- **Storage Service Layer**
+    - Added src/services/storage.ts
+    - File-based persistence for conversations and settings
+    - CRUD operations for handling conversations
+    - Auto-save functionality
+
 
 ### Changed
 - **Project Structure**: Reorganized codebase for better maintainability
@@ -92,9 +237,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Notes
 
 - **Ollama Auto-Start**: Users may experience Ollama starting automatically on macOS due to LaunchAgent configuration
-- **Storage Strategy**: Currently using `./data` directory for development; production will use user home directory
-- **Model Switching**: Supports seamless model switching mid-conversation with context preservation
-- **Future Plans**: Database migration for settings, cloud sync capabilities, and conversation sharing features
+- **Storage Strategy**: Web-based localStorage implementation complete; future desktop version will use user home directory
+- **Model Switching**: Supports seamless model switching mid-conversation with full context preservation and tracking
+- **State Management**: Complete centralized state management with real-time persistence
+- **Current Status**: All core conversation persistence features implemented and tested
+- **Feature Complete**: All 4 phases of conversation persistence feature have been completed:
+  - Phase 1 (v0.2.1): Storage Service Layer ✅
+  - Phase 2 (v0.2.2): UI Components ✅
+  - Phase 3 (v0.2.3): State Management & File System Implementation ✅
+  - Phase 4 (v0.2.4): UI Integration & Final UX Refinements ✅
+- **Future Plans**: Database migration for settings, cloud sync capabilities, conversation sharing, and desktop app version
 
 ## Contributing
 
