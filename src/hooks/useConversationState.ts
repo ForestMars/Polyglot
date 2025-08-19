@@ -198,7 +198,7 @@ export const useConversationState = () => {
     // Raw state values for convenience
     conversations: state.conversations,
     currentConversation: state.currentConversation,
-    isLoading: state.isLoading,
+    isLoadingState: state.isLoading,
     error: state.error,
     lastUpdated: state.lastUpdated
   };

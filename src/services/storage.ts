@@ -169,12 +169,6 @@ export class StorageService {
   /**
    * Utility Methods
    */
-  private async ensureDirectoryExists(dir: string): Promise<void> {
-    // This would use Node.js fs API in a real implementation
-    // For now, we'll assume the directory exists or can be created
-    console.log(`Ensuring directory exists: ${dir}`);
-  }
-
   private async ensureIndexFile(): Promise<void> {
     try {
       await this.readFile(this.indexFile);
