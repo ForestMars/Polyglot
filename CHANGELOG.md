@@ -5,9 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.2] - Current Development
+## [0.2.2] - 2025-08-18
 
-### Added in 0.0.2
+### Added 
+- **Conversation Management UI**: Complete conversation sidebar with intuitive navigation
+  - ConversationSidebar component with search, filtering, and archiving
+  - Real-time conversation list with smart date formatting
+  - Provider-specific icons and model badges
+  - Right-click context menus for conversation actions
+- **Enhanced ChatInterface Integration**: Seamless conversation management
+  - Auto-conversation creation on first message
+  - Conversation switching with full context preservation
+  - Real-time conversation title display in header
+  - Collapsible sidebar with responsive design
+- **Model Switching Mid-Conversation**: Complete implementation with tracking
+  - Click-to-switch model badges in chat header
+  - Model change recording with timestamps
+  - Seamless context preservation across model changes
+  - Visual feedback for model switches
+- **Auto-Save Functionality**: Background conversation persistence
+  - Automatic saving after each message
+  - Non-blocking background operations
+  - Error handling with user feedback
+
+### Changed
+- **ChatInterface Layout**: Added sidebar integration with toggle functionality
+- **Message Handling**: Enhanced to work with conversation persistence
+- **Provider Validation**: Improved logic for local vs. cloud providers
+- **State Management**: Centralized conversation and model state
+
+### Technical Improvements
+- **Storage Integration**: Full CRUD operations for conversation management
+- **Error Handling**: Comprehensive error boundaries and user notifications
+- **Performance**: Optimized re-renders and efficient state updates
+- **Responsive Design**: Mobile-friendly sidebar with collapsible layout
+
+## [0.2.1] - 2025-08-18
+
+### Added
 - **Ollama Integration**: Complete local AI model support with Ollama service
   - OllamaService class with chat, generate, and listModels methods
   - Health check functionality for Ollama connection status
@@ -101,6 +136,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Ollama Auto-Start**: Users may experience Ollama starting automatically on macOS due to LaunchAgent configuration
 - **Storage Strategy**: Currently using `./data` directory for development; production will use user home directory
 - **Model Switching**: Supports seamless model switching mid-conversation with context preservation
+- **File System**: Storage operations currently stubbed (console logging) - actual file I/O implementation pending
+- **Next Phase**: Settings persistence and file system implementation (v0.2.3)
 - **Future Plans**: Database migration for settings, cloud sync capabilities, and conversation sharing features
 
 ## Contributing
