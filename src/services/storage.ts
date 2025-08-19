@@ -232,25 +232,63 @@ export class StorageService {
   }
 
   /**
-   * File I/O Methods (to be implemented with actual file system access)
+   * File I/O Methods using Web Storage APIs
    */
   private async writeFile(path: string, content: string): Promise<void> {
-    // This would use Node.js fs.writeFile in a real implementation
-    console.log(`Writing to file: ${path}`);
-    // For now, we'll simulate the operation
+    try {
+      // Use localStorage for web environment
+      const key = this.getStorageKey(path);
+      localStorage.setItem(key, content);
+    } catch (error) {
+      console.error(`Failed to write file ${path}:`, error);
+      throw new Error(`Failed to write file: ${error}`);
+    }
   }
 
   private async readFile(path: string): Promise<string> {
-    // This would use Node.js fs.readFile in a real implementation
-    console.log(`Reading from file: ${path}`);
-    // For now, we'll simulate the operation
-    throw new Error('File read not implemented');
+    try {
+      // Use localStorage for web environment
+      const key = this.getStorageKey(path);
+      const content = localStorage.getItem(key);
+      if (content === null) {
+        throw new Error('File not found');
+      }
+      return content;
+    } catch (error) {
+      console.error(`Failed to read file ${path}:`, error);
+      throw new Error(`Failed to read file: ${error}`);
+    }
   }
 
   private async deleteFile(path: string): Promise<void> {
-    // This would use Node.js fs.unlink in a real implementation
-    console.log(`Deleting file: ${path}`);
-    // For now, we'll simulate the operation
+    try {
+      // Use localStorage for web environment
+      const key = this.getStorageKey(path);
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.error(`Failed to delete file ${path}:`, error);
+      throw new Error(`Failed to delete file: ${error}`);
+    }
+  }
+
+  private async ensureDirectoryExists(dir: string): Promise<void> {
+    // In web environment, directories are virtual - just ensure storage is available
+    try {
+      // Test localStorage availability
+      const testKey = '__storage_test__';
+      localStorage.setItem(testKey, 'test');
+      localStorage.removeItem(testKey);
+    } catch (error) {
+      throw new Error('Local storage is not available');
+    }
+  }
+
+  /**
+   * Convert file path to localStorage key
+   */
+  private getStorageKey(path: string): string {
+    // Convert file path to a valid localStorage key
+    return `polyglut_${path.replace(/[^a-zA-Z0-9]/g, '_')}`;
   }
 
   /**
