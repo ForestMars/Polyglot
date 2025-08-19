@@ -6,19 +6,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { SettingsPanel } from './SettingsPanel';
 import { ConversationSidebar } from './ConversationSidebar';
 import { useToast } from '@/hooks/use-toast';
+import { useConversationState } from '@/hooks/useConversationState';
+import { useSettings } from '@/hooks/useSettings';
 import { ApiService } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
-import { StorageService } from '@/services/storage';
-import { ConversationUtils } from '@/services/conversationUtils';
-import { Conversation, Message as ConversationMessage } from '@/types/conversation';
-
-export interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-  provider?: string;
-}
+import { Conversation, Message } from '@/types/conversation';
 
 export interface Provider {
   id: string;
@@ -71,15 +63,42 @@ export const ChatInterface = () => {
     }
   ]);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
-  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
   const apiService = new ApiService();
-  const storageService = new StorageService();
+  
+  // Use the new centralized state management hooks
+  const { 
+    state: conversationState, 
+    createConversation, 
+    loadConversation, 
+    addMessage, 
+    switchModel,
+    searchConversations,
+    getConversationStats
+  } = useConversationState();
+  
+  const { 
+    settings, 
+    updateSetting, 
+    isLoading: settingsLoading 
+  } = useSettings();
+
+  // Initialize settings from the settings service
+  useEffect(() => {
+    if (settings) {
+      setShowSidebar(!settings.sidebarCollapsed);
+      if (settings.defaultProvider) {
+        setSelectedProvider(settings.defaultProvider);
+      }
+      if (settings.defaultModel) {
+        setSelectedModel(settings.defaultModel);
+      }
+    }
+  }, [settings]);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -95,7 +114,7 @@ export const ChatInterface = () => {
           const response = await fetch('http://localhost:11434/api/tags');
           if (response.ok) {
             const data = await response.json();
-            const modelNames = data.models?.map((m: any) => m.name) || [];
+            const modelNames = data.models?.map((m: { name: string }) => m.name) || [];
             setAvailableModels(modelNames);
             
             // Update the providers array with actual available models
@@ -153,23 +172,16 @@ export const ChatInterface = () => {
     }
 
     // Create conversation if none exists
-    if (!currentConversation) {
-      const newConversation = ConversationUtils.createConversation(
+    if (!conversationState.currentConversation) {
+      const newConversation = await createConversation(
         selectedProvider,
         selectedModel
       );
-      setCurrentConversation(newConversation);
     }
 
     // Handle model switching if needed
-    let updatedConversation = currentConversation;
-    if (currentConversation && currentConversation.currentModel !== selectedModel) {
-      updatedConversation = ConversationUtils.recordModelChange(
-        currentConversation,
-        currentConversation.currentModel,
-        selectedModel
-      );
-      setCurrentConversation(updatedConversation);
+    if (conversationState.currentConversation && conversationState.currentConversation.currentModel !== selectedModel) {
+      await switchModel(selectedModel);
     }
 
     const userMessage: Message = {
@@ -180,7 +192,7 @@ export const ChatInterface = () => {
       provider: selectedProvider
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    await addMessage(userMessage);
     setInput('');
     setIsLoading(true);
 
@@ -192,10 +204,12 @@ export const ChatInterface = () => {
         provider: selectedProvider,
         model: selectedModel,
         messages: [
-          ...messages.map(msg => ({ 
-            role: msg.role, 
-            content: msg.content 
-          })),
+          ...messages
+            .filter(msg => msg.role === 'user' || msg.role === 'assistant')
+            .map(msg => ({ 
+              role: msg.role as 'user' | 'assistant', 
+              content: msg.content 
+            })),
           { role: 'user' as const, content: input.trim() }
         ],
         apiKey: selectedApiKey,
@@ -219,7 +233,7 @@ export const ChatInterface = () => {
         provider: selectedProvider
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      await addMessage(assistantMessage);
     } catch (error) {
       console.error('Chat error:', error);
       toast({
@@ -243,20 +257,13 @@ export const ChatInterface = () => {
   const handleNewConversation = useCallback(async () => {
     try {
       // Create new conversation
-      const newConversation = ConversationUtils.createConversation(
+      const newConversation = await createConversation(
         selectedProvider || 'ollama',
         selectedModel || 'llama3.2'
       );
       
-      // Save to storage
-      await storageService.saveConversation(newConversation);
-      
-      // Set as current conversation
-      setCurrentConversation(newConversation);
+      // Clear messages for new conversation
       setMessages([]);
-      
-      // Update conversations list
-      await loadConversations();
       
       toast({
         title: "New Conversation",
@@ -270,15 +277,14 @@ export const ChatInterface = () => {
         variant: "destructive"
       });
     }
-  }, [selectedProvider, selectedModel, storageService, toast]);
+  }, [selectedProvider, selectedModel, createConversation, toast]);
 
   const handleConversationSelect = useCallback(async (conversation: Conversation) => {
     try {
       // Load the selected conversation
-      const loadedConversation = await storageService.loadConversation(conversation.id);
+      const loadedConversation = await loadConversation(conversation.id);
       
-      // Set as current conversation
-      setCurrentConversation(loadedConversation);
+      // Set messages from loaded conversation
       setMessages(loadedConversation.messages);
       
       // Update provider and model selection
@@ -297,16 +303,21 @@ export const ChatInterface = () => {
         variant: "destructive"
       });
     }
-  }, [storageService, toast]);
+  }, [loadConversation, toast]);
 
   const loadConversations = useCallback(async () => {
     try {
-      const loadedConversations = await storageService.listConversations();
-      setConversations(loadedConversations);
+      // Use empty filters to get all conversations
+      await searchConversations({
+        searchQuery: '',
+        provider: '',
+        model: '',
+        showArchived: false
+      });
     } catch (error) {
       console.error('Failed to load conversations:', error);
     }
-  }, [storageService]);
+  }, [searchConversations]);
 
   // Load conversations on mount
   useEffect(() => {
@@ -315,41 +326,22 @@ export const ChatInterface = () => {
 
   // Auto-save conversation when messages change
   useEffect(() => {
-    if (currentConversation && messages.length > 0) {
-      const updatedConversation = {
-        ...currentConversation,
-        messages: messages.map(msg => ({
-          id: msg.id,
-          role: msg.role as 'user' | 'assistant' | 'system',
-          content: msg.content,
-          timestamp: msg.timestamp,
-          provider: msg.provider
-        }))
-      };
-      
-      // Auto-save in background
-      storageService.autoSaveConversation(updatedConversation);
+    if (conversationState.currentConversation && messages.length > 0) {
+      // The state manager handles auto-saving automatically
+      // No need to manually call auto-save
     }
-  }, [messages, currentConversation, storageService]);
+  }, [messages, conversationState.currentConversation]);
 
   // Handle model switching
   const handleModelChange = useCallback(async (newModel: string) => {
-    if (newModel === selectedModel || !currentConversation) return;
+    if (newModel === selectedModel || !conversationState.currentConversation) return;
 
     try {
-      // Record model change in conversation
-      const updatedConversation = ConversationUtils.recordModelChange(
-        currentConversation,
-        selectedModel,
-        newModel
-      );
+      // Switch model using the state manager
+      await switchModel(newModel);
 
-      // Update conversation state
-      setCurrentConversation(updatedConversation);
+      // Update local state
       setSelectedModel(newModel);
-
-      // Save to storage
-      await storageService.saveConversation(updatedConversation);
 
       // Show notification
       toast({
@@ -365,7 +357,7 @@ export const ChatInterface = () => {
         variant: "destructive"
       });
     }
-  }, [selectedModel, currentConversation, storageService, toast]);
+  }, [selectedModel, conversationState.currentConversation, switchModel, toast]);
 
   const currentProvider = providers.find(p => p.id === selectedProvider);
   const hasValidConfig = selectedProvider && selectedModel && 
@@ -377,7 +369,7 @@ export const ChatInterface = () => {
       {showSidebar && (
         <div className="w-80 border-r border-border lg:block">
           <ConversationSidebar
-            currentConversationId={currentConversation?.id}
+            currentConversationId={conversationState.currentConversation?.id}
             onConversationSelect={handleConversationSelect}
             onNewConversation={handleNewConversation}
             selectedProvider={selectedProvider}
@@ -394,12 +386,12 @@ export const ChatInterface = () => {
             <Bot className="w-8 h-8 text-primary" />
             <div>
               <h1 className="text-xl font-bold">AI Chat Interface</h1>
-              {currentConversation && (
+              {conversationState.currentConversation && (
                 <p className="text-sm text-muted-foreground">
-                  {currentConversation.title}
+                  {conversationState.currentConversation.title}
                 </p>
               )}
-              {hasValidConfig && !currentConversation && (
+              {hasValidConfig && !conversationState.currentConversation && (
                 <p className="text-sm text-muted-foreground">
                   {currentProvider?.name} • {selectedModel}
                 </p>

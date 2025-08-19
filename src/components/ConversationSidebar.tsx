@@ -30,9 +30,8 @@ import {
   DialogTrigger 
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useConversationState } from '@/hooks/useConversationState';
 import { Conversation, ConversationMetadata } from '@/types/conversation';
-import { StorageService } from '@/services/storage';
-import { ConversationUtils } from '@/services/conversationUtils';
 
 interface ConversationSidebarProps {
   currentConversationId?: string;
@@ -49,25 +48,25 @@ export const ConversationSidebar = ({
   selectedProvider,
   selectedModel
 }: ConversationSidebarProps) => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showArchived, setShowArchived] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [filterProvider, setFilterProvider] = useState<string>('');
   const [filterModel, setFilterModel] = useState<string>('');
+  const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   
   const { toast } = useToast();
-  const storageService = new StorageService();
+  
+  // Use the new centralized state management hook
+  const { 
+    state: conversationState, 
+    toggleArchive, 
+    deleteConversation,
+    searchConversations
+  } = useConversationState();
 
-  // Load conversations on mount and when dependencies change
+  // Local filtering since the state manager doesn't provide filtered conversations
   useEffect(() => {
-    loadConversations();
-  }, [showArchived]);
-
-  // Filter conversations based on search and filters
-  useEffect(() => {
-    let filtered = conversations.filter(conv => {
+    const filtered = conversationState.conversations.filter(conv => {
       // Filter by archive status
       if (conv.isArchived !== showArchived) return false;
       
@@ -94,72 +93,49 @@ export const ConversationSidebar = ({
     filtered.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
     
     setFilteredConversations(filtered);
-  }, [conversations, searchQuery, showArchived, filterProvider, filterModel]);
+  }, [conversationState.conversations, searchQuery, showArchived, filterProvider, filterModel]);
 
-  const loadConversations = useCallback(async () => {
+  // Load conversations on mount and when filters change
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        await searchConversations({
+          searchQuery: '',
+          provider: '',
+          model: '',
+          showArchived: false
+        });
+      } catch (error) {
+        console.error('Failed to load conversations:', error);
+      }
+    };
+
+    loadConversations();
+  }, [searchConversations]);
+
+  const handleToggleArchive = useCallback(async (conversationId: string) => {
     try {
-      setIsLoading(true);
-      const loadedConversations = await storageService.listConversations();
-      setConversations(loadedConversations);
-    } catch (error) {
-      console.error('Failed to load conversations:', error);
+      await toggleArchive(conversationId);
       toast({
-        title: "Error",
-        description: "Failed to load conversations",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [storageService, toast]);
-
-  const handleConversationSelect = useCallback((conversation: Conversation) => {
-    onConversationSelect(conversation);
-  }, [onConversationSelect]);
-
-  const handleArchiveConversation = useCallback(async (conversationId: string) => {
-    try {
-      await storageService.archiveConversation(conversationId);
-      await loadConversations();
-      toast({
-        title: "Conversation Archived",
-        description: "The conversation has been moved to archives"
+        title: "Conversation Updated",
+        description: "Archive status updated successfully"
       });
     } catch (error) {
-      console.error('Failed to archive conversation:', error);
+      console.error('Failed to toggle archive:', error);
       toast({
         title: "Error",
-        description: "Failed to archive conversation",
+        description: "Failed to update archive status",
         variant: "destructive"
       });
     }
-  }, [storageService, loadConversations, toast]);
-
-  const handleUnarchiveConversation = useCallback(async (conversationId: string) => {
-    try {
-      await storageService.unarchiveConversation(conversationId);
-      await loadConversations();
-      toast({
-        title: "Conversation Restored",
-        description: "The conversation has been restored from archives"
-      });
-    } catch (error) {
-      console.error('Failed to restore conversation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to restore conversation",
-        variant: "destructive"
-      });
-    }
-  }, [storageService, loadConversations, toast]);
+  }, [toggleArchive, toast]);
 
   const handleDeleteConversation = useCallback(async (conversationId: string) => {
     try {
-      await storageService.deleteConversation(conversationId);
-      await loadConversations();
+      await deleteConversation(conversationId);
       toast({
         title: "Conversation Deleted",
-        description: "The conversation has been permanently deleted"
+        description: "Conversation removed successfully"
       });
     } catch (error) {
       console.error('Failed to delete conversation:', error);
@@ -169,7 +145,11 @@ export const ConversationSidebar = ({
         variant: "destructive"
       });
     }
-  }, [storageService, loadConversations, toast]);
+  }, [deleteConversation, toast]);
+
+  const handleConversationSelect = useCallback((conversation: Conversation) => {
+    onConversationSelect(conversation);
+  }, [onConversationSelect]);
 
   const clearFilters = useCallback(() => {
     setSearchQuery('');
@@ -177,6 +157,25 @@ export const ConversationSidebar = ({
     setFilterModel('');
   }, []);
 
+  // Helper function to format dates
+  const formatDate = (date: Date): string => {
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 1) {
+      return 'Just now';
+    } else if (diffInHours < 24) {
+      const hours = Math.floor(diffInHours);
+      return `${hours}h ago`;
+    } else if (diffInHours < 168) { // 7 days
+      const days = Math.floor(diffInHours / 24);
+      return `${days}d ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  // Helper function to get provider icon
   const getProviderIcon = (provider: string) => {
     switch (provider) {
       case 'ollama':
@@ -192,27 +191,141 @@ export const ConversationSidebar = ({
     }
   };
 
-  const formatDate = (date: Date) => {
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-    
-    if (diffInHours < 1) {
-      return 'Just now';
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
-    } else if (diffInHours < 168) { // 7 days
-      return `${Math.floor(diffInHours / 24)}d ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
   const getActiveFiltersCount = () => {
     let count = 0;
     if (searchQuery) count++;
     if (filterProvider) count++;
     if (filterModel) count++;
     return count;
+  };
+
+  // ConversationItem component definition (moved inside main component for scope access)
+  const ConversationItem = ({
+    conversation,
+    isActive,
+    onSelect,
+    onArchive,
+    onUnarchive,
+    onDelete,
+    showArchived
+  }: {
+    conversation: Conversation;
+    isActive: boolean;
+    onSelect: () => void;
+    onArchive: () => void;
+    onUnarchive: () => void;
+    onDelete: () => void;
+    showArchived: boolean;
+  }) => {
+    const [showActions, setShowActions] = useState(false);
+
+    const handleAction = (action: () => void) => {
+      action();
+      setShowActions(false);
+    };
+
+    return (
+      <div
+        className={`
+          group relative p-3 rounded-lg cursor-pointer transition-all duration-200
+          ${isActive 
+            ? 'bg-primary text-primary-foreground shadow-sm' 
+            : 'hover:bg-muted/50 hover:shadow-sm'
+          }
+        `}
+        onClick={onSelect}
+        onMouseEnter={() => setShowActions(true)}
+        onMouseLeave={() => setShowActions(false)}
+      >
+        {/* Conversation Content */}
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 mt-1">
+            {getProviderIcon(conversation.provider)}
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className={`font-medium text-sm truncate ${
+                isActive ? 'text-primary-foreground' : 'text-foreground'
+              }`}>
+                {conversation.title}
+              </h3>
+              {conversation.isArchived && (
+                <Archive className="w-3 h-3 text-muted-foreground" />
+              )}
+            </div>
+            
+            <p className={`text-xs truncate mb-2 ${
+              isActive ? 'text-primary-foreground/80' : 'text-muted-foreground'
+            }`}>
+              {conversation.messages.length > 0 ? conversation.messages[conversation.messages.length - 1].content : 'No messages yet'}
+            </p>
+            
+            <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span className={isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}>
+                  {formatDate(conversation.lastModified)}
+                </span>
+              </div>
+              
+              <Badge 
+                variant="secondary" 
+                className={`text-xs ${
+                  isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''
+                }`}
+              >
+                {conversation.currentModel}
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Menu */}
+        {showActions && (
+          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+            <DropdownMenu open={showActions} onOpenChange={setShowActions}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`h-6 w-6 p-0 ${
+                    isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'
+                  }`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreHorizontal className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              
+              <DropdownMenuContent align="end" className="w-48">
+                {conversation.isArchived ? (
+                  <DropdownMenuItem onClick={() => handleAction(onUnarchive)}>
+                    <Archive className="w-4 h-4 mr-2" />
+                    Restore from Archive
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => handleAction(onArchive)}>
+                    <Archive className="w-4 h-4 mr-2" />
+                    Archive
+                  </DropdownMenuItem>
+                )}
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem 
+                  onClick={() => handleAction(onDelete)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Permanently
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -307,7 +420,7 @@ export const ConversationSidebar = ({
 
       {/* Conversation List */}
       <ScrollArea className="flex-1">
-        {isLoading ? (
+        {conversationState.isLoading ? (
           <div className="p-4 text-center text-muted-foreground">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
             Loading conversations...
@@ -315,29 +428,21 @@ export const ConversationSidebar = ({
         ) : filteredConversations.length === 0 ? (
           <div className="p-4 text-center text-muted-foreground">
             {searchQuery || filterProvider || filterModel ? (
-              <>
-                <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>No conversations match your filters</p>
-                <Button
-                  variant="ghost"
-                  size="sm"
+              <div>
+                <p>No conversations match your filters.</p>
+                <Button 
+                  variant="link" 
+                  size="sm" 
                   onClick={clearFilters}
                   className="mt-2"
                 >
                   Clear filters
                 </Button>
-              </>
+              </div>
             ) : showArchived ? (
-              <>
-                <Archive className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>No archived conversations</p>
-              </>
+              <p>No archived conversations.</p>
             ) : (
-              <>
-                <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>No conversations yet</p>
-                <p className="text-sm">Start a new chat to get started</p>
-              </>
+              <p>No conversations yet. Start chatting to create one!</p>
             )}
           </div>
         ) : (
@@ -348,8 +453,8 @@ export const ConversationSidebar = ({
                 conversation={conversation}
                 isActive={conversation.id === currentConversationId}
                 onSelect={() => handleConversationSelect(conversation)}
-                onArchive={() => handleArchiveConversation(conversation.id)}
-                onUnarchive={() => handleUnarchiveConversation(conversation.id)}
+                onArchive={() => handleToggleArchive(conversation.id)}
+                onUnarchive={() => handleToggleArchive(conversation.id)}
                 onDelete={() => handleDeleteConversation(conversation.id)}
                 showArchived={showArchived}
               />
@@ -359,150 +464,4 @@ export const ConversationSidebar = ({
       </ScrollArea>
     </div>
   );
-};
-
-interface ConversationItemProps {
-  conversation: Conversation;
-  isActive: boolean;
-  onSelect: () => void;
-  onArchive: () => void;
-  onUnarchive: () => void;
-  onDelete: () => void;
-  showArchived: boolean;
-}
-
-const ConversationItem = ({
-  conversation,
-  isActive,
-  onSelect,
-  onArchive,
-  onUnarchive,
-  onDelete,
-  showArchived
-}: ConversationItemProps) => {
-  const [showActions, setShowActions] = useState(false);
-
-  const handleAction = (action: () => void) => {
-    action();
-    setShowActions(false);
-  };
-
-  return (
-    <div
-      className={`
-        group relative p-3 rounded-lg cursor-pointer transition-all duration-200
-        ${isActive 
-          ? 'bg-primary text-primary-foreground shadow-sm' 
-          : 'hover:bg-muted/50 hover:shadow-sm'
-        }
-      `}
-      onClick={onSelect}
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
-    >
-      {/* Conversation Content */}
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 mt-1">
-          {getProviderIcon(conversation.provider)}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className={`font-medium text-sm truncate ${
-              isActive ? 'text-primary-foreground' : 'text-foreground'
-            }`}>
-              {conversation.title}
-            </h3>
-            {conversation.isArchived && (
-              <Archive className="w-3 h-3 text-muted-foreground" />
-            )}
-          </div>
-          
-          <p className={`text-xs truncate mb-2 ${
-            isActive ? 'text-primary-foreground/80' : 'text-muted-foreground'
-          }`}>
-            {ConversationUtils.getSummary(conversation)}
-          </p>
-          
-          <div className="flex items-center gap-2 text-xs">
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span className={isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}>
-                {formatDate(conversation.lastModified)}
-              </span>
-            </div>
-            
-            <Badge 
-              variant="secondary" 
-              className={`text-xs ${
-                isActive ? 'bg-primary-foreground/20 text-primary-foreground' : ''
-              }`}
-            >
-              {conversation.currentModel}
-            </Badge>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Menu */}
-      {showActions && (
-        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-          <DropdownMenu open={showActions} onOpenChange={setShowActions}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`h-6 w-6 p-0 ${
-                  isActive ? 'hover:bg-primary-foreground/20' : 'hover:bg-muted'
-                }`}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreHorizontal className="w-3 h-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            
-            <DropdownMenuContent align="end" className="w-48">
-              {conversation.isArchived ? (
-                <DropdownMenuItem onClick={() => handleAction(onUnarchive)}>
-                  <Archive className="w-4 h-4 mr-2" />
-                  Restore from Archive
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem onClick={() => handleAction(onArchive)}>
-                  <Archive className="w-4 h-4 mr-2" />
-                  Archive
-                </DropdownMenuItem>
-              )}
-              
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem 
-                onClick={() => handleAction(onDelete)}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Permanently
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Helper function to get provider icon (moved outside component for reusability)
-const getProviderIcon = (provider: string) => {
-  switch (provider) {
-    case 'ollama':
-      return <Bot className="w-4 h-4" />;
-    case 'openai':
-      return <MessageSquare className="w-4 h-4" />;
-    case 'anthropic':
-      return <MessageSquare className="w-4 h-4" />;
-    case 'google':
-      return <MessageSquare className="w-4 h-4" />;
-    default:
-      return <MessageSquare className="w-4 h-4" />;
-  }
 };

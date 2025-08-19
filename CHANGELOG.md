@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2025-08-18
+
+### Added
+- **Settings Service**: Comprehensive settings management and persistence
+  - UI preferences (theme, sidebar state, timestamps, model info)
+  - Chat preferences (default provider/model, auto-save intervals)
+  - Advanced settings (debug mode, analytics, backup configuration)
+  - Type-safe validation with fallback defaults
+  - Import/export functionality for settings backup
+- **Conversation State Manager**: Centralized conversation state management
+  - Real-time state synchronization across components
+  - Configurable auto-save with background persistence
+  - Advanced search and filtering capabilities
+  - Conversation statistics and analytics
+  - Import/export for conversation backup and restore
+- **React Hooks**: Easy integration with existing components
+  - useConversationState: Complete conversation management
+  - useSettings: Settings persistence and validation
+  - Automatic lifecycle management and cleanup
+- **Web Storage Implementation**: Real persistence for web environment
+  - localStorage integration with data validation
+  - Error handling with graceful fallbacks
+  - Efficient storage and retrieval operations
+
+### Changed
+- **Storage Architecture**: Moved from stubbed operations to real web storage
+- **State Management**: Centralized all conversation and settings state
+- **Data Persistence**: Real-time saving of user preferences and conversations
+- **Error Handling**: Comprehensive error boundaries and recovery mechanisms
+
+### Technical Improvements
+- **Observer Pattern**: State changes automatically propagate to subscribers
+- **Type Safety**: Full TypeScript integration with runtime validation
+- **Performance**: Optimized state updates and background operations
+- **Testing**: Comprehensive test suite with mocking and validation
+- **Scalability**: Easy extensibility for future features
+
 ## [0.2.2] - 2025-08-18
 
 ### Added 
@@ -134,11 +171,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Notes
 
 - **Ollama Auto-Start**: Users may experience Ollama starting automatically on macOS due to LaunchAgent configuration
-- **Storage Strategy**: Currently using `./data` directory for development; production will use user home directory
-- **Model Switching**: Supports seamless model switching mid-conversation with context preservation
-- **File System**: Storage operations currently stubbed (console logging) - actual file I/O implementation pending
-- **Next Phase**: Settings persistence and file system implementation (v0.2.3)
-- **Future Plans**: Database migration for settings, cloud sync capabilities, and conversation sharing features
+- **Storage Strategy**: Web-based localStorage implementation complete; future desktop version will use user home directory
+- **Model Switching**: Supports seamless model switching mid-conversation with full context preservation and tracking
+- **State Management**: Complete centralized state management with real-time persistence
+- **Current Status**: All core conversation persistence features implemented and tested
+- **Next Phase**: UI integration and final UX refinements (v0.2.4)
+- **Future Plans**: Database migration for settings, cloud sync capabilities, conversation sharing, and desktop app version
 
 ## Contributing
 
