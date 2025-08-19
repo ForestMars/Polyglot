@@ -10,15 +10,46 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 ## Features
 
 - **Multi-Provider Support**: Connect to OpenAI, Anthropic, Google AI services, and Ollama (local)
+- **🗂️ Conversation Persistence**: Complete conversation management with automatic saving and history
 - **Beautiful UI**: Glass-morphism design with smooth animations and modern aesthetics
 - **API Key Management**: Securely store and manage multiple API keys per provider
 - **Local AI Support**: Run AI models locally with Ollama (no API keys required)
 - **Model Selection**: Choose from various AI models for each provider
+- **🔄 Model Switching**: Switch AI models mid-conversation with full context preservation
 - **Real-time Chat**: Smooth message flow with typing indicators
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Dark Mode**: Elegant dark theme optimized for extended use
 - **Toast Notifications**: User-friendly feedback for actions and errors
 - **Testing**: Comprehensive test suite with Vitest and React Testing Library
+
+## 🗂️ Conversation Persistence
+
+PolyGlut now includes a **complete conversation management system** that keeps your AI chat history safe and organized:
+
+### ✨ Key Features
+
+- **🔒 Automatic Persistence**: Every conversation is automatically saved to your browser
+- **📚 Conversation History**: Browse and search through all your past conversations
+- **🔄 Model Switching**: Switch AI models mid-conversation with full context preservation
+- **📁 Archive System**: Archive old conversations to keep your sidebar organized
+- **🔍 Smart Search**: Find conversations by title, content, or model used
+- **⚡ Real-time Sync**: Changes sync instantly across all components
+- **📱 Cross-Session**: Your conversations persist even after closing the browser
+
+### 🎯 Use Cases
+
+- **Research & Learning**: Keep track of AI-assisted research across multiple sessions
+- **Code Development**: Maintain context while iterating on coding problems
+- **Content Creation**: Build upon previous AI conversations for long-term projects
+- **Model Comparison**: Easily compare responses from different AI models
+- **Knowledge Management**: Organize and retrieve AI-generated insights
+
+### 🚀 Getting Started
+
+1. **Start a conversation** - Your first message automatically creates a new conversation
+2. **Switch models** - Click on model badges in the chat header to switch AI models
+3. **Manage history** - Use the sidebar to browse, search, and organize conversations
+4. **Archive conversations** - Right-click on conversations to archive or delete them
 
 ## Quick Start
 
@@ -93,25 +124,113 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 
 ### Project Structure
 
+The project follows a clean, layered architecture that separates concerns and provides a maintainable codebase. See the [System Architecture](#system-architecture) section below for a detailed visual representation of how components interact.
+
 ```
 src/
 ├── components/
 │   ├── ChatInterface.tsx    # Main chat component
 │   ├── SettingsPanel.tsx    # Settings management
+│   ├── ConversationSidebar.tsx # Conversation management UI
+│   ├── OllamaStatus.tsx     # Ollama connection status
 │   └── ui/                  # Shadcn/ui components
 ├── pages/
 │   ├── Index.tsx           # Main page
 │   └── NotFound.tsx        # 404 page
 ├── hooks/
 │   ├── use-mobile.tsx      # Mobile detection hook
-│   └── use-toast.ts        # Toast notifications
+│   ├── use-toast.ts        # Toast notifications
+│   ├── useConversationState.ts # Conversation state management
+│   └── useSettings.ts      # Settings management
+├── services/
+│   ├── api.ts              # Multi-provider API service
+│   ├── ollama.ts           # Ollama integration
+│   ├── storage.ts          # Data persistence layer
+│   ├── conversationUtils.ts # Conversation utilities
+│   ├── settingsService.ts  # Settings management
+│   └── conversationStateManager.ts # Centralized state management
+├── types/
+│   └── conversation.ts      # Type definitions
 ├── lib/
 │   └── utils.ts            # Utility functions
 ├── __tests__/              # Test files
 │   ├── hooks/              # Hook tests
-│   └── utils/              # Utility tests
+│   ├── components/         # Component tests
+│   └── services/           # Service tests
 └── App.tsx                 # Root component
 ```
+
+### System Architecture
+
+PolyGlut follows a clean, layered architecture that separates concerns and provides a maintainable codebase:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    UI Components                            │
+│  ┌─────────────────┐  ┌─────────────────────────────────┐  │
+│  │ ChatInterface   │  │      ConversationSidebar        │  │
+│  │                 │  │                                 │  │
+│  │ • Chat input    │  │ • Conversation list             │  │
+│  │ • Message flow  │  │ • Search & filtering           │  │
+│  │ • Model display │  │ • Archive/delete actions       │  │
+│  └─────────────────┘  └─────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    React Hooks                              │
+│  ┌─────────────────┐  ┌─────────────────────────────────┐  │
+│  │useConversation  │  │         useSettings             │  │
+│  │    State        │  │                                 │  │
+│  │                 │  │ • Settings persistence         │  │
+│  │ • CRUD ops      │  │ • User preferences             │  │
+│  │ • State sync    │  │ • Theme & layout               │  │
+│  └─────────────────┘  └─────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                State Management Layer                       │
+│  ┌─────────────────┐  ┌─────────────────────────────────┐  │
+│  │ConversationState│  │      SettingsService            │  │
+│  │   Manager       │  │                                 │  │
+│  │                 │  │ • Settings validation          │  │
+│  │ • Observer      │  │ • Default values               │  │
+│  │ • Auto-save     │  │ • Import/export                │  │
+│  └─────────────────┘  └─────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  Storage Layer                              │
+│  ┌─────────────────┐  ┌─────────────────────────────────┐  │
+│  │ StorageService  │  │      ConversationUtils          │  │
+│  │                 │  │                                 │  │
+│  │ • localStorage  │  │ • ID generation                 │  │
+│  │ • CRUD ops      │  │ • Title generation             │  │
+│  │ • Search/filter │  │ • Data validation              │  │
+│  └─────────────────┘  └─────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  Web Storage (localStorage)                 │
+│                                                             │
+│  • Conversations stored as JSON                            │
+│  • Settings persisted across sessions                      │
+│  • Efficient key-based storage                             │
+│  • Automatic data validation                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Architectural Features
+
+- **Separation of Concerns**: Each layer has a specific responsibility
+- **Observer Pattern**: Real-time state synchronization across components
+- **Type Safety**: Full TypeScript integration with proper interfaces
+- **Error Boundaries**: Comprehensive error handling and user feedback
+- **Performance**: Optimized re-renders and background operations
+- **Scalability**: Easy to extend with new providers and features
 
 ### Available Scripts
 
@@ -139,9 +258,8 @@ npm run type-check   # TypeScript type checking
 - **Build Tool**: Vite 5.4.1
 - **Styling**: Tailwind CSS 3.4.11
 - **UI Components**: Shadcn/ui with Radix UI
-- **State Management**: React Query (TanStack Query)
-- **Routing**: React Router DOM
-- **Forms**: React Hook Form with Zod validation
+- **State Management**: Custom centralized state management with observer pattern
+- **Data Persistence**: Web Storage (localStorage) with automatic validation
 - **Icons**: Lucide React
 - **Animations**: CSS animations with Tailwind
 - **Testing**: Vitest, React Testing Library, MSW
@@ -185,12 +303,43 @@ npm run coverage    # Coverage report
 
 ## Current Status
 
-**Note**: This is currently a frontend-only implementation with simulated API responses. To connect to real AI services, you'll need to:
+**✅ Feature Complete**: PolyGlut now includes a fully functional conversation persistence system!
 
-1. Implement actual API calls in `ChatInterface.tsx`
-2. Add proper error handling for API failures
-3. Consider rate limiting and usage tracking
-4. Add message persistence if needed
+### What's Working
+
+- **Multi-Provider AI Integration**: Full support for OpenAI, Anthropic, Google AI, and Ollama
+- **Conversation Management**: Complete conversation history with persistence across sessions
+- **Model Switching**: Seamless model switching mid-conversation with context preservation
+- **Real-time Chat**: Smooth message flow with typing indicators and response timing
+- **Settings Persistence**: User preferences and API keys saved across sessions
+- **Responsive Design**: Beautiful glass-morphism UI that works on all devices
+
+### Conversation Persistence Features
+
+- **Automatic Saving**: Conversations are saved automatically after each message
+- **Conversation History**: Browse, search, and filter your conversation history
+- **Archive System**: Archive old conversations to keep your sidebar clean
+- **Model Tracking**: See which models were used in each conversation
+- **Context Preservation**: Switch between conversations with full message history
+- **Export/Import**: Backup and restore your conversations (coming soon)
+
+### Technical Implementation
+
+The conversation persistence system is built with:
+- **Web Storage**: Uses localStorage for efficient client-side persistence
+- **State Management**: Centralized state management with real-time synchronization
+- **Type Safety**: Full TypeScript integration with comprehensive interfaces
+- **Error Handling**: Robust error boundaries and user feedback
+- **Performance**: Optimized rendering and background operations
+
+### Next Steps
+
+While the core feature is complete, future enhancements may include:
+- Database migration for production deployments
+- Cloud sync capabilities
+- Conversation sharing features
+- Desktop application version
+- Advanced analytics and insights
 
 ## Deployment
 
