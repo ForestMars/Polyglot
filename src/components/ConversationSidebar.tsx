@@ -217,11 +217,11 @@ export const ConversationSidebar = ({
     onDelete: () => void;
     showArchived: boolean;
   }) => {
-    const [showActions, setShowActions] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleAction = (action: () => void) => {
       action();
-      setShowActions(false);
+      setIsMenuOpen(false);
     };
 
     return (
@@ -234,8 +234,6 @@ export const ConversationSidebar = ({
           }
         `}
         onClick={onSelect}
-        onMouseEnter={() => setShowActions(true)}
-        onMouseLeave={() => setShowActions(false)}
       >
         {/* Conversation Content */}
         <div className="flex items-start gap-3">
@@ -282,9 +280,8 @@ export const ConversationSidebar = ({
         </div>
 
         {/* Action Menu */}
-        {showActions && (
-          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-            <DropdownMenu open={showActions} onOpenChange={setShowActions}>
+        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -321,9 +318,8 @@ export const ConversationSidebar = ({
                   Delete Permanently
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+          </DropdownMenu>
+        </div>
       </div>
     );
   };
