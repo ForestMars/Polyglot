@@ -94,11 +94,16 @@ export const ChatInterface = () => {
   // Sync local messages with current conversation
   useEffect(() => {
     if (conversationState.currentConversation) {
-      setMessages(conversationState.currentConversation.messages);
+      // Only update if the conversation has actually changed
+      if (!messages.length || 
+          (messages[0] && conversationState.currentConversation.messages[0] && 
+           messages[0].id !== conversationState.currentConversation.messages[0].id)) {
+        setMessages(conversationState.currentConversation.messages);
+      }
     } else {
       setMessages([]);
     }
-  }, [conversationState.currentConversation]);
+  }, [conversationState.currentConversation?.id]); // Only depend on ID to prevent unnecessary updates
   
   // Initialize settings from the settings service
   useEffect(() => {
@@ -287,31 +292,59 @@ export const ChatInterface = () => {
     }
   }, [selectedProvider, selectedModel, createConversation, toast]);
 
+  const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
+  const switchConversationTimeoutRef = useRef<NodeJS.Timeout>();
+
   const handleConversationSelect = useCallback(async (conversation: Conversation) => {
-    try {
-      // Load the selected conversation
-      const loadedConversation = await loadConversation(conversation.id);
-      
-      // Set messages from loaded conversation
-      setMessages(loadedConversation.messages);
-      
-      // Update provider and model selection
-      setSelectedProvider(loadedConversation.provider);
-      setSelectedModel(loadedConversation.currentModel);
-      
-      toast({
-        title: "Conversation Loaded",
-        description: `Switched to "${loadedConversation.title}"`
-      });
-    } catch (error) {
-      console.error('Failed to load conversation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load conversation",
-        variant: "destructive"
-      });
+    // Don't allow switching if already switching or clicking the same conversation
+    if (isSwitchingConversation || conversationState.currentConversation?.id === conversation.id) {
+      return;
     }
-  }, [loadConversation, toast]);
+    
+    try {
+      setIsSwitchingConversation(true);
+      
+      // Clear any pending timeouts
+      if (switchConversationTimeoutRef.current) {
+        clearTimeout(switchConversationTimeoutRef.current);
+      }
+      
+      // Show loading state immediately
+      setMessages([]);
+      
+      // Use a timeout to ensure UI updates before heavy operation
+      switchConversationTimeoutRef.current = setTimeout(async () => {
+        try {
+          // Load the selected conversation
+          const loadedConversation = await loadConversation(conversation.id);
+          
+          // Update provider and model selection
+          setSelectedProvider(loadedConversation.provider);
+          setSelectedModel(loadedConversation.currentModel);
+          
+          // The messages will be updated via the useEffect that watches conversationState
+          
+          toast({
+            title: "Conversation Loaded",
+            description: `Switched to "${loadedConversation.title}"`
+          });
+        } catch (error) {
+          console.error('Failed to load conversation:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load conversation",
+            variant: "destructive"
+          });
+        } finally {
+          setIsSwitchingConversation(false);
+        }
+      }, 100); // Small delay to ensure UI updates
+      
+    } catch (error) {
+      console.error('Error in conversation switch:', error);
+      setIsSwitchingConversation(false);
+    }
+  }, [loadConversation, toast, isSwitchingConversation, conversationState.currentConversation]);
 
   const loadConversations = useCallback(async () => {
     try {

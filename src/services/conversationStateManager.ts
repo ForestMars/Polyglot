@@ -29,6 +29,8 @@ export class ConversationStateManager {
   private listeners: Set<(state: ConversationState) => void>;
   private autoSaveTimer: NodeJS.Timeout | null = null;
   private isInitialized = false;
+  private conversationCache: Map<string, Conversation> = new Map();
+  private loadingConversations: Set<string> = new Set();
 
   constructor() {
     this.storageService = new StorageService();
@@ -122,8 +124,28 @@ export class ConversationStateManager {
    * Load conversation by ID
    */
   async loadConversation(id: string): Promise<Conversation> {
+    // Check if already loading this conversation
+    if (this.loadingConversations.has(id)) {
+      throw new Error('Conversation is already being loaded');
+    }
+
+    // Check cache first
+    if (this.conversationCache.has(id)) {
+      const cached = this.conversationCache.get(id)!;
+      this.setState({
+        currentConversation: cached,
+        lastUpdated: new Date()
+      });
+      return cached;
+    }
+
     try {
+      this.loadingConversations.add(id);
+      
       const conversation = await this.storageService.loadConversation(id);
+      
+      // Update cache
+      this.conversationCache.set(id, conversation);
       
       // Update state
       this.setState({
@@ -135,6 +157,8 @@ export class ConversationStateManager {
     } catch (error) {
       console.error('Failed to load conversation:', error);
       throw error;
+    } finally {
+      this.loadingConversations.delete(id);
     }
   }
 
@@ -407,6 +431,14 @@ export class ConversationStateManager {
   private async loadConversations(): Promise<void> {
     try {
       const conversations = await this.storageService.listConversations();
+      
+      // Update cache with conversation metadata
+      conversations.forEach(conv => {
+        if (!this.conversationCache.has(conv.id)) {
+          this.conversationCache.set(conv.id, conv);
+        }
+      });
+      
       this.setState({ 
         conversations,
         lastUpdated: new Date()

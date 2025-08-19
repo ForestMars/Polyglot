@@ -55,7 +55,18 @@ export class StorageService {
     }
   }
 
-  async loadConversation(id: string): Promise<Conversation> {
+  private conversationCache: Map<string, { data: Conversation; timestamp: number }> = new Map();
+  private readonly CONVERSATION_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+  async loadConversation(id: string, skipCache = false): Promise<Conversation> {
+    const now = Date.now();
+    const cached = this.conversationCache.get(id);
+    
+    // Return cached version if available and fresh
+    if (!skipCache && cached && (now - cached.timestamp) < this.CONVERSATION_CACHE_TTL) {
+      return { ...cached.data }; // Return a copy to prevent direct mutation
+    }
+
     try {
       const conversationFile = `${this.conversationsDir}/${id}.json`;
       const data = await this.readFile(conversationFile);
@@ -73,49 +84,112 @@ export class StorageService {
         timestamp: new Date(change.timestamp)
       }));
       
-      return conversation;
+      // Update cache
+      this.conversationCache.set(id, { data: conversation, timestamp: now });
+      
+      // Also update metadata cache
+      const metadata: Conversation = {
+        id: conversation.id,
+        title: conversation.title,
+        provider: conversation.provider,
+        currentModel: conversation.model,
+        isArchived: conversation.isArchived || false,
+        createdAt: conversation.createdAt,
+        lastModified: conversation.lastModified,
+        messages: [],
+        modelHistory: []
+      };
+      this.metadataCache.set(id, metadata);
+      
+      return { ...conversation }; // Return a copy to prevent direct mutation
+      
     } catch (error) {
       console.error('Failed to load conversation:', error);
-      throw new Error('Failed to load conversation');
+      throw error;
     }
   }
 
   async listConversations(): Promise<Conversation[]> {
+    return this.listConversationsImpl(false);
+  }
+
+  private metadataCache: Map<string, Conversation> = new Map();
+  private lastMetadataUpdate: number = 0;
+  private readonly METADATA_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  /**
+   * List conversations with cached metadata for better performance
+   */
+  async listConversationsImpl(forceRefresh = false): Promise<Conversation[]> {
+    const now = Date.now();
+    const shouldUseCache = !forceRefresh && 
+                         (now - this.lastMetadataUpdate) < this.METADATA_CACHE_TTL && 
+                         this.metadataCache.size > 0;
+
+    if (shouldUseCache) {
+      return Array.from(this.metadataCache.values()).sort((a, b) => 
+        b.lastModified.getTime() - a.lastModified.getTime()
+      );
+    }
+
     try {
       const indexData = await this.readFile(this.indexFile);
       const index = JSON.parse(indexData);
-      
-      // Load only the metadata for each conversation
       const conversations: Conversation[] = [];
-      for (const conversationId of index.conversationIds) {
-        try {
-          const conversationFile = `${this.conversationsDir}/${conversationId}.json`;
-          const data = await this.readFile(conversationFile);
-          const conversation = JSON.parse(data);
-          
-          // Only keep the metadata we need for the list view
-          conversations.push({
-            id: conversation.id,
-            title: conversation.title || 'New Conversation',
-            provider: conversation.provider,
-            model: conversation.model,
-            isArchived: conversation.isArchived || false,
-            createdAt: new Date(conversation.createdAt),
-            lastModified: new Date(conversation.lastModified),
-            // Initialize empty arrays for the rest to maintain type safety
-            messages: [],
-            modelHistory: []
-          });
-        } catch (error) {
-          console.warn(`Failed to load conversation ${conversationId}:`, error);
-          // Continue loading other conversations
-        }
+      
+      // Process in chunks to avoid blocking the main thread
+      const CHUNK_SIZE = 10;
+      for (let i = 0; i < index.conversationIds.length; i += CHUNK_SIZE) {
+        const chunk = index.conversationIds.slice(i, i + CHUNK_SIZE);
+        const chunkResults = await Promise.allSettled(
+          chunk.map(async (conversationId: string) => {
+            try {
+              // Check if we have a fresh cache entry
+              if (this.metadataCache.has(conversationId) && 
+                  (now - this.metadataCache.get(conversationId)!.lastModified.getTime()) < this.METADATA_CACHE_TTL) {
+                return this.metadataCache.get(conversationId)!;
+              }
+
+              const conversationFile = `${this.conversationsDir}/${conversationId}.json`;
+              const data = await this.readFile(conversationFile);
+              const conversation = JSON.parse(data);
+              
+              const metadata: Conversation = {
+                id: conversation.id,
+                title: conversation.title,
+                provider: conversation.provider,
+                currentModel: conversation.model,
+                isArchived: conversation.isArchived || false,
+                createdAt: new Date(conversation.createdAt),
+                lastModified: new Date(conversation.lastModified),
+                messages: [],
+                modelHistory: []
+              };
+              
+              // Update cache
+              this.metadataCache.set(conversationId, metadata);
+              return metadata;
+              
+            } catch (error) {
+              console.warn(`Failed to load conversation ${conversationId}:`, error);
+              return null;
+            }
+          })
+        );
+
+        // Add successful results to conversations array
+        chunkResults.forEach(result => {
+          if (result.status === 'fulfilled' && result.value) {
+            conversations.push(result.value);
+          }
+        });
       }
       
-      // Sort by last modified (newest first)
+      this.lastMetadataUpdate = now;
       return conversations.sort((a, b) => 
         b.lastModified.getTime() - a.lastModified.getTime()
       );
+      
     } catch (error) {
       console.error('Failed to list conversations:', error);
       return [];
