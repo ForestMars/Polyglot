@@ -164,64 +164,14 @@ src/
 
 PolyGlut follows a clean, layered architecture that separates concerns and provides a maintainable codebase:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    UI Components                            │
-│  ┌─────────────────┐  ┌─────────────────────────────────┐  │
-│  │ ChatInterface   │  │      ConversationSidebar        │  │
-│  │                 │  │                                 │  │
-│  │ • Chat input    │  │ • Conversation list             │  │
-│  │ • Message flow  │  │ • Search & filtering           │  │
-│  │ • Model display │  │ • Archive/delete actions       │  │
-│  └─────────────────┘  └─────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    React Hooks                              │
-│  ┌─────────────────┐  ┌─────────────────────────────────┐  │
-│  │useConversation  │  │         useSettings             │  │
-│  │    State        │  │                                 │  │
-│  │                 │  │ • Settings persistence         │  │
-│  │ • CRUD ops      │  │ • User preferences             │  │
-│  │ • State sync    │  │ • Theme & layout               │  │
-│  └─────────────────┘  └─────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                State Management Layer                       │
-│  ┌─────────────────┐  ┌─────────────────────────────────┐  │
-│  │ConversationState│  │      SettingsService            │  │
-│  │   Manager       │  │                                 │  │
-│  │                 │  │ • Settings validation          │  │
-│  │ • Observer      │  │ • Default values               │  │
-│  │ • Auto-save     │  │ • Import/export                │  │
-│  └─────────────────┘  └─────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Storage Layer                              │
-│  ┌─────────────────┐  ┌─────────────────────────────────┐  │
-│  │ StorageService  │  │      ConversationUtils          │  │
-│  │                 │  │                                 │  │
-│  │ • localStorage  │  │ • ID generation                 │  │
-│  │ • CRUD ops      │  │ • Title generation             │  │
-│  │ • Search/filter │  │ • Data validation              │  │
-│  └─────────────────┘  └─────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Web Storage (localStorage)                 │
-│                                                             │
-│  • Conversations stored as JSON                            │
-│  • Settings persisted across sessions                      │
-│  • Efficient key-based storage                             │
-│  • Automatic data validation                               │
-└─────────────────────────────────────────────────────────────┘
-```
+![PolyGlut Component Architecture](assets/component-architecture.png)
+
+The architecture diagram above shows how the different layers interact:
+- **UI Components**: User interface components for chat and conversation management
+- **React Hooks**: Custom hooks that provide easy access to state and operations
+- **State Management**: Centralized state management with observer pattern
+- **Storage Layer**: Data persistence and utility functions
+- **Web Storage**: Client-side storage using localStorage
 
 ### Key Architectural Features
 
