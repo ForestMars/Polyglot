@@ -91,12 +91,7 @@ export const ChatInterface = () => {
   useEffect(() => {
     if (settings) {
       setShowSidebar(!settings.sidebarCollapsed);
-      if (settings.defaultProvider) {
-        setSelectedProvider(settings.defaultProvider);
-      }
-      if (settings.defaultModel) {
-        setSelectedModel(settings.defaultModel);
-      }
+      // Don't auto-set provider/model - let user choose explicitly
     }
   }, [settings]);
 
@@ -536,17 +531,21 @@ export const ChatInterface = () => {
 
       {/* Settings Panel */}
       {showSettings && (
-        <SettingsPanel
-          providers={providers}
-          setProviders={setProviders}
-          selectedProvider={selectedProvider}
-          setSelectedProvider={setSelectedProvider}
-          selectedApiKey={selectedApiKey}
-          setSelectedApiKey={setSelectedApiKey}
-          selectedModel={selectedModel}
-          setSelectedModel={setSelectedModel}
-          onClose={() => setShowSettings(false)}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="relative">
+            <SettingsPanel
+              providers={providers}
+              setProviders={setProviders}
+              selectedProvider={selectedProvider}
+              setSelectedProvider={setSelectedProvider}
+              selectedApiKey={selectedApiKey}
+              setSelectedApiKey={setSelectedApiKey}
+              selectedModel={selectedModel}
+              setSelectedModel={setSelectedModel}
+              onClose={() => setShowSettings(false)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

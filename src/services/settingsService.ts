@@ -23,9 +23,9 @@ export interface AppSettings extends UserSettings {
 export class SettingsService {
   private readonly STORAGE_KEY = 'polyglut_settings';
   private readonly DEFAULT_SETTINGS: AppSettings = {
-    // User Settings
-    selectedProvider: 'ollama',
-    selectedModel: 'llama3.2',
+    // User Settings - No defaults for user choices
+    selectedProvider: '',
+    selectedModel: '',
     selectedApiKey: '',
     showArchivedChats: false,
     ollamaBaseUrl: 'http://localhost:11434',
@@ -36,9 +36,9 @@ export class SettingsService {
     showTimestamps: true,
     showModelInfo: true,
     
-    // Chat Preferences
-    defaultProvider: 'ollama',
-    defaultModel: 'llama3.2',
+    // Chat Preferences - No defaults for user choices
+    defaultProvider: '',
+    defaultModel: '',
     autoSaveInterval: 5,
     maxConversations: 100,
     

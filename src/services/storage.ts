@@ -340,4 +340,138 @@ export class StorageService {
       return [];
     }
   }
+
+  /**
+   * Export localStorage data to downloadable files
+   */
+  async exportToFiles(): Promise<void> {
+    try {
+      // Export conversations
+      const conversations = await this.listConversations();
+      const conversationsData = JSON.stringify(conversations, null, 2);
+      this.downloadFile('conversations.json', conversationsData);
+      
+      // Export settings (from localStorage)
+      const settings = localStorage.getItem('polyglut_settings');
+      if (settings) {
+        this.downloadFile('settings.json', settings);
+      }
+      
+      // Export storage index
+      const indexData = await this.readFile(this.indexFile);
+      this.downloadFile('storage-index.json', indexData);
+      
+      console.log('Data exported as downloadable files successfully');
+    } catch (error) {
+      console.error('Failed to export data to files:', error);
+      throw new Error('Failed to export data to files');
+    }
+  }
+
+  /**
+   * Import data from uploaded files
+   */
+  async importFromFiles(files: FileList): Promise<void> {
+    try {
+      for (const file of Array.from(files)) {
+        const content = await this.readUploadedFile(file);
+        
+        if (file.name === 'conversations.json') {
+          const conversations = JSON.parse(content);
+          // Clear existing conversations and import new ones
+          for (const conversation of conversations) {
+            await this.saveConversation(conversation);
+          }
+        } else if (file.name === 'settings.json') {
+          const settings = JSON.parse(content);
+          // Validate and import settings
+          if (this.validateSettings(settings)) {
+            localStorage.setItem('polyglut_settings', JSON.stringify(settings));
+          }
+        } else if (file.name === 'storage-index.json') {
+          const index = JSON.parse(content);
+          if (this.validateStorageIndex(index)) {
+            await this.writeFile(this.indexFile, JSON.stringify(index, null, 2));
+          }
+        }
+      }
+      
+      console.log('Data imported from files successfully');
+    } catch (error) {
+      console.error('Failed to import data from files:', error);
+      throw new Error('Failed to import data from files');
+    }
+  }
+
+  /**
+   * Download a file to the user's system
+   */
+  private downloadFile(filename: string, content: string): void {
+    const blob = new Blob([content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Read content from an uploaded file
+   */
+  private readUploadedFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        resolve(content);
+      };
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  }
+
+  /**
+   * Validate settings data structure
+   */
+  private validateSettings(settings: any): boolean {
+    // Basic validation - check if it has expected properties
+    const requiredKeys = ['theme', 'sidebarCollapsed', 'showTimestamps'];
+    return requiredKeys.every(key => key in settings);
+  }
+
+  /**
+   * Validate storage index data structure
+   */
+  private validateStorageIndex(index: any): boolean {
+    // Basic validation - check if it has expected properties
+    return index && Array.isArray(index.conversationIds);
+  }
+
+  /**
+   * Get data directory path
+   */
+  getDataDirectory(): string {
+    return './data';
+  }
+
+  /**
+   * List available export files
+   */
+  async listExportFiles(): Promise<string[]> {
+    try {
+      // In a real implementation, this would scan the data/ directory
+      // For now, we'll return the expected files
+      return [
+        './data/conversations.json',
+        './data/settings.json', 
+        './data/storage-index.json'
+      ];
+    } catch (error) {
+      console.error('Failed to list export files:', error);
+      return [];
+    }
+  }
 }
