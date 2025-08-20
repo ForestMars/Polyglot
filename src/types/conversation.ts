@@ -45,6 +45,7 @@ export interface ConversationMetadata {
 }
 
 export interface StorageIndex {
+  version?: number;
   conversationIds: string[];
-  lastUpdated: Date;
+  lastUpdated: string; // ISO date string for better serialization
 }

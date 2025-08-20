@@ -180,12 +180,40 @@ export const ChatInterface = () => {
 
   // Handle new conversation
   const handleNewConversation = useCallback(async () => {
-    if (conversationState.createConversation && selectedProvider && selectedModel) {
-      await conversationState.createConversation(selectedProvider, selectedModel);
+    if (!selectedProvider || !selectedModel) {
+      toast({
+        title: 'Error',
+        description: 'Please select a provider and model first',
+        variant: 'destructive'
+      });
+      return;
     }
-    setMessages([]);
-    setInput('');
-  }, [conversationState, selectedProvider, selectedModel]);
+
+    try {
+      setIsSwitchingConversation(true);
+      setMessages([]);
+      setInput('');
+      
+      // Create a new conversation
+      if (conversationState.createConversation) {
+        const newConversation = await conversationState.createConversation(selectedProvider, selectedModel);
+        
+        // Make sure the conversation is properly set as current
+        if (conversationState.loadConversation) {
+          await conversationState.loadConversation(newConversation.id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to create new conversation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create a new conversation',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSwitchingConversation(false);
+    }
+  }, [conversationState, selectedProvider, selectedModel, toast]);
 
   // Handle send message
   const handleSendMessage = async () => {
@@ -332,20 +360,35 @@ export const ChatInterface = () => {
     setIsSwitchingConversation(true);
     try {
       // Load the selected conversation
-      await conversationState.loadConversation(conversation.id);
+      const loadedConversation = await conversationState.loadConversation(conversation.id);
+      
       // Update messages with the loaded conversation's messages
-      setMessages(conversation.messages || []);
+      if (loadedConversation && loadedConversation.messages) {
+        setMessages([...loadedConversation.messages]);
+      } else {
+        setMessages([]);
+      }
+      
+      // Update selected model if needed
+      if (loadedConversation.currentModel && loadedConversation.currentModel !== selectedModel) {
+        await updateSetting('selectedModel', loadedConversation.currentModel);
+      }
+      
+      // Update selected provider if needed
+      if (loadedConversation.provider && loadedConversation.provider !== selectedProvider) {
+        await updateSetting('selectedProvider', loadedConversation.provider);
+      }
     } catch (error) {
       console.error('Failed to load conversation:', error);
       toast({
         title: 'Error',
-        description: 'Failed to load conversation',
+        description: 'Failed to load conversation. Please try again.',
         variant: 'destructive'
       });
     } finally {
       setIsSwitchingConversation(false);
     }
-  }, [conversationState, isSwitchingConversation, toast]);
+  }, [conversationState, isSwitchingConversation, selectedModel, selectedProvider, updateSetting, toast]);
 
   // Load current conversation messages
   useEffect(() => {

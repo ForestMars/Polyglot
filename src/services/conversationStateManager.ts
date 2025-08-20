@@ -430,23 +430,31 @@ export class ConversationStateManager {
    */
   private async loadConversations(): Promise<void> {
     try {
+      this.setState({ isLoading: true, error: null });
+      
+      // Clear existing conversations
+      this.conversationCache.clear();
+      
+      // Load conversations from storage
       const conversations = await this.storageService.listConversations();
       
       // Update cache with conversation metadata
       conversations.forEach(conv => {
-        if (!this.conversationCache.has(conv.id)) {
-          this.conversationCache.set(conv.id, conv);
-        }
+        this.conversationCache.set(conv.id, conv);
       });
       
+      // Update state with the loaded conversations
       this.setState({ 
         conversations,
+        isLoading: false,
         lastUpdated: new Date()
       });
+      
     } catch (error) {
       console.error('Failed to load conversations:', error);
       this.setState({ 
-        error: 'Failed to load conversations',
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to load conversations',
         lastUpdated: new Date()
       });
     }

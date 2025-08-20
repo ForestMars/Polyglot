@@ -121,20 +121,39 @@ export class StorageService {
    * List conversations with cached metadata for better performance
    */
   async listConversationsImpl(forceRefresh = false): Promise<Conversation[]> {
+    console.log('[StorageService] listConversationsImpl called, forceRefresh:', forceRefresh);
     const now = Date.now();
     const shouldUseCache = !forceRefresh && 
                          (now - this.lastMetadataUpdate) < this.METADATA_CACHE_TTL && 
                          this.metadataCache.size > 0;
 
     if (shouldUseCache) {
+      console.log('[StorageService] Using cached conversations, count:', this.metadataCache.size);
       return Array.from(this.metadataCache.values()).sort((a, b) => 
         b.lastModified.getTime() - a.lastModified.getTime()
       );
     }
 
     try {
+      console.log('[StorageService] Ensuring index file exists and is valid');
+      // Ensure the index file exists and is valid
+      await this.ensureIndexFile();
+      
+      // Read the index file
+      console.log('[StorageService] Reading index file');
       const indexData = await this.readFile(this.indexFile);
-      const index = JSON.parse(indexData);
+      const index: StorageIndex = JSON.parse(indexData);
+      
+      console.log('[StorageService] Index file contents:', JSON.stringify(index, null, 2));
+      
+      // If no conversations, return empty array
+      if (!index.conversationIds || !Array.isArray(index.conversationIds) || index.conversationIds.length === 0) {
+        console.log('[StorageService] No conversations found in index');
+        return [];
+      }
+      
+      console.log(`[StorageService] Found ${index.conversationIds.length} conversations in index`);
+      
       const conversations: Conversation[] = [];
       
       // Process in chunks to avoid blocking the main thread
@@ -145,25 +164,26 @@ export class StorageService {
           chunk.map(async (conversationId: string) => {
             try {
               // Check if we have a fresh cache entry
-              if (this.metadataCache.has(conversationId) && 
-                  (now - this.metadataCache.get(conversationId)!.lastModified.getTime()) < this.METADATA_CACHE_TTL) {
-                return this.metadataCache.get(conversationId)!;
+              const cached = this.metadataCache.get(conversationId);
+              if (cached && (now - cached.lastModified.getTime()) < this.METADATA_CACHE_TTL) {
+                return cached;
               }
 
-              const conversationFile = `${this.conversationsDir}/${conversationId}.json`;
+              const conversationFile = `${this.conversationIdToFilename(conversationId)}`;
               const data = await this.readFile(conversationFile);
               const conversation = JSON.parse(data);
               
+              // Convert date strings to Date objects
               const metadata: Conversation = {
                 id: conversation.id,
                 title: conversation.title,
                 provider: conversation.provider,
-                currentModel: conversation.model,
-                isArchived: conversation.isArchived || false,
+                currentModel: conversation.currentModel || conversation.model, // Handle both formats
+                isArchived: Boolean(conversation.isArchived),
                 createdAt: new Date(conversation.createdAt),
-                lastModified: new Date(conversation.lastModified),
+                lastModified: new Date(conversation.lastModified || conversation.updatedAt || Date.now()),
                 messages: [],
-                modelHistory: []
+                modelHistory: conversation.modelHistory || []
               };
               
               // Update cache
@@ -192,6 +212,10 @@ export class StorageService {
       
     } catch (error) {
       console.error('Failed to list conversations:', error);
+      // If there's an error, try to return from cache if available
+      if (this.metadataCache.size > 0) {
+        return Array.from(this.metadataCache.values());
+      }
       return [];
     }
   }
@@ -260,11 +284,37 @@ export class StorageService {
    */
   private async ensureIndexFile(): Promise<void> {
     try {
-      await this.readFile(this.indexFile);
-    } catch {
-      // Create empty index file
-      const index = { conversationIds: [] };
+      console.log('[StorageService] ensureIndexFile: Reading index file');
+      // Try to read and validate the index file
+      const data = await this.readFile(this.indexFile);
+      console.log('[StorageService] ensureIndexFile: Read index file, content length:', data.length);
+      
+      try {
+        const index = JSON.parse(data);
+        console.log('[StorageService] ensureIndexFile: Parsed index file');
+        
+        // Validate the index structure
+        if (!index || typeof index !== 'object' || !Array.isArray(index.conversationIds)) {
+          console.warn('[StorageService] ensureIndexFile: Invalid index format, recreating...');
+          throw new Error('Invalid index format');
+        }
+        
+        console.log('[StorageService] ensureIndexFile: Index file is valid');
+      } catch (error) {
+        console.warn('[StorageService] ensureIndexFile: Index file is corrupted, recreating...', error);
+        throw error; // This will trigger the catch block below
+      }
+    } catch (error) {
+      console.log('[StorageService] ensureIndexFile: Creating new index file');
+      // Create or recreate the index file with proper structure
+      const index: StorageIndex = { 
+        version: 1,
+        conversationIds: [],
+        lastUpdated: new Date().toISOString()
+      };
+      console.log('[StorageService] ensureIndexFile: Writing new index file');
       await this.writeFile(this.indexFile, JSON.stringify(index, null, 2));
+      console.log('[StorageService] ensureIndexFile: Successfully created new index file');
     }
   }
 
@@ -280,27 +330,100 @@ export class StorageService {
 
   private async updateConversationIndex(conversation: Conversation): Promise<void> {
     try {
-      const indexData = await this.readFile(this.indexFile);
-      const index = JSON.parse(indexData);
+      // Ensure the index file exists and is valid
+      await this.ensureIndexFile();
       
-      if (!index.conversationIds.includes(conversation.id)) {
-        index.conversationIds.push(conversation.id);
-        await this.writeFile(this.indexFile, JSON.stringify(index, null, 2));
+      // Read the current index
+      const indexData = await this.readFile(this.indexFile);
+      const index: StorageIndex = JSON.parse(indexData);
+      
+      // Initialize conversationIds if it doesn't exist
+      if (!Array.isArray(index.conversationIds)) {
+        index.conversationIds = [];
       }
+      
+      // Add the conversation ID if it's not already in the index
+      if (!index.conversationIds.includes(conversation.id)) {
+        // Add to the beginning of the array to keep recent conversations first
+        index.conversationIds.unshift(conversation.id);
+      } else {
+        // Move to the beginning if it already exists
+        const existingIndex = index.conversationIds.indexOf(conversation.id);
+        if (existingIndex > 0) {
+          index.conversationIds.splice(existingIndex, 1);
+          index.conversationIds.unshift(conversation.id);
+        }
+      }
+      
+      // Update the lastUpdated timestamp
+      index.lastUpdated = new Date().toISOString();
+      
+      // Write the updated index back to storage
+      await this.writeFile(this.indexFile, JSON.stringify(index, null, 2));
+      
+      // Update the metadata cache
+      const metadata: Conversation = {
+        id: conversation.id,
+        title: conversation.title,
+        provider: conversation.provider,
+        currentModel: conversation.currentModel,
+        isArchived: conversation.isArchived,
+        createdAt: conversation.createdAt,
+        lastModified: conversation.lastModified,
+        messages: [],
+        modelHistory: []
+      };
+      this.metadataCache.set(conversation.id, metadata);
+      
     } catch (error) {
       console.error('Failed to update conversation index:', error);
+      // If there's an error, try to recreate the index
+      try {
+        await this.ensureIndexFile();
+      } catch (innerError) {
+        console.error('Failed to recreate index file:', innerError);
+      }
     }
   }
 
   private async removeFromConversationIndex(id: string): Promise<void> {
     try {
-      const indexData = await this.readFile(this.indexFile);
-      const index = JSON.parse(indexData);
+      // Ensure the index file exists and is valid
+      await this.ensureIndexFile();
       
+      // Read the current index
+      const indexData = await this.readFile(this.indexFile);
+      const index: StorageIndex = JSON.parse(indexData);
+      
+      // Initialize conversationIds if it doesn't exist
+      if (!Array.isArray(index.conversationIds)) {
+        index.conversationIds = [];
+      }
+      
+      // Remove the conversation ID if it exists
+      const initialLength = index.conversationIds.length;
       index.conversationIds = index.conversationIds.filter((cid: string) => cid !== id);
-      await this.writeFile(this.indexFile, JSON.stringify(index, null, 2));
+      
+      // Only update if something changed
+      if (index.conversationIds.length !== initialLength) {
+        // Update the lastUpdated timestamp
+        index.lastUpdated = new Date().toISOString();
+        
+        // Write the updated index back to storage
+        await this.writeFile(this.indexFile, JSON.stringify(index, null, 2));
+      }
+      
+      // Remove from metadata cache
+      this.metadataCache.delete(id);
+      
     } catch (error) {
       console.error('Failed to remove from conversation index:', error);
+      // If there's an error, try to recreate the index
+      try {
+        await this.ensureIndexFile();
+      } catch (innerError) {
+        console.error('Failed to recreate index file:', innerError);
+      }
     }
   }
 
@@ -372,6 +495,13 @@ export class StorageService {
   private getStorageKey(path: string): string {
     // Convert file path to a valid localStorage key
     return `polyglut_${path.replace(/[^a-zA-Z0-9]/g, '_')}`;
+  }
+  
+  /**
+   * Convert a conversation ID to a filename
+   */
+  private conversationIdToFilename(conversationId: string): string {
+    return `${this.conversationsDir}/${conversationId}.json`;
   }
 
   /**
