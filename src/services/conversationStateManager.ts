@@ -245,6 +245,9 @@ export class ConversationStateManager {
       
       // Save immediately
       await this.storageService.saveConversation(updatedConversation);
+      
+      // Update cache
+      this.conversationCache.set(updatedConversation.id, updatedConversation);
     } catch (error) {
       console.error('Failed to switch model:', error);
       throw error;
@@ -284,6 +287,9 @@ export class ConversationStateManager {
       // Save to storage
       await this.storageService.saveConversation(updatedConversation);
       
+      // Update cache
+      this.conversationCache.set(conversationId, updatedConversation);
+      
       return updatedConversation;
     } catch (error) {
       console.error('Failed to update conversation metadata:', error);
@@ -301,14 +307,36 @@ export class ConversationStateManager {
         throw new Error('Conversation not found');
       }
 
-      if (conversation.isArchived) {
-        await this.storageService.unarchiveConversation(conversationId);
-      } else {
-        await this.storageService.archiveConversation(conversationId);
+      // Create updated conversation
+      const updatedConversation = {
+        ...conversation,
+        isArchived: !conversation.isArchived,
+        lastModified: new Date()
+      };
+
+      // Update storage
+      await this.storageService.saveConversation(updatedConversation);
+      
+      // Update cache
+      this.conversationCache.set(conversationId, updatedConversation);
+      
+      // Update local state
+      const updatedConversations = this.state.conversations.map(conv =>
+        conv.id === conversationId ? updatedConversation : conv
+      );
+      
+      // Update current conversation if it's the one being archived
+      let currentConversation = this.state.currentConversation;
+      if (currentConversation?.id === conversationId) {
+        currentConversation = updatedConversation;
       }
       
-      // Reload conversations to get updated state
-      await this.loadConversations();
+      this.setState({
+        conversations: updatedConversations,
+        currentConversation,
+        lastUpdated: new Date()
+      });
+      
     } catch (error) {
       console.error('Failed to toggle archive:', error);
       throw error;
@@ -321,6 +349,9 @@ export class ConversationStateManager {
   async deleteConversation(conversationId: string): Promise<void> {
     try {
       await this.storageService.deleteConversation(conversationId);
+      
+      // Clear from cache
+      this.conversationCache.delete(conversationId);
       
       // Remove from state
       const updatedConversations = this.state.conversations.filter(
@@ -338,6 +369,9 @@ export class ConversationStateManager {
         currentConversation,
         lastUpdated: new Date()
       });
+      
+      // Don't reload conversations - this was causing the corruption
+      // The state is already correct, and reloading was interfering
     } catch (error) {
       console.error('Failed to delete conversation:', error);
       throw error;
