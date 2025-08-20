@@ -82,22 +82,50 @@ export class StorageService {
 
   async listConversations(): Promise<Conversation[]> {
     try {
-      const indexData = await this.readFile(this.indexFile);
-      const index = JSON.parse(indexData);
+      // Ensure index file exists
+      await this.ensureIndexFile();
       
-      // Load conversation metadata (without full message content)
+      // Read index file
+      const indexData = await this.readFile(this.indexFile);
+      const index: StorageIndex = JSON.parse(indexData);
+      
+      if (!index.conversationIds || index.conversationIds.length === 0) {
+        return [];
+      }
+      
+      // Create lightweight conversation objects from metadata
       const conversations: Conversation[] = [];
       for (const conversationId of index.conversationIds) {
         try {
-          const conversation = await this.loadConversation(conversationId);
+          const metadata = index.conversationMetadata?.[conversationId];
+          if (!metadata) {
+            console.warn(`Missing metadata for conversation ${conversationId}, loading full conversation`);
+            const fullConversation = await this.loadConversation(conversationId);
+            conversations.push(fullConversation);
+            continue;
+          }
+          
+          // Create lightweight conversation object from metadata
+          const conversation: Conversation = {
+            id: conversationId,
+            title: metadata.title,
+            provider: metadata.provider,
+            currentModel: metadata.currentModel,
+            isArchived: metadata.isArchived || false,
+            createdAt: new Date(metadata.createdAt),
+            lastModified: new Date(metadata.lastModified),
+            messages: [], // Empty messages array for list view
+            modelHistory: [] // Empty history for list view
+          };
+          
           conversations.push(conversation);
         } catch (error) {
-          console.warn(`Failed to load conversation ${conversationId}:`, error);
-          // Continue loading other conversations
+          console.warn(`Failed to process conversation ${conversationId}:`, error);
+          // Continue with other conversations
         }
       }
       
-      // Sort by last modified (newest first)
+      // Sort by lastModified (newest first)
       return conversations.sort((a, b) => 
         b.lastModified.getTime() - a.lastModified.getTime()
       );
@@ -171,11 +199,33 @@ export class StorageService {
    */
   private async ensureIndexFile(): Promise<void> {
     try {
-      await this.readFile(this.indexFile);
-    } catch {
-      // Create empty index file
-      const index = { conversationIds: [] };
-      await this.writeFile(this.indexFile, JSON.stringify(index, null, 2));
+      // Try to read existing index file
+      const data = await this.readFile(this.indexFile);
+      const index = JSON.parse(data);
+      
+      // Validate and repair index structure if needed
+      const needsRepair = !index.conversationIds || !Array.isArray(index.conversationIds);
+      
+      if (needsRepair) {
+        console.warn('Index file has invalid structure, repairing...');
+        const validIndex: StorageIndex = {
+          version: 1,
+          conversationIds: [],
+          conversationMetadata: {},
+          lastUpdated: new Date().toISOString()
+        };
+        await this.writeFile(this.indexFile, JSON.stringify(validIndex, null, 2));
+      }
+    } catch (error) {
+      // Create new index file with proper structure
+      console.log('Creating new index file...');
+      const newIndex: StorageIndex = {
+        version: 1,
+        conversationIds: [],
+        conversationMetadata: {},
+        lastUpdated: new Date().toISOString()
+      };
+      await this.writeFile(this.indexFile, JSON.stringify(newIndex, null, 2));
     }
   }
 
@@ -191,15 +241,60 @@ export class StorageService {
 
   private async updateConversationIndex(conversation: Conversation): Promise<void> {
     try {
-      const indexData = await this.readFile(this.indexFile);
-      const index = JSON.parse(indexData);
+      // Ensure index file exists
+      await this.ensureIndexFile();
       
-      if (!index.conversationIds.includes(conversation.id)) {
-        index.conversationIds.push(conversation.id);
-        await this.writeFile(this.indexFile, JSON.stringify(index, null, 2));
+      // Read current index
+      const indexData = await this.readFile(this.indexFile);
+      const index: StorageIndex = JSON.parse(indexData);
+      
+      // Initialize arrays if they don't exist
+      if (!index.conversationIds) {
+        index.conversationIds = [];
       }
+      if (!index.conversationMetadata) {
+        index.conversationMetadata = {};
+      }
+      
+      // Add or update conversation in index
+      if (!index.conversationIds.includes(conversation.id)) {
+        // New conversation - add to beginning of array
+        index.conversationIds.unshift(conversation.id);
+      } else {
+        // Existing conversation - move to beginning of array
+        index.conversationIds = [
+          conversation.id,
+          ...index.conversationIds.filter(id => id !== conversation.id)
+        ];
+      }
+      
+      // Update conversation metadata
+      const metadata: Omit<ConversationMetadata, 'id'> = {
+        title: conversation.title,
+        provider: conversation.provider,
+        currentModel: conversation.currentModel,
+        isArchived: conversation.isArchived || false,
+        createdAt: conversation.createdAt.toISOString(),
+        lastModified: new Date().toISOString(),
+        messageCount: conversation.messages.length
+      };
+      
+      // Initialize if needed and update
+      if (!index.conversationMetadata) {
+        index.conversationMetadata = {};
+      }
+      index.conversationMetadata[conversation.id] = metadata;
+      
+      // Update index timestamp
+      index.lastUpdated = new Date().toISOString();
+      
+      // Save updated index
+      await this.writeFile(this.indexFile, JSON.stringify(index, null, 2));
+      
+      console.log(`[StorageService] Updated conversation index for ${conversation.id}`);
     } catch (error) {
-      console.error('Failed to update conversation index:', error);
+      console.error('[StorageService] Failed to update conversation index:', error);
+      throw error; // Re-throw to handle in the calling function
     }
   }
 

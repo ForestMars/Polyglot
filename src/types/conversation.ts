@@ -36,8 +36,8 @@ export interface UserSettings {
 export interface ConversationMetadata {
   id: string;
   title: string;
-  createdAt: Date;
-  lastModified: Date;
+  createdAt: string; // ISO date string for better serialization
+  lastModified: string; // ISO date string for better serialization
   provider: string;
   currentModel: string;
   messageCount: number;
@@ -48,4 +48,7 @@ export interface StorageIndex {
   version?: number;
   conversationIds: string[];
   lastUpdated: string; // ISO date string for better serialization
+  conversationMetadata?: {
+    [key: string]: Omit<ConversationMetadata, 'id'>;
+  };
 }
