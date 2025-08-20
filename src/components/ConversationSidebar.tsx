@@ -217,11 +217,11 @@ export const ConversationSidebar = ({
     onDelete: () => void;
     showArchived: boolean;
   }) => {
-    const [showActions, setShowActions] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleAction = (action: () => void) => {
       action();
-      setShowActions(false);
+      setIsMenuOpen(false);
     };
 
     return (
@@ -234,8 +234,6 @@ export const ConversationSidebar = ({
           }
         `}
         onClick={onSelect}
-        onMouseEnter={() => setShowActions(true)}
-        onMouseLeave={() => setShowActions(false)}
       >
         {/* Conversation Content */}
         <div className="flex items-start gap-3">
@@ -258,7 +256,12 @@ export const ConversationSidebar = ({
             <p className={`text-xs truncate mb-2 ${
               isActive ? 'text-primary-foreground/80' : 'text-muted-foreground'
             }`}>
-              {conversation.messages.length > 0 ? conversation.messages[conversation.messages.length - 1].content : 'No messages yet'}
+              {conversation.messages?.length > 0 
+                ? (typeof conversation.messages[conversation.messages.length - 1].content === 'string'
+                    ? conversation.messages[conversation.messages.length - 1].content.substring(0, 50)
+                    : 'Message with content')
+                : 'No messages yet'}
+              {conversation.messages?.length > 0 && conversation.messages[conversation.messages.length - 1].content.length > 50 ? '...' : ''}
             </p>
             
             <div className="flex items-center gap-2 text-xs">
@@ -282,9 +285,8 @@ export const ConversationSidebar = ({
         </div>
 
         {/* Action Menu */}
-        {showActions && (
-          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-            <DropdownMenu open={showActions} onOpenChange={setShowActions}>
+        <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+          <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -321,9 +323,8 @@ export const ConversationSidebar = ({
                   Delete Permanently
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+          </DropdownMenu>
+        </div>
       </div>
     );
   };
@@ -331,13 +332,13 @@ export const ConversationSidebar = ({
   return (
     <div className="flex flex-col h-full bg-background border-r border-border">
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Conversations</h2>
+      <div className="p-4 pb-2 border-b border-border">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold mr-4">Conversations</h2>
           <Button
             onClick={onNewConversation}
             size="sm"
-            className="h-8 px-3"
+            className="h-8 px-3 whitespace-nowrap"
           >
             <Plus className="w-4 h-4 mr-1" />
             New Chat

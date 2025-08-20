@@ -51,6 +51,7 @@ export const SettingsPanel = ({
   const [ollamaBaseUrl, setOllamaBaseUrl] = useState('http://localhost:11434');
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [showDataTransfer, setShowDataTransfer] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -228,55 +229,6 @@ export const SettingsPanel = ({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FolderOpen className="h-5 w-5" />
-              Data Transfer
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Export your data to transfer between browsers</Label>
-              <Button 
-                onClick={handleExportData} 
-                disabled={isExporting}
-                className="w-full"
-                variant="outline"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                {isExporting ? 'Exporting...' : 'Export Data'}
-              </Button>
-              <p className="text-sm text-gray-600">
-                Downloads conversations.json, settings.json, and storage-index.json
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Import data from another browser</Label>
-              <Button 
-                onClick={triggerFileUpload} 
-                disabled={isImporting}
-                className="w-full"
-                variant="outline"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                {isImporting ? 'Importing...' : 'Import Data'}
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept=".json"
-                onChange={handleImportData}
-                className="hidden"
-              />
-              <p className="text-sm text-gray-600">
-                Select the exported JSON files to restore your data
-              </p>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Provider Selection */}
         <div className="space-y-3">
@@ -487,6 +439,63 @@ export const SettingsPanel = ({
             </CardContent>
           </Card>
         )}
+        {/* Data Transfer Section - Collapsible */}
+        <div className="pt-4 border-t mt-4">
+          <button 
+            onClick={() => setShowDataTransfer(!showDataTransfer)}
+            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <FolderOpen className="h-4 w-4" />
+            Data Transfer
+            <span className="ml-auto text-xs">{showDataTransfer ? '▲' : '▼'}</span>
+          </button>
+          
+          {showDataTransfer && (
+            <div className="mt-2 space-y-4 pl-6">
+              <div className="space-y-2">
+                <Label className="text-sm">Export your data to transfer between browsers</Label>
+                <Button 
+                  onClick={handleExportData} 
+                  disabled={isExporting}
+                  className="w-full"
+                  variant="outline"
+                  size="sm"
+                >
+                  <Download className="h-3.5 w-3.5 mr-2" />
+                  {isExporting ? 'Exporting...' : 'Export Data'}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Downloads conversations.json, settings.json, and storage-index.json
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-sm">Import data from another browser</Label>
+                <Button 
+                  onClick={triggerFileUpload} 
+                  disabled={isImporting}
+                  className="w-full"
+                  variant="outline"
+                  size="sm"
+                >
+                  <Upload className="h-3.5 w-3.5 mr-2" />
+                  {isImporting ? 'Importing...' : 'Import Data'}
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".json"
+                  onChange={handleImportData}
+                  className="hidden"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Select the exported JSON files to restore your data
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

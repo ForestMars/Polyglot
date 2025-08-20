@@ -4,18 +4,6 @@ const CONVERSATION_PREFIX = 'conversation_';
 const SETTINGS_KEY = 'user_settings';
 
 export class StorageService {
-  /**
-   * Initialize the storage service
-   * This is a no-op for localStorage but required by the interface
-   */
-  async initialize(): Promise<void> {
-    // No initialization needed for localStorage
-  }
-
-  async autoSaveConversation(conversation: Conversation): Promise<void> {
-    await this.saveConversation(conversation);
-  }
-
   // Conversation CRUD Operations
   async saveConversation(conversation: Conversation): Promise<void> {
     const key = `${CONVERSATION_PREFIX}${conversation.id}`;
@@ -25,26 +13,15 @@ export class StorageService {
       conversation.messages = [];
     }
     
-    // Ensure timestamps are set and properly serialized
+    // Ensure timestamps are set
     const now = new Date();
     conversation.lastModified = now;
     if (!conversation.createdAt) {
       conversation.createdAt = now;
     }
-
-    // Prepare the data for storage with proper date handling
-    const dataToStore = {
-      ...conversation,
-      createdAt: (conversation.createdAt instanceof Date ? conversation.createdAt : new Date(conversation.createdAt)).toISOString(),
-      lastModified: (conversation.lastModified instanceof Date ? conversation.lastModified : new Date(conversation.lastModified)).toISOString(),
-      messages: conversation.messages.map(msg => ({
-        ...msg,
-        timestamp: (msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp)).toISOString()
-      }))
-    };
     
     // Save to localStorage
-    localStorage.setItem(key, JSON.stringify(dataToStore));
+    localStorage.setItem(key, JSON.stringify(conversation));
   }
 
   async loadConversation(id: string): Promise<Conversation> {
@@ -55,18 +32,7 @@ export class StorageService {
       throw new Error(`Conversation not found: ${id}`);
     }
 
-    const parsed = JSON.parse(data);
-    
-    // Convert string dates back to Date objects
-    return {
-      ...parsed,
-      createdAt: new Date(parsed.createdAt),
-      lastModified: new Date(parsed.lastModified),
-      messages: parsed.messages.map((msg: any) => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp)
-      }))
-    };
+    return JSON.parse(data) as Conversation;
   }
 
   async listConversations(): Promise<Conversation[]> {
@@ -76,18 +42,17 @@ export class StorageService {
       const key = localStorage.key(i);
       if (key?.startsWith(CONVERSATION_PREFIX)) {
         try {
-          const id = key.replace(CONVERSATION_PREFIX, '');
-          const conversation = await this.loadConversation(id);
+          const conversation = await this.loadConversation(key.replace(CONVERSATION_PREFIX, ''));
           conversations.push(conversation);
-        } catch (error) {
-          console.error(`Error loading conversation from key ${key}:`, error);
+        } catch {
+          // Skip invalid conversations
           continue;
         }
       }
     }
     
     return conversations.sort((a, b) => 
-      b.lastModified.getTime() - a.lastModified.getTime()
+      new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
     );
   }
 

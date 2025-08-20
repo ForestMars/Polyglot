@@ -29,6 +29,8 @@ export class ConversationStateManager {
   private listeners: Set<(state: ConversationState) => void>;
   private autoSaveTimer: NodeJS.Timeout | null = null;
   private isInitialized = false;
+  private conversationCache: Map<string, Conversation> = new Map();
+  private loadingConversations: Set<string> = new Set();
 
   constructor() {
     this.storageService = new StorageService();
@@ -122,8 +124,28 @@ export class ConversationStateManager {
    * Load conversation by ID
    */
   async loadConversation(id: string): Promise<Conversation> {
+    // Check if already loading this conversation
+    if (this.loadingConversations.has(id)) {
+      throw new Error('Conversation is already being loaded');
+    }
+
+    // Check cache first
+    if (this.conversationCache.has(id)) {
+      const cached = this.conversationCache.get(id)!;
+      this.setState({
+        currentConversation: cached,
+        lastUpdated: new Date()
+      });
+      return cached;
+    }
+
     try {
+      this.loadingConversations.add(id);
+      
       const conversation = await this.storageService.loadConversation(id);
+      
+      // Update cache
+      this.conversationCache.set(id, conversation);
       
       // Update state
       this.setState({
@@ -135,6 +157,8 @@ export class ConversationStateManager {
     } catch (error) {
       console.error('Failed to load conversation:', error);
       throw error;
+    } finally {
+      this.loadingConversations.delete(id);
     }
   }
 
@@ -147,25 +171,44 @@ export class ConversationStateManager {
     }
 
     try {
+      // Create a deep copy of the current conversation
+      const currentConv = JSON.parse(JSON.stringify(this.state.currentConversation));
+      
+      // Add the message using ConversationUtils
       const updatedConversation = ConversationUtils.addMessage(
-        this.state.currentConversation,
+        currentConv,
         message
       );
       
-      // Update state
-      this.setState({
-        currentConversation: updatedConversation,
-        lastUpdated: new Date()
-      });
+      // Ensure we have the latest timestamps
+      updatedConversation.lastModified = new Date();
       
-      // Update in conversations list
-      const updatedConversations = this.state.conversations.map(conv =>
+      // Save to storage
+      console.log('Saving conversation to storage...');
+      await this.storageService.saveConversation(updatedConversation);
+      console.log('Conversation saved to storage');
+      
+      // Update cache
+      this.conversationCache.set(updatedConversation.id, updatedConversation);
+      
+      // Update the conversations list
+      const updatedConversations = this.state.conversations.map(conv => 
         conv.id === updatedConversation.id ? updatedConversation : conv
       );
       
-      this.setState({ conversations: updatedConversations });
+      // If this is a new conversation, add it to the list
+      if (!updatedConversations.some(conv => conv.id === updatedConversation.id)) {
+        updatedConversations.unshift(updatedConversation);
+      }
       
-      // Auto-save will handle persistence
+      // Update state in a single call to prevent race conditions
+      this.setState({
+        currentConversation: updatedConversation,
+        conversations: updatedConversations,
+        lastUpdated: new Date()
+      });
+      
+      console.log(`[ConversationStateManager] Added message to conversation ${updatedConversation.id}`);
     } catch (error) {
       console.error('Failed to add message:', error);
       throw error;
@@ -406,15 +449,31 @@ export class ConversationStateManager {
    */
   private async loadConversations(): Promise<void> {
     try {
+      this.setState({ isLoading: true, error: null });
+      
+      // Clear existing conversations
+      this.conversationCache.clear();
+      
+      // Load conversations from storage
       const conversations = await this.storageService.listConversations();
+      
+      // Update cache with conversation metadata
+      conversations.forEach(conv => {
+        this.conversationCache.set(conv.id, conv);
+      });
+      
+      // Update state with the loaded conversations
       this.setState({ 
         conversations,
+        isLoading: false,
         lastUpdated: new Date()
       });
+      
     } catch (error) {
       console.error('Failed to load conversations:', error);
       this.setState({ 
-        error: 'Failed to load conversations',
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to load conversations',
         lastUpdated: new Date()
       });
     }
