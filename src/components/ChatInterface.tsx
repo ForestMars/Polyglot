@@ -239,10 +239,8 @@ export const ChatInterface = () => {
         await conversationState.createConversation(selectedProvider, selectedModel);
       }
 
-      // Add user message to the conversation
-      if (conversationState.addMessage) {
-        await conversationState.addMessage(userMessage);
-      }
+      // Note: We're not adding messages to conversation state during active chat
+      // to avoid duplicate processing and timing issues
 
       // Get the API key for the selected provider
       const apiKey = settings?.[selectedApiKey] || '';
@@ -302,10 +300,8 @@ export const ChatInterface = () => {
         return [...prev, updatedAssistantMessage];
       });
 
-      // Add the assistant's response to the conversation
-      if (conversationState.addMessage) {
-        await conversationState.addMessage(updatedAssistantMessage);
-      }
+      // Note: We're not calling conversationState.addMessage here to avoid duplicate rendering
+      // The message is already in local state and will be saved when the conversation is saved
     } catch (error) {
       console.error('Error sending message:', error);
       
@@ -362,15 +358,29 @@ export const ChatInterface = () => {
     }
   };
 
+  // Scroll to bottom function
+  const scrollToBottom = useCallback(() => {
+    if (scrollAreaRef.current) {
+      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollElement) {
+        scrollElement.scrollTo({
+          top: scrollElement.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, []);
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
-  }, [messages]);
+    // Immediate scroll
+    scrollToBottom();
+    
+    // Additional scroll after a brief delay to handle any async updates
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [messages, scrollToBottom]);
 
   // Check if we have a valid configuration
   const hasValidConfig = selectedProvider && selectedModel && (currentProvider?.isLocal || selectedApiKey);
@@ -414,14 +424,17 @@ export const ChatInterface = () => {
     }
   }, [conversationState, isSwitchingConversation, selectedModel, selectedProvider, updateSetting, toast]);
 
-  // Load current conversation messages
+  // Load current conversation messages (but don't override during active chat)
   useEffect(() => {
+    // Don't override messages if we're currently loading (sending a message)
+    if (isLoading) return;
+    
     if (conversationState.currentConversation) {
       setMessages(conversationState.currentConversation.messages || []);
     } else {
       setMessages([]);
     }
-  }, [conversationState.currentConversation]);
+  }, [conversationState.currentConversation, isLoading]);
 
   return (
     <div className="flex h-screen bg-gray-50">
