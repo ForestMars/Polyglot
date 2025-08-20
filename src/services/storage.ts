@@ -453,15 +453,17 @@ export class StorageService {
 
   private async readFile(path: string): Promise<string> {
     try {
-      // Use localStorage for web environment
       const key = this.getStorageKey(path);
-      const content = localStorage.getItem(key);
-      if (content === null) {
-        throw new Error('File not found');
+      console.log(`[StorageService] Reading file: ${path}, key: ${key}`);
+      const data = localStorage.getItem(key);
+      if (data === null) {
+        console.error(`[StorageService] File not found: ${path}, key: ${key}`);
+        throw new Error(`File not found: ${path}`);
       }
-      return content;
+      console.log(`[StorageService] Successfully read file: ${path}, content length: ${data.length}`);
+      return data;
     } catch (error) {
-      console.error(`Failed to read file ${path}:`, error);
+      console.error(`[StorageService] Failed to read file ${path}:`, error);
       throw new Error(`Failed to read file: ${error}`);
     }
   }
@@ -478,14 +480,21 @@ export class StorageService {
   }
 
   private async ensureDirectoryExists(dir: string): Promise<void> {
-    // In web environment, directories are virtual - just ensure storage is available
+    console.log(`[StorageService] Ensuring directory exists: ${dir}`);
+    // In a web environment, directories are virtual and don't need to be created
+    // We just need to ensure the base directory exists in localStorage
+    const testKey = this.getStorageKey(`${dir}/.test`);
     try {
-      // Test localStorage availability
-      const testKey = '__storage_test__';
       localStorage.setItem(testKey, 'test');
+      const value = localStorage.getItem(testKey);
+      if (value !== 'test') {
+        throw new Error('Failed to write test value to localStorage');
+      }
       localStorage.removeItem(testKey);
+      console.log(`[StorageService] Successfully verified access to directory: ${dir}`);
     } catch (error) {
-      throw new Error('Local storage is not available');
+      console.error(`[StorageService] Failed to access directory ${dir}:`, error);
+      throw new Error(`Local storage is not available or full: ${error}`);
     }
   }
 
@@ -493,8 +502,16 @@ export class StorageService {
    * Convert file path to localStorage key
    */
   private getStorageKey(path: string): string {
-    // Convert file path to a valid localStorage key
-    return `polyglut_${path.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    // Normalize the path to ensure consistent key generation
+    const normalizedPath = path
+      .replace(/^\//, '') // Remove leading slash if present
+      .replace(/\//g, ':'); // Replace slashes with colons
+    
+    // Create a consistent key with a prefix
+    const key = `polyglut:${normalizedPath}`;
+    
+    console.log(`[StorageService] Generated key for path '${path}':`, key);
+    return key;
   }
   
   /**
