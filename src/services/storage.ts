@@ -12,6 +12,10 @@ export class StorageService {
     // No initialization needed for localStorage
   }
 
+  async autoSaveConversation(conversation: Conversation): Promise<void> {
+    await this.saveConversation(conversation);
+  }
+
   // Conversation CRUD Operations
   async saveConversation(conversation: Conversation): Promise<void> {
     const key = `${CONVERSATION_PREFIX}${conversation.id}`;
@@ -28,14 +32,14 @@ export class StorageService {
       conversation.createdAt = now;
     }
 
-    // Prepare the data for storage
+    // Prepare the data for storage with proper date handling
     const dataToStore = {
       ...conversation,
-      createdAt: conversation.createdAt.toISOString(),
-      lastModified: conversation.lastModified.toISOString(),
+      createdAt: (conversation.createdAt instanceof Date ? conversation.createdAt : new Date(conversation.createdAt)).toISOString(),
+      lastModified: (conversation.lastModified instanceof Date ? conversation.lastModified : new Date(conversation.lastModified)).toISOString(),
       messages: conversation.messages.map(msg => ({
         ...msg,
-        timestamp: msg.timestamp.toISOString()
+        timestamp: (msg.timestamp instanceof Date ? msg.timestamp : new Date(msg.timestamp)).toISOString()
       }))
     };
     
