@@ -1,4 +1,7 @@
 import { Conversation, ModelChange, Message, UserSettings, ConversationMetadata, StorageIndex } from '../types/conversation';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('StorageService');
 
 export class StorageService {
   private baseDir: string;
@@ -40,43 +43,113 @@ export class StorageService {
    */
   async saveConversation(conversation: Conversation): Promise<void> {
     try {
+      console.log(`[StorageService] Saving conversation ${conversation.id} with ${conversation.messages.length} messages`);
+      
       // Update lastModified timestamp
       conversation.lastModified = new Date();
       
       // Save conversation file
       const conversationFile = `${this.conversationsDir}/${conversation.id}.json`;
-      await this.writeFile(conversationFile, JSON.stringify(conversation, null, 2));
+      const conversationData = JSON.stringify(conversation, null, 2);
+      console.log(`[StorageService] Writing conversation to ${conversationFile}`);
+      
+      await this.writeFile(conversationFile, conversationData);
+      console.log(`[StorageService] Successfully saved conversation ${conversation.id}`);
       
       // Update index
+      console.log(`[StorageService] Updating index for conversation ${conversation.id}`);
       await this.updateConversationIndex(conversation);
+      console.log(`[StorageService] Successfully updated index for conversation ${conversation.id}`);
     } catch (error) {
-      console.error('Failed to save conversation:', error);
-      throw new Error('Failed to save conversation');
+      console.error('[StorageService] Failed to save conversation:', error);
+      throw new Error(`Failed to save conversation: ${error.message}`);
     }
   }
 
   async loadConversation(id: string): Promise<Conversation> {
     try {
+      console.log(`[StorageService] Loading conversation ${id}`);
+      
+      // Validate ID format
+      if (!id || typeof id !== 'string' || id.trim() === '') {
+        throw new Error('Invalid conversation ID');
+      }
+      
       const conversationFile = `${this.conversationsDir}/${id}.json`;
+      console.log(`[StorageService] Loading from file: ${conversationFile}`);
+      
+      // Read and parse the file
       const data = await this.readFile(conversationFile);
+      if (!data) {
+        throw new Error('Empty conversation data');
+      }
+      
       const conversation = JSON.parse(data);
       
-      // Convert date strings back to Date objects
-      conversation.createdAt = new Date(conversation.createdAt);
-      conversation.lastModified = new Date(conversation.lastModified);
-      conversation.messages = conversation.messages.map((msg: any) => ({
-        ...msg,
-        timestamp: new Date(msg.timestamp)
-      }));
-      conversation.modelHistory = conversation.modelHistory.map((change: any) => ({
-        ...change,
-        timestamp: new Date(change.timestamp)
-      }));
+      // Validate conversation structure
+      if (!conversation.messages || !Array.isArray(conversation.messages)) {
+        console.error('[StorageService] Invalid conversation format - missing messages array');
+        conversation.messages = []; // Ensure messages is always an array
+      }
       
+      if (!conversation.id || conversation.id !== id) {
+        console.warn(`[StorageService] Conversation ID mismatch: expected ${id}, got ${conversation.id}`);
+        conversation.id = id; // Ensure ID consistency
+      }
+      
+      // Convert date strings back to Date objects
+      try {
+        conversation.createdAt = new Date(conversation.createdAt || Date.now());
+        conversation.lastModified = new Date(conversation.lastModified || Date.now());
+        
+        // Safely process messages
+        conversation.messages = (conversation.messages || []).map((msg: any) => ({
+          ...msg,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+          content: msg.content || '',
+          role: msg.role || 'user'
+        }));
+        
+        // Safely process model history
+        conversation.modelHistory = (conversation.modelHistory || []).map((change: any) => ({
+          ...change,
+          timestamp: change.timestamp ? new Date(change.timestamp) : new Date()
+        }));
+      } catch (dateError) {
+        console.error('[StorageService] Error parsing dates:', dateError);
+        // Ensure we still return a valid conversation even if date parsing fails
+        conversation.createdAt = new Date(conversation.createdAt || Date.now());
+        conversation.lastModified = new Date(conversation.lastModified || Date.now());
+      }
+      
+      console.log(`[StorageService] Successfully loaded conversation ${id} with ${conversation.messages.length} messages`);
       return conversation;
+      
     } catch (error) {
-      console.error('Failed to load conversation:', error);
-      throw new Error('Failed to load conversation');
+      console.error(`[StorageService] Failed to load conversation ${id}:`, error);
+      console.error('[StorageService] Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      
+      // Try to recover by returning a new conversation with the given ID
+      if (error.message.includes('not found') || error.message.includes('File not found')) {
+        console.warn(`[StorageService] Creating new conversation for missing ID: ${id}`);
+        return {
+          id,
+          title: 'New Conversation',
+          messages: [],
+          modelHistory: [],
+          provider: 'default',
+          currentModel: 'default',
+          isArchived: false,
+          createdAt: new Date(),
+          lastModified: new Date()
+        };
+      }
+      
+      throw new Error(`Failed to load conversation: ${error.message}`);
     }
   }
 
@@ -324,28 +397,88 @@ export class StorageService {
    * File I/O Methods using Web Storage APIs
    */
   private async writeFile(path: string, content: string): Promise<void> {
+    const context = { path, contentLength: content.length };
+    
     try {
       // Use localStorage for web environment
       const key = this.getStorageKey(path);
+      logger.debug('Writing to storage', { ...context, key });
+      
+      // Test if localStorage is available
+      const testKey = '__storage_test__';
+      try {
+        localStorage.setItem(testKey, 'test');
+        localStorage.removeItem(testKey);
+      } catch (e) {
+        const error = e as Error;
+        logger.error('LocalStorage test failed', error, { testKey });
+        throw new Error('LocalStorage is not available or full');
+      }
+      
+      // Save the actual content
       localStorage.setItem(key, content);
+      
+      // Verify the write
+      const savedContent = localStorage.getItem(key);
+      if (savedContent !== content) {
+        const error = new Error('Write verification failed - data corruption detected');
+        logger.error('Write verification failed', error, {
+          ...context,
+          expectedLength: content.length,
+          actualLength: savedContent?.length || 0,
+          key
+        });
+        throw error;
+      }
+      
+      logger.debug('Successfully wrote to storage', { key });
     } catch (error) {
-      console.error(`Failed to write file ${path}:`, error);
-      throw new Error(`Failed to write file: ${error}`);
+      const storageKeys = Object.keys(localStorage).filter(k => k.startsWith('polyglut_'));
+      logger.error('Failed to write file', error as Error, {
+        ...context,
+        availableKeys: storageKeys,
+        storageSize: JSON.stringify(localStorage).length
+      });
+      throw error;
     }
   }
 
   private async readFile(path: string): Promise<string> {
+    const context = { path };
+    
     try {
       // Use localStorage for web environment
       const key = this.getStorageKey(path);
+      logger.debug('Reading from storage', { ...context, key });
+      
       const content = localStorage.getItem(key);
       if (content === null) {
-        throw new Error('File not found');
+        const availableKeys = Object.keys(localStorage).filter(k => k.startsWith('polyglut_'));
+        const error = new Error(`File not found: ${path}`);
+        logger.error('Key not found in storage', error, { 
+          ...context, 
+          key, 
+          availableKeys,
+          storageSize: JSON.stringify(localStorage).length
+        });
+        throw error;
       }
+      
+      logger.debug('Successfully read from storage', { 
+        ...context, 
+        key, 
+        contentLength: content.length 
+      });
+      
       return content;
     } catch (error) {
-      console.error(`Failed to read file ${path}:`, error);
-      throw new Error(`Failed to read file: ${error}`);
+      const storageKeys = Object.keys(localStorage).filter(k => k.startsWith('polyglut_'));
+      logger.error('Failed to read file', error as Error, { 
+        ...context,
+        availableKeys: storageKeys,
+        storageSize: JSON.stringify(localStorage).length
+      });
+      throw error;
     }
   }
 
@@ -376,7 +509,7 @@ export class StorageService {
    * Convert file path to localStorage key
    */
   private getStorageKey(path: string): string {
-    // Convert file path to a valid localStorage key
+    // Original key generation logic
     return `polyglut_${path.replace(/[^a-zA-Z0-9]/g, '_')}`;
   }
 
