@@ -239,8 +239,10 @@ export const ChatInterface = () => {
         await conversationState.createConversation(selectedProvider, selectedModel);
       }
 
-      // Note: We're not adding messages to conversation state during active chat
-      // to avoid duplicate processing and timing issues
+      // Add user message to the conversation
+      if (conversationState.addMessage) {
+        await conversationState.addMessage(userMessage);
+      }
 
       // Get the API key for the selected provider
       const apiKey = settings?.[selectedApiKey] || '';
@@ -282,10 +284,10 @@ export const ChatInterface = () => {
       });
       const apiDuration = ((Date.now() - apiStartTime) / 1000).toFixed(1);
       
-      // Update the assistant message with the response, prepending response time
+      // Update the assistant message with the response (NO timing for now)
       const updatedAssistantMessage = {
         ...assistantMessage,
-        content: `Thought for ${apiDuration} seconds\n\n${response.content}`,
+        content: response.content,
         timestamp: new Date()
       };
 
@@ -300,8 +302,10 @@ export const ChatInterface = () => {
         return [...prev, updatedAssistantMessage];
       });
 
-      // Note: We're not calling conversationState.addMessage here to avoid duplicate rendering
-      // The message is already in local state and will be saved when the conversation is saved
+      // Add the assistant's response to the conversation
+      if (conversationState.addMessage) {
+        await conversationState.addMessage(updatedAssistantMessage);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       
