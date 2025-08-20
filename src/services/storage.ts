@@ -4,6 +4,14 @@ const CONVERSATION_PREFIX = 'conversation_';
 const SETTINGS_KEY = 'user_settings';
 
 export class StorageService {
+  /**
+   * Initialize the storage service
+   * This is a no-op for localStorage but required by the interface
+   */
+  async initialize(): Promise<void> {
+    // No initialization needed for localStorage
+  }
+
   // Conversation CRUD Operations
   async saveConversation(conversation: Conversation): Promise<void> {
     const key = `${CONVERSATION_PREFIX}${conversation.id}`;
