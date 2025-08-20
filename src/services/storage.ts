@@ -42,8 +42,14 @@ export class StorageService {
    * Conversation CRUD Operations
    */
   async saveConversation(conversation: Conversation): Promise<void> {
+    const context = { 
+      conversationId: conversation.id,
+      messageCount: conversation.messages?.length || 0,
+      title: conversation.title
+    };
+    
     try {
-      console.log(`[StorageService] Saving conversation ${conversation.id} with ${conversation.messages.length} messages`);
+      logger.debug('Saving conversation', context);
       
       // Update lastModified timestamp
       conversation.lastModified = new Date();
@@ -51,16 +57,20 @@ export class StorageService {
       // Save conversation file
       const conversationFile = `${this.conversationsDir}/${conversation.id}.json`;
       const conversationData = JSON.stringify(conversation, null, 2);
-      console.log(`[StorageService] Writing conversation to ${conversationFile}`);
+      
+      logger.debug('Writing conversation data', { 
+        ...context, 
+        dataLength: conversationData.length 
+      });
       
       await this.writeFile(conversationFile, conversationData);
-      console.log(`[StorageService] Successfully saved conversation ${conversation.id}`);
       
-      // Update index
-      console.log(`[StorageService] Updating index for conversation ${conversation.id}`);
+      logger.debug('Updating conversation index', context);
       await this.updateConversationIndex(conversation);
-      console.log(`[StorageService] Successfully updated index for conversation ${conversation.id}`);
+      
+      logger.info('Successfully saved conversation', context);
     } catch (error) {
+      logger.error('Failed to save conversation', error as Error, context);
       console.error('[StorageService] Failed to save conversation:', error);
       throw new Error(`Failed to save conversation: ${error.message}`);
     }
@@ -342,14 +352,19 @@ export class StorageService {
       }
       
       // Update conversation metadata
+      // Ensure createdAt is a Date object
+      const createdAtDate = typeof conversation.createdAt === 'string' 
+        ? new Date(conversation.createdAt) 
+        : conversation.createdAt;
+      
       const metadata: Omit<ConversationMetadata, 'id'> = {
         title: conversation.title,
         provider: conversation.provider,
         currentModel: conversation.currentModel,
         isArchived: conversation.isArchived || false,
-        createdAt: conversation.createdAt.toISOString(),
+        createdAt: createdAtDate.toISOString(),
         lastModified: new Date().toISOString(),
-        messageCount: conversation.messages.length
+        messageCount: conversation.messages?.length || 0  // Add null check for messages
       };
       
       // Initialize if needed and update

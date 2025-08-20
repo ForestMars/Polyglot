@@ -171,29 +171,39 @@ export class ConversationStateManager {
     }
 
     try {
+      // Create a deep copy of the current conversation
+      const currentConv = JSON.parse(JSON.stringify(this.state.currentConversation));
+      
+      // Add the message using ConversationUtils
       const updatedConversation = ConversationUtils.addMessage(
-        this.state.currentConversation,
+        currentConv,
         message
       );
       
-      // Save to storage first
+      // Ensure we have the latest timestamps
+      updatedConversation.lastModified = new Date();
+      
+      // Save to storage
+      console.log('Saving conversation to storage...');
       await this.storageService.saveConversation(updatedConversation);
+      console.log('Conversation saved to storage');
       
       // Update cache
       this.conversationCache.set(updatedConversation.id, updatedConversation);
       
-      // Update state
-      this.setState({
-        currentConversation: updatedConversation,
-        lastUpdated: new Date()
-      });
-      
-      // Update in conversations list
-      const updatedConversations = this.state.conversations.map(conv =>
+      // Update the conversations list
+      const updatedConversations = this.state.conversations.map(conv => 
         conv.id === updatedConversation.id ? updatedConversation : conv
       );
       
-      this.setState({ 
+      // If this is a new conversation, add it to the list
+      if (!updatedConversations.some(conv => conv.id === updatedConversation.id)) {
+        updatedConversations.unshift(updatedConversation);
+      }
+      
+      // Update state in a single call to prevent race conditions
+      this.setState({
+        currentConversation: updatedConversation,
         conversations: updatedConversations,
         lastUpdated: new Date()
       });

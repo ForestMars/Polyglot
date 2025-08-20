@@ -306,23 +306,45 @@ export const ChatInterface = () => {
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      // Update the assistant message with the error
+      
+      // Get a user-friendly error message
+      let errorMessage = 'Sorry, there was an error processing your message. Please try again.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Failed to connect to the AI service. Please check your internet connection and try again.';
+        } else if (error.message.includes('401') || error.message.includes('unauthorized')) {
+          errorMessage = 'Authentication failed. Please check your API key in settings.';
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
+        } else if (error.message.includes('model')) {
+          errorMessage = 'Model not found. Please select a different model in settings.';
+        }
+      }
+      
+      // Update the error message in the UI
       setMessages(prev => {
         const messageIndex = prev.findIndex(m => m.role === 'assistant' && m.content === '');
         if (messageIndex !== -1) {
           const updatedMessages = [...prev];
           updatedMessages[messageIndex] = {
             ...updatedMessages[messageIndex],
-            content: 'Sorry, there was an error processing your message. Please try again.'
+            content: errorMessage
           };
           return updatedMessages;
         }
-        return prev;
+        return [...prev, {
+          id: `error_${Date.now()}`,
+          role: 'assistant',
+          content: errorMessage,
+          timestamp: new Date(),
+          isError: true
+        }];
       });
       
       toast({
         title: 'Error',
-        description: 'Failed to send message. Please try again.',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
