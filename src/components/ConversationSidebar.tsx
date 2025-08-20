@@ -256,7 +256,12 @@ export const ConversationSidebar = ({
             <p className={`text-xs truncate mb-2 ${
               isActive ? 'text-primary-foreground/80' : 'text-muted-foreground'
             }`}>
-              {conversation.messages.length > 0 ? conversation.messages[conversation.messages.length - 1].content : 'No messages yet'}
+              {conversation.messages?.length > 0 
+                ? (typeof conversation.messages[conversation.messages.length - 1].content === 'string'
+                    ? conversation.messages[conversation.messages.length - 1].content.substring(0, 50)
+                    : 'Message with content')
+                : 'No messages yet'}
+              {conversation.messages?.length > 0 && conversation.messages[conversation.messages.length - 1].content.length > 50 ? '...' : ''}
             </p>
             
             <div className="flex items-center gap-2 text-xs">
