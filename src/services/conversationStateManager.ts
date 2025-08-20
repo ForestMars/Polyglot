@@ -252,6 +252,46 @@ export class ConversationStateManager {
   }
 
   /**
+   * Update conversation metadata (title, etc.)
+   */
+  async updateConversationMetadata(conversationId: string, updates: Partial<Pick<Conversation, 'title'>>): Promise<Conversation> {
+    try {
+      const conversation = this.state.conversations.find(conv => conv.id === conversationId);
+      if (!conversation) {
+        throw new Error(`Conversation not found: ${conversationId}`);
+      }
+
+      const updatedConversation = {
+        ...conversation,
+        ...updates,
+        lastModified: new Date()
+      };
+      
+      // Update current conversation if it's the one being updated
+      if (this.state.currentConversation?.id === conversationId) {
+        this.setState({
+          currentConversation: updatedConversation,
+          lastUpdated: new Date()
+        });
+      }
+      
+      // Update in conversations list
+      const updatedConversations = this.state.conversations.map(conv =>
+        conv.id === conversationId ? updatedConversation : conv
+      );
+      this.setState({ conversations: updatedConversations });
+      
+      // Save to storage
+      await this.storageService.saveConversation(updatedConversation);
+      
+      return updatedConversation;
+    } catch (error) {
+      console.error('Failed to update conversation metadata:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Archive/unarchive conversation
    */
   async toggleArchive(conversationId: string): Promise<void> {

@@ -70,6 +70,10 @@ export const useConversationState = () => {
     return await stateManager.deleteConversation(conversationId);
   }, [stateManager]);
 
+  const updateConversationMetadata = useCallback(async (conversationId: string, updates: Partial<Pick<Conversation, 'title'>>) => {
+    return await stateManager.updateConversationMetadata(conversationId, updates);
+  }, [stateManager]);
+
   const searchConversations = useCallback(async (filters: ConversationFilters) => {
     return await stateManager.searchConversations(filters);
   }, [stateManager]);
@@ -94,6 +98,7 @@ export const useConversationState = () => {
     switchModel,
     toggleArchive,
     deleteConversation,
+    updateConversationMetadata,
     searchConversations,
     clearError,
     refreshConversations,

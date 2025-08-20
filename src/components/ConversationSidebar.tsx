@@ -66,6 +66,7 @@ export const ConversationSidebar = ({
     state: conversationState, 
     toggleArchive, 
     deleteConversation,
+    updateConversationMetadata,
     searchConversations
   } = useConversationState();
 
@@ -165,10 +166,9 @@ export const ConversationSidebar = ({
     }
 
     try {
-      // Update the conversation title
-      const updatedConversation = { ...conversationToRename, title: newTitle.trim() };
-      // You'll need to implement this function in your state management
-      // await updateConversationTitle(updatedConversation);
+      // Update the conversation title using the state manager
+      await updateConversationMetadata(conversationToRename.id, { title: newTitle.trim() });
+      
       setIsRenameDialogOpen(false);
       setConversationToRename(null);
       setNewTitle('');
@@ -183,7 +183,7 @@ export const ConversationSidebar = ({
         variant: "destructive",
       });
     }
-  }, [conversationToRename, newTitle, toast]);
+  }, [conversationToRename, newTitle, updateConversationMetadata, toast]);
 
   const handleConversationSelect = useCallback((conversation: Conversation) => {
     onConversationSelect(conversation);

@@ -219,8 +219,6 @@ export const ChatInterface = () => {
   const handleSendMessage = async () => {
     if (!input.trim() || !selectedProvider || !selectedModel) return;
 
-    const startTime = Date.now();
-
     const userMessage: Message = {
       id: `msg_${Date.now()}`,
       role: 'user',
@@ -276,6 +274,7 @@ export const ChatInterface = () => {
 
       // Call the API service to get the AI response
       const apiService = new ApiService();
+      const apiStartTime = Date.now();
       const response = await apiService.sendMessage({
         provider: selectedProvider,
         model: selectedModel,
@@ -283,14 +282,12 @@ export const ChatInterface = () => {
         apiKey,
         baseUrl: selectedProvider === 'ollama' ? 'http://localhost:11434' : undefined
       });
-
-      // Calculate response time
-      const responseTime = ((Date.now() - startTime) / 1000).toFixed(1);
+      const apiDuration = ((Date.now() - apiStartTime) / 1000).toFixed(1);
       
       // Update the assistant message with the response, prepending response time
       const updatedAssistantMessage = {
         ...assistantMessage,
-        content: `Thought for ${responseTime} seconds\n\n${response.content}`,
+        content: `Thought for ${apiDuration} seconds\n\n${response.content}`,
         timestamp: new Date()
       };
 
@@ -537,6 +534,13 @@ export const ChatInterface = () => {
                   className="min-h-[60px] max-h-[200px] resize-none glass-panel"
                   rows={1}
                 />
+                {/* Smart thinking throbber - only shows when waiting for model response */}
+                {isLoading && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Thinking...</span>
+                  </div>
+                )}
               </div>
               <Button
                 onClick={handleSendMessage}
