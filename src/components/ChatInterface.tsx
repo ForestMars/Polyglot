@@ -284,10 +284,10 @@ export const ChatInterface = () => {
       });
       const apiDuration = ((Date.now() - apiStartTime) / 1000).toFixed(1);
       
-      // Update the assistant message with the response (NO timing for now)
+      // Update the assistant message with the response, prepending response time
       const updatedAssistantMessage = {
         ...assistantMessage,
-        content: response.content,
+        content: `Thought for ${apiDuration} seconds\n\n${response.content}`,
         timestamp: new Date()
       };
 
