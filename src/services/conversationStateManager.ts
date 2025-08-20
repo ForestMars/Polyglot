@@ -176,6 +176,12 @@ export class ConversationStateManager {
         message
       );
       
+      // Save to storage first
+      await this.storageService.saveConversation(updatedConversation);
+      
+      // Update cache
+      this.conversationCache.set(updatedConversation.id, updatedConversation);
+      
       // Update state
       this.setState({
         currentConversation: updatedConversation,
@@ -187,9 +193,12 @@ export class ConversationStateManager {
         conv.id === updatedConversation.id ? updatedConversation : conv
       );
       
-      this.setState({ conversations: updatedConversations });
+      this.setState({ 
+        conversations: updatedConversations,
+        lastUpdated: new Date()
+      });
       
-      // Auto-save will handle persistence
+      console.log(`[ConversationStateManager] Added message to conversation ${updatedConversation.id}`);
     } catch (error) {
       console.error('Failed to add message:', error);
       throw error;
