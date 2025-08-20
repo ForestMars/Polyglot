@@ -219,6 +219,8 @@ export const ChatInterface = () => {
   const handleSendMessage = async () => {
     if (!input.trim() || !selectedProvider || !selectedModel) return;
 
+    const startTime = Date.now();
+
     const userMessage: Message = {
       id: `msg_${Date.now()}`,
       role: 'user',
@@ -282,10 +284,13 @@ export const ChatInterface = () => {
         baseUrl: selectedProvider === 'ollama' ? 'http://localhost:11434' : undefined
       });
 
-      // Update the assistant message with the response
+      // Calculate response time
+      const responseTime = ((Date.now() - startTime) / 1000).toFixed(1);
+      
+      // Update the assistant message with the response, prepending response time
       const updatedAssistantMessage = {
         ...assistantMessage,
-        content: response.content,
+        content: `Thought for ${responseTime} seconds\n\n${response.content}`,
         timestamp: new Date()
       };
 
@@ -424,7 +429,7 @@ export const ChatInterface = () => {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}>
+      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-79 transform bg-white shadow-lg transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}>
         <ConversationSidebar
           currentConversationId={conversationState.currentConversation?.id}
           onConversationSelect={handleConversationSelect}
@@ -511,14 +516,7 @@ export const ChatInterface = () => {
                     {new Date(message.timestamp).toLocaleTimeString()}
                   </p>
                 </div>
-                {isLoading && (
-                  <div className="chat-bubble-ai rounded-tl-md p-4 rounded-2xl">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="animate-typing">Thinking...</span>
-                    </div>
-                  </div>
-                )}
+
               </div>
             ))}
           </div>

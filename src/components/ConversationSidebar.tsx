@@ -9,11 +9,13 @@ import {
   Clock,
   Bot,
   Filter,
-  X
+  X,
+  Edit3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   DropdownMenu, 
@@ -53,6 +55,9 @@ export const ConversationSidebar = ({
   const [filterProvider, setFilterProvider] = useState<string>('');
   const [filterModel, setFilterModel] = useState<string>('');
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [conversationToRename, setConversationToRename] = useState<Conversation | null>(null);
+  const [newTitle, setNewTitle] = useState('');
   
   const { toast } = useToast();
   
@@ -147,6 +152,39 @@ export const ConversationSidebar = ({
     }
   }, [deleteConversation, toast]);
 
+  const handleRenameConversation = useCallback((conversation: Conversation) => {
+    setConversationToRename(conversation);
+    setNewTitle(conversation.title);
+    setIsRenameDialogOpen(true);
+  }, []);
+
+  const handleRenameSubmit = useCallback(async () => {
+    if (!conversationToRename || !newTitle.trim() || newTitle.trim() === conversationToRename.title) {
+      setIsRenameDialogOpen(false);
+      return;
+    }
+
+    try {
+      // Update the conversation title
+      const updatedConversation = { ...conversationToRename, title: newTitle.trim() };
+      // You'll need to implement this function in your state management
+      // await updateConversationTitle(updatedConversation);
+      setIsRenameDialogOpen(false);
+      setConversationToRename(null);
+      setNewTitle('');
+      toast({
+        title: "Chat Renamed",
+        description: `Chat renamed to "${newTitle.trim()}"`,
+      });
+    } catch (error) {
+      toast({
+        title: "Rename Failed",
+        description: "Failed to rename chat. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [conversationToRename, newTitle, toast]);
+
   const handleConversationSelect = useCallback((conversation: Conversation) => {
     onConversationSelect(conversation);
   }, [onConversationSelect]);
@@ -207,6 +245,7 @@ export const ConversationSidebar = ({
     onArchive,
     onUnarchive,
     onDelete,
+    onRename,
     showArchived
   }: {
     conversation: Conversation;
@@ -215,6 +254,7 @@ export const ConversationSidebar = ({
     onArchive: () => void;
     onUnarchive: () => void;
     onDelete: () => void;
+    onRename: () => void;
     showArchived: boolean;
   }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -307,10 +347,16 @@ export const ConversationSidebar = ({
                     Restore from Archive
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem onClick={() => handleAction(onArchive)}>
-                    <Archive className="w-4 h-4 mr-2" />
-                    Archive
-                  </DropdownMenuItem>
+                                      <>
+                      <DropdownMenuItem onClick={() => onRename()}>
+                        <Edit3 className="w-4 h-4 mr-2" />
+                        Rename Chat
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAction(onArchive)}>
+                        <Archive className="w-4 h-4 mr-2" />
+                        Archive
+                      </DropdownMenuItem>
+                    </>
                 )}
                 
                 <DropdownMenuSeparator />
@@ -457,12 +503,52 @@ export const ConversationSidebar = ({
                 onArchive={() => handleToggleArchive(conversation.id)}
                 onUnarchive={() => handleToggleArchive(conversation.id)}
                 onDelete={() => handleDeleteConversation(conversation.id)}
+                onRename={() => handleRenameConversation(conversation)}
                 showArchived={showArchived}
               />
             ))}
           </div>
         )}
       </ScrollArea>
+
+      {/* Rename Dialog */}
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename Chat</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="chat-title" className="text-sm font-medium">
+                Chat Title
+              </Label>
+              <Input
+                id="chat-title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Enter new chat title..."
+                className="mt-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleRenameSubmit();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsRenameDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleRenameSubmit}>
+                Rename
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
