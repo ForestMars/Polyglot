@@ -157,22 +157,31 @@ export const ConversationSidebar = ({
     }
   }, [toggleArchive, toast, searchConversations, searchQuery, showArchived, filterProvider, filterModel]);
 
-  const handleDeleteConversation = useCallback(async (conversationId: string) => {
+  const handleDelete = useCallback(async (conversation: Conversation) => {
     try {
-      await deleteConversation(conversationId);
+      await deleteConversation(conversation.id);
+      // Refresh the conversation list after deletion
+      const results = await searchConversations({
+        searchQuery,
+        provider: filterProvider,
+        model: filterModel,
+        showArchived
+      });
+      setFilteredConversations(results);
+      
       toast({
-        title: "Conversation Deleted",
-        description: "Conversation removed successfully"
+        title: 'Success',
+        description: 'Conversation deleted',
       });
     } catch (error) {
       console.error('Failed to delete conversation:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete conversation",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete conversation',
+        variant: 'destructive',
       });
     }
-  }, [deleteConversation, toast]);
+  }, [deleteConversation, searchConversations, searchQuery, filterProvider, filterModel, showArchived, toast]);
 
   const handleRenameConversation = useCallback((conversation: Conversation) => {
     setConversationToRename(conversation);
@@ -523,7 +532,7 @@ export const ConversationSidebar = ({
                 onSelect={() => handleConversationSelect(conversation)}
                 onArchive={() => handleToggleArchive(conversation.id)}
                 onUnarchive={() => handleToggleArchive(conversation.id)}
-                onDelete={() => handleDeleteConversation(conversation.id)}
+                onDelete={() => handleDelete(conversation)}
                 onRename={() => handleRenameConversation(conversation)}
                 showArchived={showArchived}
               />
