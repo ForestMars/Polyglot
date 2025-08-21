@@ -70,6 +70,10 @@ export const useConversationState = () => {
     return await stateManager.deleteConversation(conversationId);
   }, [stateManager]);
 
+  const updateConversationMetadata = useCallback(async (conversationId: string, updates: Partial<Pick<Conversation, 'title'>>) => {
+    return await stateManager.updateConversationMetadata(conversationId, updates);
+  }, [stateManager]);
+
   const searchConversations = useCallback(async (filters: ConversationFilters) => {
     return await stateManager.searchConversations(filters);
   }, [stateManager]);
@@ -83,6 +87,15 @@ export const useConversationState = () => {
     await stateManager.initialize();
   }, [stateManager]);
 
+  // Cache operations
+  const toggleCache = useCallback(() => {
+    stateManager.toggleCache();
+  }, [stateManager]);
+
+  const isCacheEnabled = useCallback(() => {
+    return stateManager.isCacheEnabled();
+  }, [stateManager]);
+
   return {
     // State
     state,
@@ -94,9 +107,12 @@ export const useConversationState = () => {
     switchModel,
     toggleArchive,
     deleteConversation,
+    updateConversationMetadata,
     searchConversations,
     clearError,
     refreshConversations,
+    toggleCache,
+    isCacheEnabled,
     conversations: state.conversations,
     currentConversation: state.currentConversation,
     isLoading: state.isLoading,

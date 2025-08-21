@@ -9,11 +9,13 @@ import {
   Clock,
   Bot,
   Filter,
-  X
+  X,
+  Edit3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   DropdownMenu, 
@@ -53,99 +55,165 @@ export const ConversationSidebar = ({
   const [filterProvider, setFilterProvider] = useState<string>('');
   const [filterModel, setFilterModel] = useState<string>('');
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
-  
-  const { toast } = useToast();
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   
   // Use the new centralized state management hook
   const { 
     state: conversationState, 
     toggleArchive, 
     deleteConversation,
+    updateConversationMetadata,
     searchConversations
   } = useConversationState();
-
-  // Local filtering since the state manager doesn't provide filtered conversations
+  
+  const [conversationToRename, setConversationToRename] = useState<Conversation | null>(null);
+  const [newTitle, setNewTitle] = useState('');
+  const { toast } = useToast();
+  
+  // Load conversations based on filters
   useEffect(() => {
-    const filtered = conversationState.conversations.filter(conv => {
-      // Filter by archive status
-      if (conv.isArchived !== showArchived) return false;
-      
-      // Filter by provider
-      if (filterProvider && conv.provider !== filterProvider) return false;
-      
-      // Filter by model
-      if (filterModel && conv.currentModel !== filterModel) return false;
-      
-      // Filter by search query
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = conv.title.toLowerCase().includes(query);
-        const matchesContent = conv.messages.some(msg => 
-          msg.content.toLowerCase().includes(query)
-        );
-        if (!matchesTitle && !matchesContent) return false;
-      }
-      
-      return true;
-    });
-
-    // Sort by last modified (newest first)
-    filtered.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime());
-    
-    setFilteredConversations(filtered);
-  }, [conversationState.conversations, searchQuery, showArchived, filterProvider, filterModel]);
-
-  // Load conversations on mount and when filters change
-  useEffect(() => {
-    const loadConversations = async () => {
+    const loadFilteredConversations = async () => {
       try {
-        await searchConversations({
-          searchQuery: '',
-          provider: '',
-          model: '',
-          showArchived: false
+        console.log('=== DEBUG: Loading conversations with filters ===');
+        console.log('Current filters:', { 
+          showArchived, 
+          filterProvider, 
+          filterModel, 
+          searchQuery 
         });
+        
+        // Use the state manager's searchConversations method to get filtered conversations
+        const results = await searchConversations({
+          searchQuery: searchQuery,
+          provider: filterProvider,
+          model: filterModel,
+          showArchived: showArchived
+        });
+        
+        console.log(`[ConversationSidebar] Loaded ${results.length} conversations (showArchived: ${showArchived})`);
+        setFilteredConversations(results);
       } catch (error) {
         console.error('Failed to load conversations:', error);
       }
     };
+    
+    loadFilteredConversations();
+  }, [searchQuery, filterProvider, filterModel, showArchived, searchConversations]);
+  
+  // Handle the archive toggle
+  const handleToggleArchive = useCallback(async (conversationOrId: Conversation | string) => {
+    // Handle both Conversation object and string ID cases
+    const conversationId = typeof conversationOrId === 'string' ? conversationOrId : conversationOrId.id;
+    const targetConversation = typeof conversationOrId === 'string' 
+      ? conversationState.conversations.find(c => c.id === conversationOrId)
+      : conversationOrId;
+      
+    if (!targetConversation) {
+      console.error('Conversation not found:', conversationOrId);
+      return;
+    }
 
-    loadConversations();
-  }, [searchConversations]);
-
-  const handleToggleArchive = useCallback(async (conversationId: string) => {
+    console.log('=== DEBUG: Toggling archive status ===');
+    console.log('Conversation before toggle:', {
+      id: targetConversation.id,
+      title: targetConversation.title,
+      currentState: targetConversation.isArchived ? 'archived' : 'unarchived',
+      willChangeTo: !targetConversation.isArchived ? 'archived' : 'unarchived'
+    });
+    
     try {
       await toggleArchive(conversationId);
-      toast({
-        title: "Conversation Updated",
-        description: "Archive status updated successfully"
+      console.log('Successfully toggled archive status for conversation:', conversationId);
+      
+      // Log the new state after a short delay to ensure state has updated
+      setTimeout(() => {
+        const updated = conversationState.conversations.find(c => c.id === conversationId);
+        console.log('Conversation state after toggle:', updated);
+        console.log('All conversations after toggle:', conversationState.conversations.map(c => ({
+          id: c.id,
+          title: c.title,
+          isArchived: c.isArchived,
+          lastModified: c.lastModified
+        })));
+      }, 100);
+      
+      // Refresh the conversation list to reflect the changes
+      // Use the current showArchived state to maintain the current view
+      await searchConversations({
+        searchQuery: searchQuery,
+        provider: filterProvider,
+        model: filterModel,
+        showArchived: showArchived  // Include the current showArchived state
       });
+      
+      console.log('Refreshed conversation list with showArchived:', showArchived);
     } catch (error) {
-      console.error('Failed to toggle archive:', error);
+      console.error('Failed to toggle archive status:', error);
       toast({
-        title: "Error",
-        description: "Failed to update archive status",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to update conversation status',
+        variant: 'destructive',
       });
     }
-  }, [toggleArchive, toast]);
+  }, [toggleArchive, toast, searchConversations, searchQuery, showArchived, filterProvider, filterModel]);
 
-  const handleDeleteConversation = useCallback(async (conversationId: string) => {
+  const handleDelete = useCallback(async (conversation: Conversation) => {
     try {
-      await deleteConversation(conversationId);
+      await deleteConversation(conversation.id);
+      // Refresh the conversation list after deletion
+      const results = await searchConversations({
+        searchQuery,
+        provider: filterProvider,
+        model: filterModel,
+        showArchived
+      });
+      setFilteredConversations(results);
+      
       toast({
-        title: "Conversation Deleted",
-        description: "Conversation removed successfully"
+        title: 'Success',
+        description: 'Conversation deleted',
       });
     } catch (error) {
       console.error('Failed to delete conversation:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete conversation",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete conversation',
+        variant: 'destructive',
       });
     }
-  }, [deleteConversation, toast]);
+  }, [deleteConversation, searchConversations, searchQuery, filterProvider, filterModel, showArchived, toast]);
+
+  const handleRenameConversation = useCallback((conversation: Conversation) => {
+    setConversationToRename(conversation);
+    setNewTitle(conversation.title);
+    setIsRenameDialogOpen(true);
+  }, []);
+
+  const handleRenameSubmit = useCallback(async () => {
+    if (!conversationToRename || !newTitle.trim() || newTitle.trim() === conversationToRename.title) {
+      setIsRenameDialogOpen(false);
+      return;
+    }
+
+    try {
+      // Update the conversation title using the state manager
+      await updateConversationMetadata(conversationToRename.id, { title: newTitle.trim() });
+      
+      setIsRenameDialogOpen(false);
+      setConversationToRename(null);
+      setNewTitle('');
+      toast({
+        title: "Chat Renamed",
+        description: `Chat renamed to "${newTitle.trim()}"`,
+      });
+    } catch (error) {
+      toast({
+        title: "Rename Failed",
+        description: "Failed to rename chat. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [conversationToRename, newTitle, updateConversationMetadata, toast]);
 
   const handleConversationSelect = useCallback((conversation: Conversation) => {
     onConversationSelect(conversation);
@@ -207,6 +275,7 @@ export const ConversationSidebar = ({
     onArchive,
     onUnarchive,
     onDelete,
+    onRename,
     showArchived
   }: {
     conversation: Conversation;
@@ -215,6 +284,7 @@ export const ConversationSidebar = ({
     onArchive: () => void;
     onUnarchive: () => void;
     onDelete: () => void;
+    onRename: () => void;
     showArchived: boolean;
   }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -307,10 +377,16 @@ export const ConversationSidebar = ({
                     Restore from Archive
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem onClick={() => handleAction(onArchive)}>
-                    <Archive className="w-4 h-4 mr-2" />
-                    Archive
-                  </DropdownMenuItem>
+                                      <>
+                      <DropdownMenuItem onClick={() => onRename()}>
+                        <Edit3 className="w-4 h-4 mr-2" />
+                        Rename Chat
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleAction(onArchive)}>
+                        <Archive className="w-4 h-4 mr-2" />
+                        Archive
+                      </DropdownMenuItem>
+                    </>
                 )}
                 
                 <DropdownMenuSeparator />
@@ -456,13 +532,53 @@ export const ConversationSidebar = ({
                 onSelect={() => handleConversationSelect(conversation)}
                 onArchive={() => handleToggleArchive(conversation.id)}
                 onUnarchive={() => handleToggleArchive(conversation.id)}
-                onDelete={() => handleDeleteConversation(conversation.id)}
+                onDelete={() => handleDelete(conversation)}
+                onRename={() => handleRenameConversation(conversation)}
                 showArchived={showArchived}
               />
             ))}
           </div>
         )}
       </ScrollArea>
+
+      {/* Rename Dialog */}
+      <Dialog open={isRenameDialogOpen} onOpenChange={setIsRenameDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename Chat</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="chat-title" className="text-sm font-medium">
+                Chat Title
+              </Label>
+              <Input
+                id="chat-title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Enter new chat title..."
+                className="mt-1"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleRenameSubmit();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsRenameDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleRenameSubmit}>
+                Rename
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

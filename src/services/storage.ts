@@ -12,13 +12,12 @@ export class StorageService {
     // No initialization needed for localStorage
   }
 
-  async autoSaveConversation(conversation: Conversation): Promise<void> {
-    await this.saveConversation(conversation);
-  }
-
   // Conversation CRUD Operations
   async saveConversation(conversation: Conversation): Promise<void> {
     const key = `${CONVERSATION_PREFIX}${conversation.id}`;
+    
+    console.log(`[Storage] Saving conversation ${conversation.id} with key ${key}`);
+    console.log(`[Storage] Conversation title: "${conversation.title}", isArchived: ${conversation.isArchived}`);
     
     // Ensure messages is an array
     if (!Array.isArray(conversation.messages)) {
@@ -45,6 +44,16 @@ export class StorageService {
     
     // Save to localStorage
     localStorage.setItem(key, JSON.stringify(dataToStore));
+    console.log(`[Storage] Saved conversation ${conversation.id} to localStorage`);
+    
+    // Verify it was saved
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      console.log(`[Storage] Verification: saved title "${parsed.title}", isArchived: ${parsed.isArchived}`);
+    } else {
+      console.error(`[Storage] ERROR: Conversation ${conversation.id} was not saved!`);
+    }
   }
 
   async loadConversation(id: string): Promise<Conversation> {
@@ -69,31 +78,60 @@ export class StorageService {
     };
   }
 
-  async listConversations(): Promise<Conversation[]> {
+  async listConversations(includeArchived: boolean = false): Promise<Conversation[]> {
     const conversations: Conversation[] = [];
+    console.log(`[Storage] Listing conversations (includeArchived: ${includeArchived})`);
     
+    // First, log all keys for debugging
+    const allKeys = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key?.startsWith(CONVERSATION_PREFIX)) {
         try {
           const id = key.replace(CONVERSATION_PREFIX, '');
+          const data = localStorage.getItem(key);
+          
+          if (!data) continue;
+          
+          // Quick parse to check if archived without full deserialization
+          const partial = JSON.parse(data);
+          
+          // Skip archived conversations unless explicitly requested
+          if (!includeArchived && partial.isArchived) {
+            console.log(`[Storage] Skipping archived conversation ${id}`);
+            continue;
+          }
+          
+          // Only load and deserialize the full conversation if needed
           const conversation = await this.loadConversation(id);
           conversations.push(conversation);
+          
         } catch (error) {
           console.error(`Error loading conversation from key ${key}:`, error);
+          // Try to clean up corrupted data
+          if (key) {
+            console.log(`[Storage] Removing corrupted conversation: ${key}`);
+            localStorage.removeItem(key);
+          }
           continue;
         }
       }
     }
     
-    return conversations.sort((a, b) => 
+    // Sort by lastModified (newest first)
+    const sorted = conversations.sort((a, b) => 
       b.lastModified.getTime() - a.lastModified.getTime()
     );
+    
+    console.log(`[Storage] Found ${sorted.length} conversations`);
+    return sorted;
   }
 
   async deleteConversation(id: string): Promise<void> {
     const key = `${CONVERSATION_PREFIX}${id}`;
+    console.log(`[Storage] Deleting conversation ${id} with key ${key}`);
     localStorage.removeItem(key);
+    console.log(`[Storage] Deleted conversation ${id}, localStorage now has ${localStorage.length} items`);
   }
 
   async archiveConversation(id: string): Promise<void> {

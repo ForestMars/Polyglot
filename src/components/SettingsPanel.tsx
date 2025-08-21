@@ -13,6 +13,7 @@ import {
   DialogTrigger 
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useConversationState } from '@/hooks/useConversationState';
 import type { Provider } from './ChatInterface';
 import { OllamaStatus } from './OllamaStatus';
 import { StorageService } from '@/services/storage';
@@ -54,6 +55,7 @@ export const SettingsPanel = ({
   const [showDataTransfer, setShowDataTransfer] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const conversationState = useConversationState();
 
   const currentProvider = useMemo(() => 
     providers.find(p => p.id === selectedProvider),
@@ -213,6 +215,17 @@ export const SettingsPanel = ({
                 type="checkbox"
                 checked={showArchivedChats}
                 onChange={(e) => setShowArchivedChats(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <Label htmlFor="cacheToggle">Enable Conversation Cache</Label>
+              <input
+                id="cacheToggle"
+                type="checkbox"
+                checked={conversationState.isCacheEnabled?.() ?? true}
+                onChange={(e) => conversationState.toggleCache?.()}
                 className="rounded border-gray-300"
               />
             </div>

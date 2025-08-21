@@ -274,6 +274,7 @@ export const ChatInterface = () => {
 
       // Call the API service to get the AI response
       const apiService = new ApiService();
+      const apiStartTime = Date.now();
       const response = await apiService.sendMessage({
         provider: selectedProvider,
         model: selectedModel,
@@ -281,11 +282,12 @@ export const ChatInterface = () => {
         apiKey,
         baseUrl: selectedProvider === 'ollama' ? 'http://localhost:11434' : undefined
       });
-
-      // Update the assistant message with the response
+      const apiDuration = ((Date.now() - apiStartTime) / 1000).toFixed(1);
+      
+      // Update the assistant message with the response, prepending response time
       const updatedAssistantMessage = {
         ...assistantMessage,
-        content: response.content,
+        content: `Thought for ${apiDuration} seconds\n\n${response.content}`,
         timestamp: new Date()
       };
 
@@ -360,15 +362,29 @@ export const ChatInterface = () => {
     }
   };
 
+  // Scroll to bottom function
+  const scrollToBottom = useCallback(() => {
+    if (scrollAreaRef.current) {
+      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollElement) {
+        scrollElement.scrollTo({
+          top: scrollElement.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, []);
+
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
-  }, [messages]);
+    // Immediate scroll
+    scrollToBottom();
+    
+    // Additional scroll after a brief delay to handle any async updates
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [messages, scrollToBottom]);
 
   // Check if we have a valid configuration
   const hasValidConfig = selectedProvider && selectedModel && (currentProvider?.isLocal || selectedApiKey);
@@ -412,19 +428,22 @@ export const ChatInterface = () => {
     }
   }, [conversationState, isSwitchingConversation, selectedModel, selectedProvider, updateSetting, toast]);
 
-  // Load current conversation messages
+  // Load current conversation messages (but don't override during active chat)
   useEffect(() => {
+    // Don't override messages if we're currently loading (sending a message)
+    if (isLoading) return;
+    
     if (conversationState.currentConversation) {
       setMessages(conversationState.currentConversation.messages || []);
     } else {
       setMessages([]);
     }
-  }, [conversationState.currentConversation]);
+  }, [conversationState.currentConversation, isLoading]);
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}>
+      <div className={`${showSidebar ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-30 w-79 transform bg-white shadow-lg transition-transform duration-300 ease-in-out md:relative md:translate-x-0`}>
         <ConversationSidebar
           currentConversationId={conversationState.currentConversation?.id}
           onConversationSelect={handleConversationSelect}
@@ -511,14 +530,7 @@ export const ChatInterface = () => {
                     {new Date(message.timestamp).toLocaleTimeString()}
                   </p>
                 </div>
-                {isLoading && (
-                  <div className="chat-bubble-ai rounded-tl-md p-4 rounded-2xl">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="animate-typing">Thinking...</span>
-                    </div>
-                  </div>
-                )}
+
               </div>
             ))}
           </div>
@@ -539,6 +551,13 @@ export const ChatInterface = () => {
                   className="min-h-[60px] max-h-[200px] resize-none glass-panel"
                   rows={1}
                 />
+                {/* Smart thinking throbber - only shows when waiting for model response */}
+                {isLoading && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Thinking...</span>
+                  </div>
+                )}
               </div>
               <Button
                 onClick={handleSendMessage}
