@@ -16,7 +16,8 @@
     "test:coverage": "vitest --coverage",
     "test:watch": "vitest --watch",
     "test:run": "vitest run",
-    "test:ci": "vitest run --coverage --passWithNoTests"
+    "test:ci": "vitest run --coverage --passWithNoTests",
+    "ingest-rag": "ts-node src/scripts/ingestRagFolder.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
