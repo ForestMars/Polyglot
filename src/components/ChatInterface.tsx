@@ -12,6 +12,8 @@ import { ApiService } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
 import { Conversation, Message } from '@/types/conversation';
 
+import { runRAGPipeline } from "@/services/rag/ragPipeline";
+
 // Default providers configuration
 const DEFAULT_PROVIDERS = [
   {
@@ -312,7 +314,6 @@ export const ChatInterface = () => {
       setIsLoading(false);
     }
   };
-import { runRAGPipeline } from "@/services/rag/ragPipeline";
 
 // inside ChatInterface component
 const handleSendMessage = async () => {
