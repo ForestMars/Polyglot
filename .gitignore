@@ -2,6 +2,7 @@
 #.env
 #.env.*
 data
+RAG/*
 
 # Node.js
 node_modules/
