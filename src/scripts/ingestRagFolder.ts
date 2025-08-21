@@ -1,19 +1,25 @@
 // src/scripts/ingestRagFolder.ts
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { Pool } from "pg";
 import dotenv from "dotenv";
-import { getEmbedding } from "@/services/rag/embeddings"; // your embedding function
+import { getEmbedding } from "@/services/rag/embeddings";
 
 dotenv.config();
 
+// --- Resolve __dirname in ESM ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// --- Interfaces ---
 interface RagConfig {
   ragFolder: string;
   chunkSize?: number;
   topK?: number;
 }
 
-// --- Utility to split text into chunks ---
+// --- Utilities ---
 function splitTextIntoChunks(text: string, chunkSize: number = 500): string[] {
   const words = text.split(/\s+/);
   const chunks: string[] = [];
@@ -23,8 +29,8 @@ function splitTextIntoChunks(text: string, chunkSize: number = 500): string[] {
   return chunks;
 }
 
-// --- Load RAG config ---
-const configPath = path.resolve("config/rag.json");
+// --- Load config ---
+const configPath = path.join(__dirname, "../../config/rag.json");
 if (!fs.existsSync(configPath)) {
   console.error("Missing config/rag.json. Please create it with { ragFolder: '...' }");
   process.exit(1);
@@ -50,7 +56,7 @@ async function ingest() {
     for (let index = 0; index < chunks.length; index++) {
       const chunk = chunks[index];
       try {
-        const embedding = await getEmbedding(chunk); // returns number[]
+        const embedding = await getEmbedding(chunk); // should return number[]
         await pool.query(
           `INSERT INTO rag_documents(file_name, chunk_index, content, embedding)
            VALUES ($1, $2, $3, $4)`,
@@ -65,17 +71,19 @@ async function ingest() {
   }
 
   console.log("RAG ingestion complete!");
-  await pool.end();
 }
 
 (async () => {
   try {
     await ingest();
-    console.log("RAG ingestion completed successfully.");
+    console.log("RAG ingestion finished successfully.");
   } catch (err) {
-    console.error("Ingestion failed:", err);
+    console.error("RAG ingestion failed:", err);
   } finally {
-    pool.end(); // make sure to close the Postgres connection
+    try {
+      await pool.end();
+    } catch (err) {
+      console.error("Error closing Postgres pool:", err);
+    }
   }
 })();
-
