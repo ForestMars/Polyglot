@@ -68,7 +68,14 @@ async function ingest() {
   await pool.end();
 }
 
-ingest().catch(err => {
-  console.error("Ingestion failed:", err);
-  pool.end();
-});
+(async () => {
+  try {
+    await ingest();
+    console.log("RAG ingestion completed successfully.");
+  } catch (err) {
+    console.error("Ingestion failed:", err);
+  } finally {
+    pool.end(); // make sure to close the Postgres connection
+  }
+})();
+
