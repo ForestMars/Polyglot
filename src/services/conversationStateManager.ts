@@ -27,7 +27,6 @@ export class ConversationStateManager {
   private settingsService: SettingsService;
   private state: ConversationState;
   private listeners: Set<(state: ConversationState) => void>;
-  private autoSaveTimer: NodeJS.Timeout | null = null;
   private isInitialized = false;
   private conversationCache: Map<string, Conversation> = new Map();
   private loadingConversations: Set<string> = new Set();
@@ -66,9 +65,6 @@ export class ConversationStateManager {
       
       // Load conversations
       await this.loadConversations();
-      
-      // Set up auto-save
-      this.setupAutoSave(settings.autoSaveInterval);
       
       this.isInitialized = true;
       this.setState({ isLoading: false });
@@ -340,45 +336,36 @@ export class ConversationStateManager {
   async toggleArchive(conversationId: string): Promise<void> {
     try {
       const conversation = this.state.conversations.find(c => c.id === conversationId);
-      if (!conversation) {
-        throw new Error('Conversation not found');
-      }
-
-      // Create updated conversation
-      const updatedConversation = {
-        ...conversation,
-        isArchived: !conversation.isArchived,
-        lastModified: new Date()
-      };
-
-      // Update storage
-      await this.storageService.saveConversation(updatedConversation);
+      if (!conversation) throw new Error('Conversation not found');
       
-      // Update cache
+      const updatedConversation = { 
+        ...conversation, 
+        isArchived: !conversation.isArchived, 
+        lastModified: new Date() 
+      };
+      
       if (this.cacheEnabled) {
         this.conversationCache.set(conversationId, updatedConversation);
-        console.log(`[StateManager] Cached archive toggle for conversation ${conversationId}`);
       }
       
-      // Update local state
-      const updatedConversations = this.state.conversations.map(conv =>
-        conv.id === conversationId ? updatedConversation : conv
+      await this.storageService.saveConversation(updatedConversation);
+      
+      const updatedConversations = this.state.conversations.map(c => 
+        c.id === conversationId ? updatedConversation : c
       );
       
-      // Update current conversation if it's the one being archived
       let currentConversation = this.state.currentConversation;
-      if (currentConversation?.id === conversationId) {
-        currentConversation = updatedConversation;
+      if (updatedConversation.isArchived && currentConversation?.id === conversationId) {
+        currentConversation = updatedConversations.find(c => !c.isArchived) || null;
       }
       
-      this.setState({
-        conversations: updatedConversations,
+      this.setState({ 
+        conversations: updatedConversations, 
         currentConversation,
-        lastUpdated: new Date()
+        lastUpdated: new Date() 
       });
-      
     } catch (error) {
-      console.error('Failed to toggle archive:', error);
+      console.error('Failed to toggle archive status:', error);
       throw error;
     }
   }
@@ -388,16 +375,16 @@ export class ConversationStateManager {
    */
   async deleteConversation(conversationId: string): Promise<void> {
     try {
-      await this.storageService.deleteConversation(conversationId);
-      
-      // Clear from cache
+      // Clear from cache first to prevent any race conditions
       if (this.cacheEnabled) {
-        console.log(`[StateManager] Clearing conversation ${conversationId} from cache`);
+        console.log(`[StateManager] Pre-emptively clearing conversation ${conversationId} from cache`);
         this.conversationCache.delete(conversationId);
-        console.log(`[StateManager] Cache now has ${this.conversationCache.size} items`);
       }
       
-      // Remove from state
+      // Remove from storage
+      await this.storageService.deleteConversation(conversationId);
+      
+      // Update state
       const updatedConversations = this.state.conversations.filter(
         c => c.id !== conversationId
       );
@@ -406,18 +393,29 @@ export class ConversationStateManager {
       let currentConversation = this.state.currentConversation;
       if (currentConversation?.id === conversationId) {
         currentConversation = updatedConversations[0] || null;
+        
+        // If we're deleting the current conversation, clear it immediately
+        // to prevent auto-save from restoring it
+        this.setState({
+          currentConversation: null,
+          lastUpdated: new Date()
+        });
       }
       
+      // Update state with the filtered conversations
       this.setState({
         conversations: updatedConversations,
         currentConversation,
         lastUpdated: new Date()
       });
       
-      // Don't reload conversations - this was causing the corruption
-      // The state is already correct, and reloading was interfering
+      console.log(`[StateManager] Successfully deleted conversation ${conversationId}`);
     } catch (error) {
       console.error('Failed to delete conversation:', error);
+      // Ensure cache is cleared even if storage operation fails
+      if (this.cacheEnabled) {
+        this.conversationCache.delete(conversationId);
+      }
       throw error;
     }
   }
@@ -427,11 +425,31 @@ export class ConversationStateManager {
    */
   async searchConversations(filters: ConversationFilters): Promise<Conversation[]> {
     try {
-      let results = this.state.conversations;
+      console.log(`[StateManager] Searching conversations with filters:`, {
+        searchQuery: filters.searchQuery,
+        provider: filters.provider,
+        model: filters.model,
+        showArchived: filters.showArchived,
+        dateRange: filters.dateRange ? 'set' : 'not set'
+      });
       
-      // Apply filters
+      // Always load fresh conversations from storage to ensure we have the latest data
+      const showArchived = filters.showArchived !== undefined ? 
+        filters.showArchived : 
+        (await this.settingsService.loadSettings()).showArchivedChats || false;
+      
+      console.log(`[StateManager] Loading conversations with showArchived=${showArchived}`);
+      
+      // Get conversations from storage with the correct archived filter
+      let results = await this.storageService.listConversations(showArchived);
+      
+      // Apply additional filters
       if (filters.searchQuery) {
-        results = await this.storageService.searchConversations(filters.searchQuery);
+        const query = filters.searchQuery.toLowerCase();
+        results = results.filter(conv => 
+          conv.title.toLowerCase().includes(query) ||
+          conv.messages.some(msg => msg.content.toLowerCase().includes(query))
+        );
       }
       
       if (filters.provider) {
@@ -442,9 +460,7 @@ export class ConversationStateManager {
         results = results.filter(c => c.currentModel === filters.model);
       }
       
-      if (filters.showArchived !== undefined) {
-        results = results.filter(c => c.isArchived === filters.showArchived);
-      }
+      // No need to filter by showArchived here since we already did it in listConversations
       
       if (filters.dateRange) {
         results = results.filter(c => 
@@ -453,6 +469,7 @@ export class ConversationStateManager {
         );
       }
       
+      console.log(`[StateManager] Found ${results.length} conversations matching filters`);
       return results;
     } catch (error) {
       console.error('Failed to search conversations:', error);
@@ -569,21 +586,29 @@ export class ConversationStateManager {
     try {
       this.setState({ isLoading: true, error: null });
       
-      // Clear existing conversations
+      // Get current settings to check if we should show archived conversations
+      const settings = await this.settingsService.loadSettings();
+      const showArchived = settings.showArchivedChats || false;
+      
+      console.log(`[StateManager] Loading conversations (showArchived: ${showArchived})`);
+      
+      // Always clear the cache before loading fresh data
       if (this.cacheEnabled) {
+        const previousCacheSize = this.conversationCache.size;
         this.conversationCache.clear();
-        console.log('[StateManager] Cleared conversation cache');
+        console.log(`[StateManager] Cleared conversation cache (was ${previousCacheSize} items)`);
       }
       
-      // Load conversations from storage
-      const conversations = await this.storageService.listConversations();
+      // Load fresh conversations from storage, respecting the showArchived setting
+      const conversations = await this.storageService.listConversations(showArchived);
+      console.log(`[StateManager] Loaded ${conversations.length} conversations from storage`);
       
-      // Update cache with conversation metadata
+      // Update cache with the fresh data
       if (this.cacheEnabled) {
         conversations.forEach(conv => {
           this.conversationCache.set(conv.id, conv);
         });
-        console.log(`[StateManager] Cached ${conversations.length} conversations`);
+        console.log(`[StateManager] Cached ${this.conversationCache.size} conversations`);
       }
       
       // Update state with the loaded conversations
@@ -595,31 +620,18 @@ export class ConversationStateManager {
       
     } catch (error) {
       console.error('Failed to load conversations:', error);
+      // On error, clear the cache to prevent stale data
+      if (this.cacheEnabled) {
+        this.conversationCache.clear();
+      }
+      
       this.setState({ 
+        conversations: [],
         isLoading: false,
         error: error instanceof Error ? error.message : 'Failed to load conversations',
         lastUpdated: new Date()
       });
     }
-  }
-
-  /**
-   * Set up auto-save functionality
-   */
-  private setupAutoSave(intervalSeconds: number): void {
-    if (this.autoSaveTimer) {
-      clearInterval(this.autoSaveTimer);
-    }
-    
-    this.autoSaveTimer = setInterval(async () => {
-      if (this.state.currentConversation) {
-        try {
-          await this.storageService.autoSaveConversation(this.state.currentConversation);
-        } catch (error) {
-          console.error('Auto-save failed:', error);
-        }
-      }
-    }, intervalSeconds * 1000);
   }
 
   /**
@@ -642,9 +654,6 @@ export class ConversationStateManager {
    * Cleanup resources
    */
   destroy(): void {
-    if (this.autoSaveTimer) {
-      clearInterval(this.autoSaveTimer);
-    }
     this.listeners.clear();
   }
 }
