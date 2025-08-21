@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { Pool } from "pg";
 import dotenv from "dotenv";
-import { getEmbedding } from "@/services/rag/embeddings"; // your embedding function
+import { getEmbedding } from "../services/rag/embeddings"; // stub embedding function
 
 dotenv.config();
 
@@ -30,7 +30,7 @@ if (!fs.existsSync(configPath)) {
   process.exit(1);
 }
 
-const { ragFolder, chunkSize = 500 }: RagConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+const { folderPath: ragFolder, chunkSize = 500 }: RagConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 if (!fs.existsSync(ragFolder)) {
   console.error(`RAG folder does not exist: ${ragFolder}`);
   process.exit(1);
