@@ -20,6 +20,9 @@ export class StorageService {
   async saveConversation(conversation: Conversation): Promise<void> {
     const key = `${CONVERSATION_PREFIX}${conversation.id}`;
     
+    console.log(`[Storage] Saving conversation ${conversation.id} with key ${key}`);
+    console.log(`[Storage] Conversation title: "${conversation.title}", isArchived: ${conversation.isArchived}`);
+    
     // Ensure messages is an array
     if (!Array.isArray(conversation.messages)) {
       conversation.messages = [];
@@ -45,6 +48,16 @@ export class StorageService {
     
     // Save to localStorage
     localStorage.setItem(key, JSON.stringify(dataToStore));
+    console.log(`[Storage] Saved conversation ${conversation.id} to localStorage`);
+    
+    // Verify it was saved
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      console.log(`[Storage] Verification: saved title "${parsed.title}", isArchived: ${parsed.isArchived}`);
+    } else {
+      console.error(`[Storage] ERROR: Conversation ${conversation.id} was not saved!`);
+    }
   }
 
   async loadConversation(id: string): Promise<Conversation> {
@@ -93,7 +106,9 @@ export class StorageService {
 
   async deleteConversation(id: string): Promise<void> {
     const key = `${CONVERSATION_PREFIX}${id}`;
+    console.log(`[Storage] Deleting conversation ${id} with key ${key}`);
     localStorage.removeItem(key);
+    console.log(`[Storage] Deleted conversation ${id}, localStorage now has ${localStorage.length} items`);
   }
 
   async archiveConversation(id: string): Promise<void> {

@@ -31,6 +31,7 @@ export class ConversationStateManager {
   private isInitialized = false;
   private conversationCache: Map<string, Conversation> = new Map();
   private loadingConversations: Set<string> = new Set();
+  private cacheEnabled: boolean = true;
 
   constructor() {
     this.storageService = new StorageService();
@@ -48,8 +49,11 @@ export class ConversationStateManager {
   /**
    * Initialize the state manager
    */
-  async initialize(): Promise<void> {
+  async initialize(cacheEnabled: boolean = true): Promise<void> {
     if (this.isInitialized) return;
+    
+    this.cacheEnabled = cacheEnabled;
+    console.log(`[StateManager] Cache ${this.cacheEnabled ? 'enabled' : 'disabled'}`);
 
     try {
       this.setState({ isLoading: true, error: null });
@@ -82,6 +86,26 @@ export class ConversationStateManager {
    */
   getState(): Readonly<ConversationState> {
     return { ...this.state };
+  }
+
+  /**
+   * Toggle cache on/off
+   */
+  toggleCache(): void {
+    this.cacheEnabled = !this.cacheEnabled;
+    if (!this.cacheEnabled) {
+      this.conversationCache.clear();
+      console.log('[StateManager] Cache disabled and cleared');
+    } else {
+      console.log('[StateManager] Cache enabled');
+    }
+  }
+
+  /**
+   * Check if cache is enabled
+   */
+  isCacheEnabled(): boolean {
+    return this.cacheEnabled;
   }
 
   /**
@@ -130,8 +154,9 @@ export class ConversationStateManager {
     }
 
     // Check cache first
-    if (this.conversationCache.has(id)) {
+    if (this.cacheEnabled && this.conversationCache.has(id)) {
       const cached = this.conversationCache.get(id)!;
+      console.log(`[StateManager] Cache HIT for conversation ${id}`);
       this.setState({
         currentConversation: cached,
         lastUpdated: new Date()
@@ -145,7 +170,10 @@ export class ConversationStateManager {
       const conversation = await this.storageService.loadConversation(id);
       
       // Update cache
-      this.conversationCache.set(id, conversation);
+      if (this.cacheEnabled) {
+        this.conversationCache.set(id, conversation);
+        console.log(`[StateManager] Cached conversation ${id}`);
+      }
       
       // Update state
       this.setState({
@@ -189,7 +217,10 @@ export class ConversationStateManager {
       console.log('Conversation saved to storage');
       
       // Update cache
-      this.conversationCache.set(updatedConversation.id, updatedConversation);
+      if (this.cacheEnabled) {
+        this.conversationCache.set(updatedConversation.id, updatedConversation);
+        console.log(`[StateManager] Cached updated conversation ${updatedConversation.id}`);
+      }
       
       // Update the conversations list
       const updatedConversations = this.state.conversations.map(conv => 
@@ -247,7 +278,10 @@ export class ConversationStateManager {
       await this.storageService.saveConversation(updatedConversation);
       
       // Update cache
-      this.conversationCache.set(updatedConversation.id, updatedConversation);
+      if (this.cacheEnabled) {
+        this.conversationCache.set(updatedConversation.id, updatedConversation);
+        console.log(`[StateManager] Cached model switch for conversation ${updatedConversation.id}`);
+      }
     } catch (error) {
       console.error('Failed to switch model:', error);
       throw error;
@@ -288,7 +322,10 @@ export class ConversationStateManager {
       await this.storageService.saveConversation(updatedConversation);
       
       // Update cache
-      this.conversationCache.set(conversationId, updatedConversation);
+      if (this.cacheEnabled) {
+        this.conversationCache.set(conversationId, updatedConversation);
+        console.log(`[StateManager] Cached metadata update for conversation ${conversationId}`);
+      }
       
       return updatedConversation;
     } catch (error) {
@@ -318,7 +355,10 @@ export class ConversationStateManager {
       await this.storageService.saveConversation(updatedConversation);
       
       // Update cache
-      this.conversationCache.set(conversationId, updatedConversation);
+      if (this.cacheEnabled) {
+        this.conversationCache.set(conversationId, updatedConversation);
+        console.log(`[StateManager] Cached archive toggle for conversation ${conversationId}`);
+      }
       
       // Update local state
       const updatedConversations = this.state.conversations.map(conv =>
@@ -351,7 +391,11 @@ export class ConversationStateManager {
       await this.storageService.deleteConversation(conversationId);
       
       // Clear from cache
-      this.conversationCache.delete(conversationId);
+      if (this.cacheEnabled) {
+        console.log(`[StateManager] Clearing conversation ${conversationId} from cache`);
+        this.conversationCache.delete(conversationId);
+        console.log(`[StateManager] Cache now has ${this.conversationCache.size} items`);
+      }
       
       // Remove from state
       const updatedConversations = this.state.conversations.filter(
@@ -526,15 +570,21 @@ export class ConversationStateManager {
       this.setState({ isLoading: true, error: null });
       
       // Clear existing conversations
-      this.conversationCache.clear();
+      if (this.cacheEnabled) {
+        this.conversationCache.clear();
+        console.log('[StateManager] Cleared conversation cache');
+      }
       
       // Load conversations from storage
       const conversations = await this.storageService.listConversations();
       
       // Update cache with conversation metadata
-      conversations.forEach(conv => {
-        this.conversationCache.set(conv.id, conv);
-      });
+      if (this.cacheEnabled) {
+        conversations.forEach(conv => {
+          this.conversationCache.set(conv.id, conv);
+        });
+        console.log(`[StateManager] Cached ${conversations.length} conversations`);
+      }
       
       // Update state with the loaded conversations
       this.setState({ 

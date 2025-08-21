@@ -87,6 +87,15 @@ export const useConversationState = () => {
     await stateManager.initialize();
   }, [stateManager]);
 
+  // Cache operations
+  const toggleCache = useCallback(() => {
+    stateManager.toggleCache();
+  }, [stateManager]);
+
+  const isCacheEnabled = useCallback(() => {
+    return stateManager.isCacheEnabled();
+  }, [stateManager]);
+
   return {
     // State
     state,
@@ -102,6 +111,8 @@ export const useConversationState = () => {
     searchConversations,
     clearError,
     refreshConversations,
+    toggleCache,
+    isCacheEnabled,
     conversations: state.conversations,
     currentConversation: state.currentConversation,
     isLoading: state.isLoading,
