@@ -2,7 +2,7 @@
   "name": "vite_react_shadcn_ts",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -17,7 +17,7 @@
     "test:watch": "vitest --watch",
     "test:run": "vitest run",
     "test:ci": "vitest run --coverage --passWithNoTests",
-    "ingest-rag": "node --loader ts-node/esm src/scripts/ingestRagFolder.ts"
+    "ingest-rag": "ts-node src/scripts/ingestRagFolder.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -53,10 +53,12 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.1",
     "embla-carousel-react": "^8.3.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
+    "pg": "^8.16.3",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -77,6 +79,7 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.17.2",
+    "@types/pg": "^8.15.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.5.0",

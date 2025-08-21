@@ -1,16 +1,18 @@
 // src/scripts/ingestRagFolder.ts
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import * as fs from "fs";
+import * as path from "path";
 import { Pool } from "pg";
-import dotenv from "dotenv";
-import { getEmbedding } from "@/services/rag/embeddings";
+import * as dotenv from "dotenv";
+
+async function getEmbedding(text: string): Promise<number[]> {
+  // naive dummy embedding: convert each char code modulo 100
+  return Array.from(text.slice(0, 512)).map(c => c.charCodeAt(0) % 100);
+}
 
 dotenv.config();
 
 // --- Resolve __dirname in ESM ---
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const configPath = path.resolve(process.cwd(), "config/rag.json");
 
 // --- Interfaces ---
 interface RagConfig {
@@ -30,7 +32,7 @@ function splitTextIntoChunks(text: string, chunkSize: number = 500): string[] {
 }
 
 // --- Load config ---
-const configPath = path.join(__dirname, "../../config/rag.json");
+
 if (!fs.existsSync(configPath)) {
   console.error("Missing config/rag.json. Please create it with { ragFolder: '...' }");
   process.exit(1);
