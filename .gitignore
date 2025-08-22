@@ -3,6 +3,7 @@
 #.env.*
 data
 RAG/*
+.pgpass
 
 # Node.js
 node_modules/
