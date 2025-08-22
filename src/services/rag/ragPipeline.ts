@@ -1,18 +1,26 @@
-import { queryRAG } from "../../server/ragAPI";
+// src/services/ragPipeline.ts
+const RAG_API_BASE = 'http://localhost:3001';
 
 export async function runRAGPipeline(question: string) {
-  const chunks = await queryRAG(question, 5);
+  try {
+    const response = await fetch(`${RAG_API_BASE}/query-rag`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, k: 5 }),
+    });
 
-  const prompt = `
-You are a helpful assistant. Use the following context to answer the question.
+    if (!response.ok) {
+      throw new Error(`RAG API error: ${response.status}`);
+    }
 
-Context:
-${chunks.join("\n\n")}
+    const data = await response.json();
+    
+    const context = data.results.join('\n\n');
+    const sources = data.results;
 
-Question:
-${question}
-`;
-
-  const answer = await callLLM(prompt);
-  return { answer };
+    return { context, sources };
+  } catch (error) {
+    console.error('RAG pipeline error:', error);
+    return { context: '', sources: [] };
+  }
 }
