@@ -217,7 +217,6 @@ export const ChatInterface = () => {
     }
   }, [conversationState, selectedProvider, selectedModel, toast]);
 
-// inside ChatInterface component
 const handleSendMessage = async () => {
   if (!input.trim() || !selectedProvider || !selectedModel) return;
 
@@ -246,26 +245,6 @@ const handleSendMessage = async () => {
       await conversationState.addMessage(userMessage);
     }
 
-    // Prepare final message content
-    let finalMessageContent = input.trim();
-
-    // === RAG integration ===
-    if (settings?.enableRAG) {
-      try {
-        const response = await fetch('/api/rag', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question: input.trim(), k: 5 })
-        });
-        const data = await response.json();
-        finalMessageContent = data.answer || input.trim();
-      } catch (err) {
-        console.error('RAG API error:', err);
-        finalMessageContent = input.trim();
-      }
-    }
-    // === End RAG integration ===
-
     // Create the assistant message placeholder
     const assistantMessage: Message = {
       id: `msg_${Date.now() + 1}`,
@@ -284,16 +263,29 @@ const handleSendMessage = async () => {
     ];
 
     if (settings?.enableRAG) {
-      const { context, sources } = await runRAGPipeline(input.trim());
-      messagesToSend = [
-        {
-          role: 'system',
-          content:
-            `Use the following context to answer. If the context is irrelevant or insufficient, say you don't know.\n\n${context}`
-        },
-        { role: 'user', content: input.trim() }
-      ];
-      console.log(`RAG: using ${sources?.length ?? 0} chunks`);
+      try {
+        // Use the working /query-rag endpoint
+        const response = await fetch('/query-rag', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: input.trim(), k: 5 })
+        });
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+          const chunks = data.results.map(chunk => chunk.content).join('\n\n');
+          const context = `Use the following context to answer. If the context is irrelevant or insufficient, say you don't know.\n\n${chunks}`;
+          
+          messagesToSend = [
+            { role: 'system', content: context },
+            { role: 'user', content: input.trim() }
+          ];
+          console.log(`RAG: using ${data.results.length} chunks`);
+        }
+      } catch (err) {
+        console.error('RAG API error:', err);
+        // Fall back to non-RAG query
+      }
     }
     // === End RAG integration ===
 
