@@ -14,6 +14,8 @@ import { Conversation, Message } from '@/types/conversation';
 
 import { runRAGPipeline } from "@/services/rag/ragPipeline";
 
+const FORCE_ENABLE_RAG = true;
+
 // Default providers configuration
 const DEFAULT_PROVIDERS = [
   {
@@ -217,7 +219,18 @@ export const ChatInterface = () => {
     }
   }, [conversationState, selectedProvider, selectedModel, toast]);
 
+const handleKeyPress = (e: React.KeyboardEvent) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSendMessage();
+  }
+};
+
+// Added debugging 
 const handleSendMessage = async () => {
+  console.log('🚨 HANDLESENDMESSAGE CALLED WITH:', input);
+  console.log('🚨 Current settings:', settings);
+  console.log('🚨 enableRAG value:', settings?.enableRAG);
   if (!input.trim() || !selectedProvider || !selectedModel) return;
 
   const userMessage: Message = {
@@ -258,15 +271,23 @@ const handleSendMessage = async () => {
     setMessages(prev => [...prev, assistantMessage]);
 
     // === RAG integration (build messagesToSend) ===
+    console.log('🔍 Starting RAG integration check...');
+    console.log('🔍 settings object:', settings);
+    console.log('🔍 settings?.enableRAG:', settings?.enableRAG);
+    
     let messagesToSend: Array<{ role: 'system' | 'user'; content: string }> = [
       { role: 'user', content: input.trim() }
     ];
 
-    if (settings?.enableRAG) {
+    
+    if (FORCE_ENABLE_RAG || settings?.enableRAG) {   
       console.log('🔍 RAG is enabled, querying for context...');
+      console.log('🚨 ABOUT TO MAKE FETCH REQUEST');
+      console.log('🚨 URL: http://localhost:3001/query-rag');
+
       try {
         // Use the working /query-rag endpoint
-        const response = await fetch('/query-rag', {
+        const response = await fetch('http://localhost:3001/query-rag', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: input.trim(), k: 5 })
@@ -355,14 +376,6 @@ const handleSendMessage = async () => {
     setIsLoading(false);
   }
 };
-
-  // Handle key press in the input
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
 
   // Scroll to bottom function
   const scrollToBottom = useCallback(() => {

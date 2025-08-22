@@ -4,30 +4,68 @@ import { queryRAG } from "./queryRAG";
 
 const PORT = 3001;
 
+console.log("🟢 SERVER FILE LOADED - THIS SHOULD ALWAYS SHOW");
+console.log("🟢 Current time:", new Date().toISOString());
+console.log("🟢 Process ID:", process.pid);
+
 const server = http.createServer(async (req, res) => {
+  console.log("🔥 REQUEST RECEIVED - METHOD:", req.method, "URL:", req.url);
+  console.log("🔥 Headers:", JSON.stringify(req.headers, null, 2));
+  
   if (req.method === "POST" && req.url === "/query-rag") {
-    console.log("🚀 API ENDPOINT HIT! 🚀");
+    console.log("✅ MATCHED POST /query-rag");
     let body = "";
-    req.on("data", chunk => body += chunk);
+    
+    req.on("data", chunk => {
+      console.log("📥 DATA CHUNK RECEIVED:", chunk.toString());
+      body += chunk;
+    });
+    
     req.on("end", async () => {
+      console.log("🏁 REQUEST END - Full body:", body);
       try {
-        console.log("Raw body:", body);
-        const { question } = JSON.parse(body);
-        console.log("Parsed question:", question);
+        const parsed = JSON.parse(body);
+        console.log("✅ JSON PARSED:", parsed);
+        const { question } = parsed;
+        console.log("❓ QUESTION EXTRACTED:", question);
         
+        console.log("🔍 ABOUT TO CALL queryRAG...");
         const results = await queryRAG(question);
+        console.log("✅ QUERYRAG RETURNED:", results ? results.length : "null", "results");
+        
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ results }));
+        console.log("📤 RESPONSE SENT");
+        
       } catch (err) {
-        console.error("❌ Error in API handler:", err);
+        console.error("❌ ERROR CAUGHT:", err);
+        console.error("❌ ERROR STACK:", err.stack);
         res.writeHead(500);
         res.end(JSON.stringify({ error: err.message }));
+        console.log("📤 ERROR RESPONSE SENT");
       }
     });
+    
+    req.on("error", (err) => {
+      console.error("🚨 REQUEST ERROR:", err);
+    });
+    
   } else {
+    console.log("❌ REQUEST DID NOT MATCH - Method:", req.method, "URL:", req.url);
     res.writeHead(404);
     res.end();
+    console.log("📤 404 RESPONSE SENT");
   }
 });
 
-server.listen(PORT, () => console.log(`RAG API running on port ${PORT}`));
+server.on("error", (err) => {
+  console.error("🚨 SERVER ERROR:", err);
+});
+
+server.listen(PORT, () => {
+  console.log("🚀 SERVER LISTENING ON PORT", PORT);
+  console.log("🚀 Server started at:", new Date().toISOString());
+  console.log("🚀 Try: curl -X POST http://localhost:3001/query-rag -H 'Content-Type: application/json' -d '{\"question\":\"test\"}'");
+});
+
+console.log("🟢 SCRIPT END REACHED");

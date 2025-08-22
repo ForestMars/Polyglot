@@ -10,16 +10,13 @@ const pool = new Pool({
   database: process.env.PGDATABASE || "polyglut_rag",
 });
 
-// Extant function to just retrieve chunks
-export async function queryRAG_(question: string, k = 5) {
+// Basic RAG retrieval (renamed to avoid confusion)
+export async function getRelevantChunks(question: string, k = 5) {
   try {
-    console.log("\n🔍 RAG RETRIEVAL DEBUG");
-    console.log("=".repeat(50));
-    console.log(`📝 Question: "${question}"`);
-    
     // Get embedding for the question
     const questionEmbedding = await getEmbedding(question);
-    console.log("✅ Question embedding generated:", questionEmbedding.slice(0, 3), `(${questionEmbedding.length}D)`);
+    console.log("Question embedding:", questionEmbedding.slice(0, 5), "Length:", questionEmbedding.length);
+    console.log("Type of first element:", typeof questionEmbedding[0]);
     
     // Convert embedding to proper vector string format
     const embeddingStr = `[${questionEmbedding.join(',')}]`;
@@ -34,41 +31,36 @@ export async function queryRAG_(question: string, k = 5) {
       [embeddingStr, k]
     );
 
-    // Enhanced logging
-    console.log(`\n📚 Found ${res.rows.length} similar chunks:`);
-    res.rows.forEach((row, i) => {
-      const similarity = (1 - row.distance) * 100; // Convert distance to similarity percentage
-      console.log(`\n${i + 1}. File: ${row.file_name}`);
-      console.log(`   Similarity: ${similarity.toFixed(1)}%`);
-      console.log(`   Content: ${row.content.substring(0, 200)}...`);
-    });
-    
-    console.log("=".repeat(50));
+    // Debug logging
+    console.log(`Found ${res.rows.length} similar chunks for question: "${question}"`);
+    console.log("Top retrieved chunks:", res.rows.map((r, i) => 
+      `${i+1}. (distance: ${r.distance.toFixed(4)}) ${r.content.substring(0, 100)}...`
+    ));
 
-    // Return the chunks
+    // Return the actual columns
     return res.rows.map((row) => ({
       id: row.id,
       chunk_index: row.chunk_index,
       file_name: row.file_name,
       content: row.content,
       distance: row.distance,
-      similarity: 1 - row.distance // Add similarity score
+      similarity: 1 - row.distance // Convert distance to similarity
     }));
     
   } catch (error) {
-    console.error("❌ Error in queryRAG:", error);
+    console.error("Error in getRelevantChunks:", error);
     throw error;
   }
 }
 
 // Query to combine RAG retrieval + model response
-export async function queryRAG(question: string, modelFunction: Function, k = 5) {
+export async function queryRAGWithAnswer(question: string, modelFunction: Function, k = 5) {
   try {
     console.log("\n🤖 RAG + MODEL QUERY");
     console.log("=".repeat(60));
     
-    // Step 1: Get relevant chunks
-    const chunks = await queryRAG(question, k);
+    // Step 1: Get relevant chunks - NOW CALLS THE CORRECT FUNCTION
+    const chunks = await getRelevantChunks(question, k);
     
     if (chunks.length === 0) {
       console.log("❌ No relevant chunks found!");
@@ -114,6 +106,11 @@ ${context}`;
     console.error("❌ Error in queryRAGWithAnswer:", error);
     throw error;
   }
+}
+
+// Keep the original queryRAG for backward compatibility
+export async function queryRAG(question: string, k = 5) {
+  return getRelevantChunks(question, k);
 }
 
 // Helper function if you're using Ollama
