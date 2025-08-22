@@ -12,6 +12,8 @@ import { ApiService } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
 import { Conversation, Message } from '@/types/conversation';
 
+import { runRAGPipeline } from "@/services/rag/ragPipeline";
+
 // Default providers configuration
 const DEFAULT_PROVIDERS = [
   {
@@ -215,144 +217,110 @@ export const ChatInterface = () => {
     }
   }, [conversationState, selectedProvider, selectedModel, toast]);
 
-  // Handle send message
-  const handleSendMessage = async () => {
-    if (!input.trim() || !selectedProvider || !selectedModel) return;
+// inside ChatInterface component
+const handleSendMessage = async () => {
+  if (!input.trim() || !selectedProvider || !selectedModel) return;
 
-    const userMessage: Message = {
-      id: `msg_${Date.now()}`,
-      role: 'user',
-      content: input.trim(),
+  const userMessage: Message = {
+    id: `msg_${Date.now()}`,
+    role: 'user',
+    content: input.trim(),
+    timestamp: new Date(),
+    provider: selectedProvider
+  };
+
+  // Add user message to local state
+  setMessages(prev => [...prev, userMessage]);
+  setInput('');
+
+  try {
+    setIsLoading(true);
+
+    // Create new conversation if needed
+    if (!conversationState.currentConversation?.id && conversationState.createConversation) {
+      await conversationState.createConversation(selectedProvider, selectedModel);
+    }
+
+    // Add user message to the conversation
+    if (conversationState.addMessage) {
+      await conversationState.addMessage(userMessage);
+    }
+
+    // Prepare final message content
+    let finalMessageContent = input.trim();
+
+    // === RAG integration ===
+    if (settings?.enableRAG) {
+      try {
+        const response = await fetch('/api/rag', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: input.trim(), k: 5 })
+        });
+        const data = await response.json();
+        finalMessageContent = data.answer || input.trim();
+      } catch (err) {
+        console.error('RAG API error:', err);
+        finalMessageContent = input.trim();
+      }
+    }
+    // === End RAG integration ===
+
+    // Create the assistant message placeholder
+    const assistantMessage: Message = {
+      id: `msg_${Date.now() + 1}`,
+      role: 'assistant',
+      content: '',
       timestamp: new Date(),
       provider: selectedProvider
     };
 
-    // Add user message to local state
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
+    // Add the assistant message to the UI immediately
+    setMessages(prev => [...prev, assistantMessage]);
 
-    try {
-      setIsLoading(true);
+    // Send the message to the LLM using existing ApiService
+    const apiKey = settings?.[selectedApiKey] || '';
+    const apiService = new ApiService();
+    const response = await apiService.sendMessage({
+      provider: selectedProvider,
+      model: selectedModel,
+      messages: [{ role: 'user', content: finalMessageContent }],
+      apiKey,
+      baseUrl: selectedProvider === "ollama" ? "http://localhost:11434" : undefined
+    });
 
-      // Create new conversation if needed
-      if (!conversationState.currentConversation?.id && conversationState.createConversation) {
-        await conversationState.createConversation(selectedProvider, selectedModel);
+    // Update the assistant message with the response
+    const updatedAssistantMessage = {
+      ...assistantMessage,
+      content: response.content,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => {
+      const idx = prev.findIndex(m => m.id === assistantMessage.id);
+      if (idx !== -1) {
+        const updated = [...prev];
+        updated[idx] = updatedAssistantMessage;
+        return updated;
       }
+      return [...prev, updatedAssistantMessage];
+    });
 
-      // Add user message to the conversation
-      if (conversationState.addMessage) {
-        await conversationState.addMessage(userMessage);
-      }
-
-      // Get the API key for the selected provider
-      const apiKey = settings?.[selectedApiKey] || '';
-
-      // Create the assistant message placeholder
-      const assistantMessage: Message = {
-        id: `msg_${Date.now() + 1}`,
-        role: 'assistant',
-        content: '',
-        timestamp: new Date(),
-        provider: selectedProvider
-      };
-
-      // Add the assistant message to the UI immediately
-      setMessages(prev => [...prev, assistantMessage]);
-
-      // Get all messages including the new user message
-      const allMessages = [...messages, userMessage];
-
-      // Filter out system messages before sending to the API
-      const filteredMessages = allMessages
-        .filter((msg): msg is Message => 
-          msg.role === 'user' || msg.role === 'assistant'
-        )
-        .map(({ role, content }) => ({ 
-          role: role as 'user' | 'assistant', 
-          content 
-        }));
-
-      // Call the API service to get the AI response
-      const apiService = new ApiService();
-      const apiStartTime = Date.now();
-      const response = await apiService.sendMessage({
-        provider: selectedProvider,
-        model: selectedModel,
-        messages: filteredMessages,
-        apiKey,
-        baseUrl: selectedProvider === 'ollama' ? 'http://localhost:11434' : undefined
-      });
-      const apiDuration = ((Date.now() - apiStartTime) / 1000).toFixed(1);
-      
-      // Update the assistant message with the response, prepending response time
-      const updatedAssistantMessage = {
-        ...assistantMessage,
-        content: `Thought for ${apiDuration} seconds\n\n${response.content}`,
-        timestamp: new Date()
-      };
-
-      // Update local state
-      setMessages(prev => {
-        const messageIndex = prev.findIndex(m => m.id === assistantMessage.id);
-        if (messageIndex !== -1) {
-          const updatedMessages = [...prev];
-          updatedMessages[messageIndex] = updatedAssistantMessage;
-          return updatedMessages;
-        }
-        return [...prev, updatedAssistantMessage];
-      });
-
-      // Add the assistant's response to the conversation
-      if (conversationState.addMessage) {
-        await conversationState.addMessage(updatedAssistantMessage);
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      
-      // Get a user-friendly error message
-      let errorMessage = 'Sorry, there was an error processing your message. Please try again.';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('Failed to fetch')) {
-          errorMessage = 'Failed to connect to the AI service. Please check your internet connection and try again.';
-        } else if (error.message.includes('401') || error.message.includes('unauthorized')) {
-          errorMessage = 'Authentication failed. Please check your API key in settings.';
-        } else if (error.message.includes('rate limit')) {
-          errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
-        } else if (error.message.includes('model')) {
-          errorMessage = 'Model not found. Please select a different model in settings.';
-        }
-      }
-      
-      // Update the error message in the UI
-      setMessages(prev => {
-        const messageIndex = prev.findIndex(m => m.role === 'assistant' && m.content === '');
-        if (messageIndex !== -1) {
-          const updatedMessages = [...prev];
-          updatedMessages[messageIndex] = {
-            ...updatedMessages[messageIndex],
-            content: errorMessage
-          };
-          return updatedMessages;
-        }
-        return [...prev, {
-          id: `error_${Date.now()}`,
-          role: 'assistant',
-          content: errorMessage,
-          timestamp: new Date(),
-          isError: true
-        }];
-      });
-      
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
+    // Add assistant response to conversation state
+    if (conversationState.addMessage) {
+      await conversationState.addMessage(updatedAssistantMessage);
     }
-  };
+  } catch (error) {
+    console.error('Error sending message:', error);
+    toast({
+      title: 'Error',
+      description: 'Failed to send message. Check console for details.',
+      variant: 'destructive'
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Handle key press in the input
   const handleKeyPress = (e: React.KeyboardEvent) => {

@@ -1,0 +1,41 @@
+import fs from "fs/promises";
+import path from "path";
+import { Pool } from "pg";
+import dotenv from "dotenv";
+import { getEmbedding } from "../services/rag/embeddings";
+
+dotenv.config();
+
+const configPath = path.resolve("config/rag.json");
+const configRaw = await fs.readFile(configPath, "utf-8");
+const config = JSON.parse(configRaw);
+
+const ragFolder = config.folderPath;
+
+const pool = new Pool({
+  host: process.env.PGHOST || "localhost",
+  port: parseInt(process.env.PGPORT || "5432"),
+  user: process.env.PGUSER || "polyglut_user",
+  password: process.env.PGPASSWORD || "polyglut",
+  database: process.env.PGDATABASE || "polyglut_rag",
+});
+
+async function ingestFolder(folder: string) {
+  const files = await fs.readdir(folder);
+
+  for (const file of files) {
+    const filePath = path.join(folder, file);
+    const content = await fs.readFile(filePath, "utf-8");
+    const embedding = await getEmbedding(content);
+
+    await pool.query(
+      "INSERT INTO rag_documents (file_name, chunk_index, content, embedding) VALUES ($1, $2, $3, $4)",
+      [file, 0, content, `[${embedding.join(",")}]`]
+    );
+
+  }
+}
+
+await ingestFolder(ragFolder);
+console.log("RAG ingestion finished successfully.");
+await pool.end();
