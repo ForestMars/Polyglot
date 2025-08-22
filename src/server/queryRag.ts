@@ -1,5 +1,6 @@
+// src/server/queryRag.ts
 import { Pool } from "pg";
-import { getEmbedding } from "./embeddings";
+import { getEmbedding } from "../services/rag/embeddings";
 
 const pool = new Pool({
   host: process.env.PGHOST || "localhost",
@@ -16,6 +17,9 @@ export async function queryRAG(question: string, k = 5) {
     `SELECT content FROM rag_documents ORDER BY embedding <-> $1 LIMIT $2`,
     [questionEmbedding, k]
   );
+
+  // debug
+  console.log("Top retrieved chunks:", res.rows.map((r) => r.content));
 
   return res.rows.map((row) => row.content);
 }

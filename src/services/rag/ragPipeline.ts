@@ -1,5 +1,4 @@
-import { queryRAG } from "./queryRag";
-import { callLLM } from "../llmClient";
+import { queryRAG } from "../../server/ragAPI";
 
 export async function runRAGPipeline(question: string) {
   const chunks = await queryRAG(question, 5);
