@@ -29,9 +29,10 @@ async function ingestFolder(folder: string) {
     const embedding = await getEmbedding(content);
 
     await pool.query(
-      "INSERT INTO rag_documents (content, embedding) VALUES ($1, $2)",
-      [content, embedding]
+      "INSERT INTO rag_documents (file_name, chunk_index, content, embedding) VALUES ($1, $2, $3, $4)",
+      [file, 0, content, `[${embedding.join(",")}]`]
     );
+
   }
 }
 
