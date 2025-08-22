@@ -14,7 +14,8 @@ import { Conversation, Message } from '@/types/conversation';
 
 import { runRAGPipeline } from "@/services/rag/ragPipeline";
 
-const FORCE_ENABLE_RAG = true;
+const ENABLE_RAG = true;
+const RAG_DISTANCE_THRESHOLD = 0.3; 
 
 // Default providers configuration
 const DEFAULT_PROVIDERS = [
@@ -279,8 +280,8 @@ const handleSendMessage = async () => {
       { role: 'user', content: input.trim() }
     ];
 
-    
-    if (FORCE_ENABLE_RAG || settings?.enableRAG) {   
+
+    if (ENABLE_RAG || settings?.enableRAG) {   
       console.log('🔍 RAG is enabled, querying for context...');
       console.log('🚨 ABOUT TO MAKE FETCH REQUEST');
       console.log('🚨 URL: http://localhost:3001/query-rag');
@@ -292,28 +293,36 @@ const handleSendMessage = async () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: input.trim(), k: 5 })
         });
-        
+
         if (!response.ok) {
           throw new Error(`RAG endpoint returned ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log('🔍 RAG response:', data);
-        
+
         if (data.results && data.results.length > 0) {
-          const chunks = data.results.map(chunk => chunk.content).join('\n\n');
-          const context = `Use the following context to answer the question. If the context doesn't contain relevant information, say "I don't have information about that in the provided context."\n\nContext:\n${chunks}`;
+          // Check if the results are actually relevant (strict threshold)
+          const relevantResults = data.results.filter(chunk => chunk.distance < 0.3);
           
-          messagesToSend = [
-            { role: 'system', content: context },
-            { role: 'user', content: input.trim() }
-          ];
-          
-          console.log(`🔍 RAG: Retrieved ${data.results.length} chunks`);
-          console.log('🔍 First chunk preview:', data.results[0].content.substring(0, 100) + '...');
-          console.log('🔍 System message length:', context.length, 'characters');
+          if (relevantResults.length > 0) {
+            // Use RAG context
+            const chunks = relevantResults.map(chunk => chunk.content).join('\n\n');
+            const context = `Use the following context to answer the question. If the context doesn't contain relevant information, say "I don't have information about that in the provided context."\n\nContext:\n${chunks}`;
+            
+            messagesToSend = [
+              { role: 'system', content: context },
+              { role: 'user', content: input.trim() }
+            ];
+            
+            console.log(`🔍 RAG: Retrieved ${relevantResults.length} relevant chunks (filtered from ${data.results.length})`);
+            console.log('🔍 First chunk preview:', relevantResults[0].content.substring(0, 100) + '...');
+            console.log('🔍 System message length:', context.length, 'characters');
+          } else {
+            console.log('🔍 RAG: No relevant results found (all above distance threshold), using general knowledge');
+          }
         } else {
-          console.log('🔍 RAG: No results found, using non-RAG query');
+          console.log('🔍 RAG: No results found, using general knowledge');
         }
       } catch (err) {
         console.error('🔍 RAG API error:', err);
