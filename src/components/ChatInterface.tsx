@@ -250,9 +250,19 @@ const handleSendMessage = async () => {
     let finalMessageContent = input.trim();
 
     // === RAG integration ===
-    if (settings?.enableRAG) { // assume you have a toggle in settings
-      const { answer: ragAugmentedContent } = await runRAGPipeline(input.trim());
-      finalMessageContent = ragAugmentedContent;
+    if (settings?.enableRAG) {
+      try {
+        const response = await fetch('/api/rag', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: input.trim(), k: 5 })
+        });
+        const data = await response.json();
+        finalMessageContent = data.answer || input.trim();
+      } catch (err) {
+        console.error('RAG API error:', err);
+        finalMessageContent = input.trim();
+      }
     }
     // === End RAG integration ===
 

@@ -1,43 +1,19 @@
-// src/services/rag/ragPipeline.ts
 import { queryRAG } from "./queryRag";
-import { ApiService } from "@/services/api";  // Polywog's existing service
-import { useSettings } from "@/hooks/useSettings";
+import { callLLM } from "../llmClient";
 
-// Run the full RAG pipeline for a user question
-export async function runRAGPipeline(
-  question: string,
-  k = 5
-) {
-  // Step 1: Retrieve relevant chunks from Postgres
-  const retrievedChunks = await queryRAG(question, k);
+export async function runRAGPipeline(question: string) {
+  const chunks = await queryRAG(question, 5);
 
-  // Step 2: Combine retrieved chunks into a single context string
-  const context = retrievedChunks.join("\n\n");
+  const prompt = `
+You are a helpful assistant. Use the following context to answer the question.
 
-  // Step 3: Build the augmented message
-  const augmentedMessage = `
-Retrieved context:
-${context}
+Context:
+${chunks.join("\n\n")}
 
-User question:
+Question:
 ${question}
-  `;
+`;
 
-  // Step 4: Use Polywog's existing ApiService to send message to selected provider
-  const { settings } = useSettings();
-  const providerId = settings.selectedProvider;
-  const model = settings.selectedModel;
-  const apiKey = settings?.[settings.selectedApiKey] || '';
-
-  const apiService = new ApiService();
-  const response = await apiService.sendMessage({
-    provider: providerId,
-    model: model!,
-    messages: [{ role: "user", content: augmentedMessage }],
-    apiKey,
-    baseUrl: providerId === "ollama" ? "http://localhost:11434" : undefined
-  });
-
-  // Step 5: Return response and chunks for debugging/provenance
-  return { answer: response.content, retrievedChunks };
+  const answer = await callLLM(prompt);
+  return { answer };
 }

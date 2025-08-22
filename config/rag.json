@@ -1,3 +1,4 @@
 {
-    "folderPath": "RAG"
+    "folderPath": "RAG", 
+    "chunkSize": 500
 }
