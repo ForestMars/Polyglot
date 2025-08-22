@@ -12,6 +12,24 @@ const server = http.createServer(async (req, res) => {
   console.log("🔥 REQUEST RECEIVED - METHOD:", req.method, "URL:", req.url);
   console.log("🔥 Headers:", JSON.stringify(req.headers, null, 2));
   
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    console.log("✅ HANDLING CORS PREFLIGHT REQUEST");
+    res.writeHead(200, {
+      "Access-Control-Allow-Origin": "http://localhost:8080",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Max-Age": "86400"
+    });
+    res.end();
+    return;
+  }
+  
+  // Add CORS headers to all responses
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:8080");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  
   if (req.method === "POST" && req.url === "/query-rag") {
     console.log("✅ MATCHED POST /query-rag");
     let body = "";
