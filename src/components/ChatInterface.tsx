@@ -263,6 +263,7 @@ const handleSendMessage = async () => {
     ];
 
     if (settings?.enableRAG) {
+      console.log('🔍 RAG is enabled, querying for context...');
       try {
         // Use the working /query-rag endpoint
         const response = await fetch('/query-rag', {
@@ -270,26 +271,48 @@ const handleSendMessage = async () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: input.trim(), k: 5 })
         });
+        
+        if (!response.ok) {
+          throw new Error(`RAG endpoint returned ${response.status}`);
+        }
+        
         const data = await response.json();
+        console.log('🔍 RAG response:', data);
         
         if (data.results && data.results.length > 0) {
           const chunks = data.results.map(chunk => chunk.content).join('\n\n');
-          const context = `Use the following context to answer. If the context is irrelevant or insufficient, say you don't know.\n\n${chunks}`;
+          const context = `Use the following context to answer the question. If the context doesn't contain relevant information, say "I don't have information about that in the provided context."\n\nContext:\n${chunks}`;
           
           messagesToSend = [
             { role: 'system', content: context },
             { role: 'user', content: input.trim() }
           ];
-          console.log(`RAG: using ${data.results.length} chunks`);
+          
+          console.log(`🔍 RAG: Retrieved ${data.results.length} chunks`);
+          console.log('🔍 First chunk preview:', data.results[0].content.substring(0, 100) + '...');
+          console.log('🔍 System message length:', context.length, 'characters');
+        } else {
+          console.log('🔍 RAG: No results found, using non-RAG query');
         }
       } catch (err) {
-        console.error('RAG API error:', err);
+        console.error('🔍 RAG API error:', err);
+        console.log('🔍 Falling back to non-RAG query');
         // Fall back to non-RAG query
       }
+    } else {
+      console.log('🔍 RAG is disabled');
     }
     // === End RAG integration ===
 
     // Send the message to the LLM using existing ApiService
+    console.log('🔍 Sending to LLM:', {
+      provider: selectedProvider,
+      model: selectedModel,
+      messageCount: messagesToSend.length,
+      hasSystemMessage: messagesToSend.some(m => m.role === 'system'),
+      userMessage: messagesToSend.find(m => m.role === 'user')?.content?.substring(0, 100) + '...'
+    });
+    
     const apiKey = settings?.[selectedApiKey] || '';
     const apiService = new ApiService();
     const response = await apiService.sendMessage({
