@@ -278,13 +278,32 @@ const handleSendMessage = async () => {
     // Add the assistant message to the UI immediately
     setMessages(prev => [...prev, assistantMessage]);
 
+    // === RAG integration (build messagesToSend) ===
+    let messagesToSend: Array<{ role: 'system' | 'user'; content: string }> = [
+      { role: 'user', content: input.trim() }
+    ];
+
+    if (settings?.enableRAG) {
+      const { context, sources } = await runRAGPipeline(input.trim());
+      messagesToSend = [
+        {
+          role: 'system',
+          content:
+            `Use the following context to answer. If the context is irrelevant or insufficient, say you don't know.\n\n${context}`
+        },
+        { role: 'user', content: input.trim() }
+      ];
+      console.log(`RAG: using ${sources?.length ?? 0} chunks`);
+    }
+    // === End RAG integration ===
+
     // Send the message to the LLM using existing ApiService
     const apiKey = settings?.[selectedApiKey] || '';
     const apiService = new ApiService();
     const response = await apiService.sendMessage({
       provider: selectedProvider,
       model: selectedModel,
-      messages: [{ role: 'user', content: finalMessageContent }],
+      messages: messagesToSend,
       apiKey,
       baseUrl: selectedProvider === "ollama" ? "http://localhost:11434" : undefined
     });
