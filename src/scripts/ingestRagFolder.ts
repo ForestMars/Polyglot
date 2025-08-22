@@ -39,8 +39,13 @@ function chunkText(text: string, chunkSize: number, overlapSize: number): string
       console.log(`   Created chunk ${chunks.length}: ${chunk.length} chars`);
     }
     
-    start = end - overlapSize;
-    if (start <= 0) start = end; // Prevent infinite loop
+    // Move forward by chunkSize minus overlap
+    // BUT ensure we always move forward by at least 1 character
+    const nextStart = start + chunkSize - overlapSize;
+    start = Math.max(nextStart, start + 1);
+    
+    // If we've reached the end, break to avoid infinite loop
+    if (end >= text.length) break;
   }
   
   console.log(`   Total chunks created: ${chunks.length}`);
