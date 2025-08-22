@@ -14,7 +14,7 @@ import { Conversation, Message } from '@/types/conversation';
 
 import { runRAGPipeline } from "@/services/rag/ragPipeline";
 
-const ENABLE_RAG = true;
+const FORCE_ENABLE_RAG = false;
 const RAG_DISTANCE_THRESHOLD = 0.3; 
 
 // Default providers configuration
@@ -281,7 +281,7 @@ const handleSendMessage = async () => {
     ];
 
 
-    if (ENABLE_RAG || settings?.enableRAG) {   
+    if (FORCE_ENABLE_RAG || settings?.enableRAG) {   
       console.log('🔍 RAG is enabled, querying for context...');
       console.log('🚨 ABOUT TO MAKE FETCH REQUEST');
       console.log('🚨 URL: http://localhost:3001/query-rag');
@@ -497,7 +497,21 @@ const handleSendMessage = async () => {
               </span>
             )}
           </div>
-          <div className="flex items-center space-x-2">
+
+
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <label htmlFor="rag-checkbox" className="text-sm font-medium">
+                RAG
+              </label>
+              <input
+                id="rag-checkbox"
+                type="checkbox"
+                checked={settings?.enableRAG || false}
+                onChange={(e) => updateSetting('enableRAG', e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -507,6 +521,8 @@ const handleSendMessage = async () => {
               Settings
             </Button>
           </div>
+
+
         </header>
 
         {/* Messages */}
