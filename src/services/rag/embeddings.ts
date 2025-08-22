@@ -1,6 +1,25 @@
+// src/services/rag/embeddings.ts
+export async function getEmbedding(text: string): Promise<number[]> {
+  try {
+    const response = await fetch('http://localhost:11434/api/embeddings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'nomic-embed-text',
+        prompt: text,
+      }),
+    });
 
-// embeddings.ts
-export async function getEmbedding(_text: string): Promise<number[]> {
-    // Return a placeholder embedding of the correct dimension (1536)
-    return new Array(1536).fill(0);
+    if (!response.ok) {
+      throw new Error(`Ollama API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.embedding;
+  } catch (error) {
+    console.error('Error getting embedding from Ollama:', error);
+    throw error;
   }
+}
