@@ -10,13 +10,13 @@ const configPath = path.resolve("config/rag.json");
 const configRaw = await fs.readFile(configPath, "utf-8");
 const config = JSON.parse(configRaw);
 
-const ragFolder = config.rag.folderPath;
+const ragFolder = config.folderPath;
 
 const pool = new Pool({
   host: process.env.PGHOST || "localhost",
   port: parseInt(process.env.PGPORT || "5432"),
-  user: process.env.PGUSER || "postgres",
-  password: process.env.PGPASSWORD || "password",
+  user: process.env.PGUSER || "polyglut_user",
+  password: process.env.PGPASSWORD || "polyglut",
   database: process.env.PGDATABASE || "polyglut_rag",
 });
 
