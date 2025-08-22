@@ -1,6 +1,6 @@
 // src/server/queryRag.ts
 import { Pool } from "pg";
-import { getEmbedding } from "../services/rag/embeddings";
+import { getEmbedding } from "../services/rag/embeddings"; // Add this line!
 
 const pool = new Pool({
   host: process.env.PGHOST || "localhost",
@@ -21,8 +21,9 @@ export async function queryRAG(question: string, k = 5) {
     const embeddingStr = `[${questionEmbedding.join(',')}]`;
 
     // Query for similar documents using cosine distance
+    // Updated to use actual columns: id, chunk_index, file_name, content
     const res = await pool.query(
-      `SELECT content, metadata, (embedding <=> $1::vector) as distance 
+      `SELECT id, chunk_index, file_name, content, (embedding <=> $1::vector) as distance 
        FROM rag_documents 
        WHERE embedding IS NOT NULL
        ORDER BY embedding <=> $1::vector 
@@ -36,9 +37,12 @@ export async function queryRAG(question: string, k = 5) {
       `${i+1}. (distance: ${r.distance.toFixed(4)}) ${r.content.substring(0, 100)}...`
     ));
 
+    // Return the actual columns
     return res.rows.map((row) => ({
+      id: row.id,
+      chunk_index: row.chunk_index,
+      file_name: row.file_name,
       content: row.content,
-      metadata: row.metadata,
       distance: row.distance
     }));
     
