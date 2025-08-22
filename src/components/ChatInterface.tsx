@@ -14,6 +14,9 @@ import { Conversation, Message } from '@/types/conversation';
 
 import { runRAGPipeline } from "@/services/rag/ragPipeline";
 
+const ENABLE_RAG = true;
+const RAG_DISTANCE_THRESHOLD = 0.3; 
+
 // Default providers configuration
 const DEFAULT_PROVIDERS = [
   {
@@ -217,8 +220,18 @@ export const ChatInterface = () => {
     }
   }, [conversationState, selectedProvider, selectedModel, toast]);
 
-// inside ChatInterface component
+const handleKeyPress = (e: React.KeyboardEvent) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    handleSendMessage();
+  }
+};
+
+// Added debugging 
 const handleSendMessage = async () => {
+  console.log('🚨 HANDLESENDMESSAGE CALLED WITH:', input);
+  console.log('🚨 Current settings:', settings);
+  console.log('🚨 enableRAG value:', settings?.enableRAG);
   if (!input.trim() || !selectedProvider || !selectedModel) return;
 
   const userMessage: Message = {
@@ -246,26 +259,6 @@ const handleSendMessage = async () => {
       await conversationState.addMessage(userMessage);
     }
 
-    // Prepare final message content
-    let finalMessageContent = input.trim();
-
-    // === RAG integration ===
-    if (settings?.enableRAG) {
-      try {
-        const response = await fetch('/api/rag', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question: input.trim(), k: 5 })
-        });
-        const data = await response.json();
-        finalMessageContent = data.answer || input.trim();
-      } catch (err) {
-        console.error('RAG API error:', err);
-        finalMessageContent = input.trim();
-      }
-    }
-    // === End RAG integration ===
-
     // Create the assistant message placeholder
     const assistantMessage: Message = {
       id: `msg_${Date.now() + 1}`,
@@ -279,25 +272,77 @@ const handleSendMessage = async () => {
     setMessages(prev => [...prev, assistantMessage]);
 
     // === RAG integration (build messagesToSend) ===
+    console.log('🔍 Starting RAG integration check...');
+    console.log('🔍 settings object:', settings);
+    console.log('🔍 settings?.enableRAG:', settings?.enableRAG);
+    
     let messagesToSend: Array<{ role: 'system' | 'user'; content: string }> = [
       { role: 'user', content: input.trim() }
     ];
 
-    if (settings?.enableRAG) {
-      const { context, sources } = await runRAGPipeline(input.trim());
-      messagesToSend = [
-        {
-          role: 'system',
-          content:
-            `Use the following context to answer. If the context is irrelevant or insufficient, say you don't know.\n\n${context}`
-        },
-        { role: 'user', content: input.trim() }
-      ];
-      console.log(`RAG: using ${sources?.length ?? 0} chunks`);
+
+    if (ENABLE_RAG || settings?.enableRAG) {   
+      console.log('🔍 RAG is enabled, querying for context...');
+      console.log('🚨 ABOUT TO MAKE FETCH REQUEST');
+      console.log('🚨 URL: http://localhost:3001/query-rag');
+
+      try {
+        // Use the working /query-rag endpoint
+        const response = await fetch('http://localhost:3001/query-rag', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: input.trim(), k: 5 })
+        });
+
+        if (!response.ok) {
+          throw new Error(`RAG endpoint returned ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('🔍 RAG response:', data);
+
+        if (data.results && data.results.length > 0) {
+          // Check if the results are actually relevant (strict threshold)
+          const relevantResults = data.results.filter(chunk => chunk.distance < 0.3);
+          
+          if (relevantResults.length > 0) {
+            // Use RAG context
+            const chunks = relevantResults.map(chunk => chunk.content).join('\n\n');
+            const context = `Use the following context to answer the question. If the context doesn't contain relevant information, say "I don't have information about that in the provided context."\n\nContext:\n${chunks}`;
+            
+            messagesToSend = [
+              { role: 'system', content: context },
+              { role: 'user', content: input.trim() }
+            ];
+            
+            console.log(`🔍 RAG: Retrieved ${relevantResults.length} relevant chunks (filtered from ${data.results.length})`);
+            console.log('🔍 First chunk preview:', relevantResults[0].content.substring(0, 100) + '...');
+            console.log('🔍 System message length:', context.length, 'characters');
+          } else {
+            console.log('🔍 RAG: No relevant results found (all above distance threshold), using general knowledge');
+          }
+        } else {
+          console.log('🔍 RAG: No results found, using general knowledge');
+        }
+      } catch (err) {
+        console.error('🔍 RAG API error:', err);
+        console.log('🔍 Falling back to non-RAG query');
+        // Fall back to non-RAG query
+      }
+    } else {
+      console.log('🔍 RAG is disabled');
     }
     // === End RAG integration ===
 
     // Send the message to the LLM using existing ApiService
+    console.log('🔍 Sending to LLM:', {
+      provider: selectedProvider,
+      model: selectedModel,
+      messageCount: messagesToSend.length,
+      hasSystemMessage: messagesToSend.some(m => m.role === 'system'),
+      userMessage: messagesToSend.find(m => m.role === 'user')?.content?.substring(0, 100) + '...'
+    });
+    
     const apiKey = settings?.[selectedApiKey] || '';
     const apiService = new ApiService();
     const response = await apiService.sendMessage({
@@ -340,14 +385,6 @@ const handleSendMessage = async () => {
     setIsLoading(false);
   }
 };
-
-  // Handle key press in the input
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
 
   // Scroll to bottom function
   const scrollToBottom = useCallback(() => {
