@@ -12,79 +12,11 @@ import { ApiService } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
 import { Conversation, Message } from '@/types/conversation';
 
-import { runRAGPipeline } from "@/services/rag/ragPipeline";
+import DEFAULT_PROVIDERS from '../../config/default-providers.json';
+import { runRAGPipeline } from "@/services/rag/ragPipelie";
 
-const FORCE_ENABLE_RAG = false;
+const FORCE_ENABLE_RAG = false; // Dev, obvi. 
 const RAG_DISTANCE_THRESHOLD = 0.3; 
-
-// Default providers configuration
-const DEFAULT_PROVIDERS = [
-  {
-    id: 'openrouter',
-    name: 'OpenRouter',
-    apiKeys: [],
-    models: [
-      'openai/gpt-4-turbo',
-      'anthropic/claude-3-opus',
-      'google/gemini-pro',
-      'meta-llama/llama-3-70b-instruct',
-      'mistralai/mistral-large-latest'
-    ],
-    defaultModel: 'openai/gpt-4-turbo'
-  },
-  {
-    id: 'together',
-    name: 'TogetherAI',
-    apiKeys: [],
-    models: [
-      'meta-llama/Llama-3-70b-chat-hf',
-      'mistralai/Mixtral-8x7B-Instruct-v0.1',
-      'Qwen/Qwen1.5-72B-Chat',
-      'codellama/CodeLlama-70b-Instruct-hf'
-    ],
-    defaultModel: 'meta-llama/Llama-3-70b-chat-hf'
-  },
-  {
-    id: 'groq',
-    name: 'Groq',
-    apiKeys: [],
-    models: [
-      'mixtral-8x7b-32768',
-      'llama3-70b-8192',
-      'llama3-8b-8192'
-    ],
-    defaultModel: 'mixtral-8x7b-32768'
-  },
-  {
-    id: 'openai',
-    name: 'OpenAI',
-    apiKeys: [],
-    models: ['gpt-4.1-2025-04-14', 'gpt-4o', 'gpt-4o-mini'],
-    defaultModel: 'gpt-4.1-2025-04-14'
-  },
-  {
-    id: 'anthropic',
-    name: 'Anthropic',
-    apiKeys: [],
-    models: ['claude-sonnet-4-20250514', 'claude-opus-4-20250514', 'claude-3-5-haiku-20241022'],
-    defaultModel: 'claude-sonnet-4-20250514'
-  },
-  {
-    id: 'google',
-    name: 'Google',
-    apiKeys: [],
-    models: ['gemini-pro', 'gemini-pro-vision'],
-    defaultModel: 'gemini-pro'
-  },
-  {
-    id: 'ollama',
-    name: 'Ollama (Local)',
-    apiKeys: [],
-    models: ['llama3.2', 'llama3.2:3b', 'llama3.2:8b', 'llama3.2:70b', 'mistral', 'codellama', 'phi3'],
-    defaultModel: 'llama3.2',
-    isLocal: true
-  }
-];
 
 export interface Provider {
   id: string;
@@ -355,7 +287,9 @@ const handleSendMessage = async () => {
       model: selectedModel,
       messages: messagesToSend,
       apiKey,
-      baseUrl: selectedProvider === "ollama" ? "http://localhost:11434" : undefined
+      baseUrl: selectedProvider === "ollama" ? "http://localhost:11434" : undefined,
+      temperature: settings?.temperature ?? 1.0,
+      top_p: settings?.top_p ?? 1.0
     });
 
     // Update the assistant message with the response
@@ -645,6 +579,8 @@ const handleSendMessage = async () => {
               setSelectedApiKey={async (keyId) => await updateSetting('selectedApiKey', keyId)}
               selectedModel={selectedModel}
               setSelectedModel={async (model) => await updateSetting('selectedModel', model)}
+              settings={settings}
+              updateSetting={updateSetting}
               onClose={() => setShowSettings(false)}
             />
           </div>

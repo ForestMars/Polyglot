@@ -15,5 +15,9 @@
     "allowJs": true,
     "noUnusedLocals": false,
     "strictNullChecks": false
+    "compilerOptions": {
+      "resolveJsonModule": true,
+      "esModuleInterop": true,
+    }
   }
 }

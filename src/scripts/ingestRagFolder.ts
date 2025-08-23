@@ -7,11 +7,12 @@ import { getEmbedding } from "../services/rag/embeddings";
 
 dotenv.config();
 
+// Manual pasing instead of direct import is fine for confic. (It's not a type) 
 const configPath = path.resolve("config/rag.json");
 const configRaw = await fs.readFile(configPath, "utf-8");
 const config = JSON.parse(configRaw);
-
 const ragFolder = config.folderPath;
+
 const CHUNK_SIZE = 200; // Adjust this to your desired chunk size
 const OVERLAP_SIZE = 20; // Overlap between chunks to maintain context
 const RECURSIVE = true; // Set to false to only process top-level directory

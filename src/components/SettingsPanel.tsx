@@ -30,6 +30,8 @@ interface SettingsPanelProps {
   setSelectedApiKey: (keyId: string) => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
+  settings?: any;
+  updateSetting: (key: string, value: any) => Promise<void>;
   onClose: () => void;
 }
 
@@ -42,6 +44,8 @@ export const SettingsPanel = ({
   setSelectedApiKey,
   selectedModel,
   setSelectedModel,
+  settings = { temperature: 0.7, top_p: 0.9 },
+  updateSetting = async () => {},
   onClose
 }: SettingsPanelProps) => {
   const [newKeyName, setNewKeyName] = useState('');
@@ -209,7 +213,7 @@ export const SettingsPanel = ({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="showArchived">Show Archived Chats</Label>
+              <Label htmlFor="showArchived">Enable Archived Chats</Label>
               <input
                 id="showArchived"
                 type="checkbox"
@@ -228,6 +232,42 @@ export const SettingsPanel = ({
                 onChange={(e) => conversationState.toggleCache?.()}
                 className="rounded border-gray-300"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="temperature">Temperature: {settings?.temperature ?? 1.0}</Label>
+              <input
+                id="temperature"
+                type="range"
+                min="0"
+                max="2"
+                step="0.1"
+                value={settings?.temperature ?? 1.0}
+                className="w-full"
+                onChange={(e) => updateSetting?.('temperature', parseFloat(e.target.value))}
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>0.0 (Focused)</span>
+                <span>2.0 (Creative)</span>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="topP">Top P: {settings?.top_p ?? 1.0}</Label>
+              <input
+                id="topP"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={settings?.top_p ?? 1.0}
+                className="w-full"
+                onChange={(e) => updateSetting?.('top_p', parseFloat(e.target.value))}
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>0.0 (Narrow)</span>
+                <span>1.0 (Diverse)</span>
+              </div>
             </div>
             
             <div className="space-y-2">
