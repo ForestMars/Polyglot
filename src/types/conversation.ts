@@ -4,6 +4,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   provider?: string;
+  usedRAG?: boolean;
 }
 
 export interface ModelChange {

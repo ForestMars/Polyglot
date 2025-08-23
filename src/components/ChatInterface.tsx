@@ -246,6 +246,7 @@ const handleSendMessage = async () => {
   setMessages(prev => [...prev, userMessage]);
   setInput('');
 
+  let ragUsed = false;
   try {
     setIsLoading(true);
 
@@ -265,7 +266,8 @@ const handleSendMessage = async () => {
       role: 'assistant',
       content: '',
       timestamp: new Date(),
-      provider: selectedProvider
+      provider: selectedProvider,
+      usedRAG: false
     };
 
     // Add the assistant message to the UI immediately
@@ -314,6 +316,7 @@ const handleSendMessage = async () => {
               { role: 'system', content: context },
               { role: 'user', content: input.trim() }
             ];
+            ragUsed = true;
             
             console.log(`🔍 RAG: Retrieved ${relevantResults.length} relevant chunks (filtered from ${data.results.length})`);
             console.log('🔍 First chunk preview:', relevantResults[0].content.substring(0, 100) + '...');
@@ -331,6 +334,8 @@ const handleSendMessage = async () => {
       }
     } else {
       console.log('🔍 RAG is disabled');
+      console.log('🔍 About to send to LLM, ragUsed:', ragUsed);
+      console.log('🔍 messagesToSend:', messagesToSend);
     }
     // === End RAG integration ===
 
@@ -357,7 +362,8 @@ const handleSendMessage = async () => {
     const updatedAssistantMessage = {
       ...assistantMessage,
       content: response.content,
-      timestamp: new Date()
+      timestamp: new Date(),
+      usedRAG: ragUsed
     };
 
     setMessages(prev => {
@@ -382,6 +388,7 @@ const handleSendMessage = async () => {
       variant: 'destructive'
     });
   } finally {
+    console.log('🔍 Finished handleSendMessage, ragUsed:', ragUsed);
     setIsLoading(false);
   }
 };
@@ -553,11 +560,18 @@ const handleSendMessage = async () => {
                     : 'bg-muted'
                 }`}>
                   {message.role === 'user' ? (
-                    <User className="h-4 w-4" />
-                  ) : (
+                  <User className="h-4 w-4" />
+                ) : (
+                  <div className="flex flex-col items-center">
                     <Bot className="h-4 w-4" />
-                  )}
+                    {message.usedRAG && (
+                      <span className="text-xs mt-1">📑</span>
+                    )}
+                    </div>
+                )}
                 </div>
+
+
                 <div className="flex-1">
                   <div className={`p-4 rounded-lg ${
                     message.role === 'user'
