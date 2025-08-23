@@ -1,4 +1,4 @@
-// src/scripts/ingestRagFolder.ts
+// src/scripts/ingestRagFolder.ts (current version with updated logic)
 import fs from "fs/promises";
 import path from "path";
 import { Pool } from "pg";
@@ -14,6 +14,7 @@ const config = JSON.parse(configRaw);
 const ragFolder = config.folderPath;
 const CHUNK_SIZE = 200; // Adjust this to your desired chunk size
 const OVERLAP_SIZE = 20; // Overlap between chunks to maintain context
+const RECURSIVE = true; // Set to false to only process top-level directory
 
 console.log(`Using CHUNK_SIZE: ${CHUNK_SIZE}, OVERLAP_SIZE: ${OVERLAP_SIZE}`);
 
