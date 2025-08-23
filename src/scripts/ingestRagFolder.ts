@@ -61,11 +61,19 @@ async function getAllFiles(dir: string, recursive: boolean = true): Promise<stri
     const fullPath = path.join(dir, entry.name);
     
     if (entry.isDirectory() && recursive) {
+      // Skip .git and other unwanted directories
+      if (entry.name === '.git' || entry.name === 'node_modules' || entry.name === '.vscode') {
+        continue;
+      }
       // Recursively get files from subdirectories
       const subFiles = await getAllFiles(fullPath, recursive);
       files.push(...subFiles);
     } else if (entry.isFile()) {
-      files.push(fullPath);
+      // Only process .txt and .md files
+      const ext = path.extname(entry.name).toLowerCase();
+      if (ext === '.txt' || ext === '.md') {
+        files.push(fullPath);
+      }
     }
   }
   
