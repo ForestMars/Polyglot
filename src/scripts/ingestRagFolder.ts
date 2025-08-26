@@ -59,30 +59,89 @@ async function clearExistingData() {
 }
 
 async function ingestFolder(folder: string) {
-  const files = await fs.readdir(folder);
+  try {
+    console.log(`📂 Reading directory: ${folder}`);
+    const files = await fs.readdir(folder);
+    console.log(`📝 Found ${files.length} files in directory`);
 
-  for (const file of files) {
-    console.log(`Processing file: ${file}`);
-    const filePath = path.join(folder, file);
-    const content = await fs.readFile(filePath, "utf-8");
-    
-    // Split content into chunks
-    const chunks = chunkText(content, CHUNK_SIZE, OVERLAP_SIZE);
-    console.log(`  File length: ${content.length} chars, Split into ${chunks.length} chunks`);
-    console.log(`  Average chunk size: ${Math.round(chunks.reduce((sum, chunk) => sum + chunk.length, 0) / chunks.length)} chars`);
-    
-    // Process each chunk
-    for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i];
-      console.log(`  Processing chunk ${i + 1}/${chunks.length}`);
-      
-      const embedding = await getEmbedding(chunk);
-
-      await pool.query(
-        "INSERT INTO rag_documents (file_name, chunk_index, content, embedding) VALUES ($1, $2, $3, $4)",
-        [file, i, chunk, `[${embedding.join(",")}]`]
-      );
+    if (files.length === 0) {
+      console.error('❌ No files found in the RAG directory. Please check the folder path.');
+      return;
     }
+
+    for (const file of files) {
+      try {
+        console.log(`\n📄 Processing file: ${file}`);
+        const filePath = path.join(folder, file);
+        
+        // Skip directories and hidden files
+        const stats = await fs.stat(filePath);
+        if (stats.isDirectory()) {
+          console.log(`  ⏩ Skipping directory: ${file}`);
+          continue;
+        }
+        if (file.startsWith('.')) {
+          console.log(`  ⏩ Skipping hidden file: ${file}`);
+          continue;
+        }
+        
+        // Read file content
+        let content;
+        try {
+          content = await fs.readFile(filePath, "utf-8");
+          if (!content || content.trim().length === 0) {
+            console.log(`  ⚠️ File is empty: ${file}`);
+            continue;
+          }
+        } catch (error) {
+          console.error(`  ❌ Error reading file ${file}:`, error);
+          continue;
+        }
+        
+        // Split content into chunks
+        const chunks = chunkText(content, CHUNK_SIZE, OVERLAP_SIZE);
+        console.log(`  📊 File length: ${content.length} chars, Split into ${chunks.length} chunks`);
+        
+        // Process each chunk
+        for (let i = 0; i < chunks.length; i++) {
+          const chunk = chunks[i];
+          console.log(`  🔄 Processing chunk ${i + 1}/${chunks.length}`);
+          
+          try {
+            // Get embedding for the chunk
+            const embedding = await getEmbedding(chunk);
+            console.log(`    ✅ Got embedding (${embedding.length} dimensions)`);
+            
+            // Clean the embedding array - ensure all values are finite numbers
+            const cleanEmbedding = embedding.map(val => {
+              const num = Number(val);
+              return Number.isFinite(num) ? num : 0; // Replace invalid numbers with 0
+            });
+            
+            // Convert to PostgreSQL vector format
+            const embeddingStr = `{${cleanEmbedding.join(',')}}`;
+            
+            // Insert into database
+            await pool.query(
+              `INSERT INTO rag_documents (file_name, chunk_index, content, embedding) 
+               VALUES ($1, $2, $3, $4::vector)`,
+              [file, i, chunk, embeddingStr]
+            );
+            
+            console.log(`    💾 Successfully inserted chunk ${i + 1}`);
+          } catch (error) {
+            console.error(`    ❌ Error processing chunk ${i + 1}:`, error);
+            // Continue with next chunk even if one fails
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Error processing file ${file}:`, error);
+        // Continue with next file even if one fails
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error reading RAG directory:', error);
+    throw error;
   }
 }
 
