@@ -6,7 +6,7 @@ import { GroqService } from './providers/groq';
 export interface ChatRequest {
   provider: string;
   model: string;
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+  messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
   apiKey?: string;
   baseUrl?: string;
 }
@@ -16,6 +16,7 @@ export interface ChatResponse {
   provider: string;
   model: string;
   timestamp: Date;
+  responseTime?: number; // Total time in milliseconds from request to response
 }
 
 export class ApiService {
@@ -79,7 +80,7 @@ export class ApiService {
 
   private async handleOllamaRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     baseUrl?: string
   ): Promise<ChatResponse> {
     console.log('[handleOllamaRequest] Starting request with model:', model);
@@ -123,7 +124,8 @@ export class ApiService {
         content: response.message.content,
         provider: 'ollama',
         model: response.model,
-        timestamp: new Date(response.created_at)
+        timestamp: new Date(response.created_at),
+        responseTime: endTime - startTime
       };
     } catch (error) {
       console.error('[handleOllamaRequest] Request failed:', error);
@@ -133,7 +135,7 @@ export class ApiService {
 
   private async handleOpenAIRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {
@@ -142,19 +144,22 @@ export class ApiService {
 
     // TODO: Implement actual OpenAI API call
     // For now, return a mock response
+    const startTime = Date.now();
     await new Promise(resolve => setTimeout(resolve, 1000));
+    const endTime = Date.now();
     
     return {
       content: `Mock OpenAI response using ${model}. This is a placeholder until you implement the actual OpenAI API integration.`,
       provider: 'openai',
       model,
-      timestamp: new Date()
+      timestamp: new Date(),
+      responseTime: endTime - startTime
     };
   }
 
   private async handleAnthropicRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {
@@ -162,19 +167,22 @@ export class ApiService {
     }
 
     // TODO: Implement actual Anthropic API call
+    const startTime = Date.now();
     await new Promise(resolve => setTimeout(resolve, 1000));
+    const endTime = Date.now();
     
     return {
       content: `Mock Anthropic response using ${model}. This is a placeholder until you implement the actual Anthropic API integration.`,
       provider: 'anthropic',
       model,
-      timestamp: new Date()
+      timestamp: new Date(),
+      responseTime: endTime - startTime
     };
   }
 
   private async handleGoogleRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {
@@ -194,7 +202,7 @@ export class ApiService {
 
   private async handleOpenRouterRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {
@@ -220,7 +228,7 @@ export class ApiService {
 
   private async handleTogetherRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {
@@ -246,7 +254,7 @@ export class ApiService {
 
   private async handleGroqRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {

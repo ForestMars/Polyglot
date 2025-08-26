@@ -26,56 +26,10 @@ const DEFAULT_PROVIDERS = [
     models: [
       'openai/gpt-4-turbo',
       'anthropic/claude-3-opus',
-      'google/gemini-pro',
-      'meta-llama/llama-3-70b-instruct',
-      'mistralai/mistral-large-latest'
     ],
     defaultModel: 'openai/gpt-4-turbo'
   },
-  {
-    id: 'together',
-    name: 'TogetherAI',
-    apiKeys: [],
-    models: [
-      'meta-llama/Llama-3-70b-chat-hf',
-      'mistralai/Mixtral-8x7B-Instruct-v0.1',
-      'Qwen/Qwen1.5-72B-Chat',
-      'codellama/CodeLlama-70b-Instruct-hf'
-    ],
-    defaultModel: 'meta-llama/Llama-3-70b-chat-hf'
-  },
-  {
-    id: 'groq',
-    name: 'Groq',
-    apiKeys: [],
-    models: [
-      'mixtral-8x7b-32768',
-      'llama3-70b-8192',
-      'llama3-8b-8192'
-    ],
-    defaultModel: 'mixtral-8x7b-32768'
-  },
-  {
-    id: 'openai',
-    name: 'OpenAI',
-    apiKeys: [],
-    models: ['gpt-4.1-2025-04-14', 'gpt-4o', 'gpt-4o-mini'],
-    defaultModel: 'gpt-4.1-2025-04-14'
-  },
-  {
-    id: 'anthropic',
-    name: 'Anthropic',
-    apiKeys: [],
-    models: ['claude-sonnet-4-20250514', 'claude-opus-4-20250514', 'claude-3-5-haiku-20241022'],
-    defaultModel: 'claude-sonnet-4-20250514'
-  },
-  {
-    id: 'google',
-    name: 'Google',
-    apiKeys: [],
-    models: ['gemini-pro', 'gemini-pro-vision'],
-    defaultModel: 'gemini-pro'
-  },
+
   {
     id: 'ollama',
     name: 'Ollama (Local)',
@@ -270,52 +224,38 @@ const handleSendMessage = async () => {
       usedRAG: false
     };
 
-    // Add the assistant message to the UI immediately with loading state
-    const startTime = Date.now();
-    setMessages(prev => [...prev, {...assistantMessage, isThinking: true, startTime}]);
+    // Add the assistant message to the UI immediately
+    setMessages(prev => [...prev, assistantMessage]);
 
     // === RAG integration (build messagesToSend) ===
     console.log('🔍 Starting RAG integration check...');
     console.log('🔍 settings object:', settings);
     console.log('🔍 settings?.enableRAG:', settings?.enableRAG);
     
-    let messagesToSend: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+    let messagesToSend: Array<{ role: 'system' | 'user'; content: string }> = [
       { role: 'user', content: input.trim() }
     ];
 
 
     if (FORCE_ENABLE_RAG || settings?.enableRAG) {   
       console.log('🔍 RAG is enabled, querying for context...');
-      const ragRequest = { question: input.trim(), k: 5 };
-      console.log('🚀 RAG Request:', JSON.stringify(ragRequest, null, 2));
-      console.log('🌐 Making request to: http://localhost:3001/query-rag');
+      console.log('🚨 ABOUT TO MAKE FETCH REQUEST');
+      console.log('🚨 URL: http://localhost:3001/query-rag');
 
       try {
-        const startTime = Date.now();
+        // Use the working /query-rag endpoint
         const response = await fetch('http://localhost:3001/query-rag', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(ragRequest)
+          body: JSON.stringify({ question: input.trim(), k: 5 })
         });
-        const responseTime = Date.now() - startTime;
-
-        console.log(`⏱️ RAG response received in ${responseTime}ms`);
-        console.log(`🔍 Response status: ${response.status} ${response.statusText}`);
 
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('❌ RAG Error Response:', errorText);
-          throw new Error(`RAG endpoint returned ${response.status}: ${errorText}`);
+          throw new Error(`RAG endpoint returned ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('📦 RAG Response Data:', JSON.stringify(data, null, 2));
-
-        if (!data.results || data.results.length === 0) {
-          console.warn('⚠️ RAG returned empty results array');
-        } else {
-          console.log(`✅ RAG returned ${data.results.length} results`);
-        }
+        console.log('🔍 RAG response:', data);
 
         if (data.results && data.results.length > 0) {
           // Check if the results are actually relevant (strict threshold)
@@ -372,17 +312,12 @@ const handleSendMessage = async () => {
       baseUrl: selectedProvider === "ollama" ? "http://localhost:11434" : undefined
     });
 
-    // Calculate thinking time
-    const endTime = Date.now();
-    const thinkingTimeSeconds = ((endTime - startTime) / 1000).toFixed(1);
-    
-    // Update the assistant message with the response and thinking time
+    // Update the assistant message with the response
     const updatedAssistantMessage = {
       ...assistantMessage,
-      content: `*Thought for ${thinkingTimeSeconds} seconds*\n\n${response.content}`,
+      content: response.content,
       timestamp: new Date(),
-      usedRAG: ragUsed,
-      isThinking: false
+      usedRAG: ragUsed
     };
 
     setMessages(prev => {

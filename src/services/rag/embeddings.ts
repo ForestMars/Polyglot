@@ -8,7 +8,7 @@ export async function getEmbedding(text: string): Promise<number[]> {
       },
       body: JSON.stringify({
         model: 'nomic-embed-text',
-        prompt: text,
+        prompt: text,  // This is correct for Ollama's API
       }),
     });
 
