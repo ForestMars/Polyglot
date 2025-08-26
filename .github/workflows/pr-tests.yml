@@ -1,10 +1,14 @@
-name: Pull Request Tests
+name: Pull Request Tests (Legacy - Manual run only)
 
 # Trigger on pull requests to main branch
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      force_run:
+        description: "Force run this legacy workflow"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
