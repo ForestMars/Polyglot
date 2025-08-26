@@ -6,7 +6,7 @@ import { GroqService } from './providers/groq';
 export interface ChatRequest {
   provider: string;
   model: string;
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+  messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
   apiKey?: string;
   baseUrl?: string;
 }
@@ -80,7 +80,7 @@ export class ApiService {
 
   private async handleOllamaRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     baseUrl?: string
   ): Promise<ChatResponse> {
     console.log('[handleOllamaRequest] Starting request with model:', model);
@@ -135,7 +135,7 @@ export class ApiService {
 
   private async handleOpenAIRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {
@@ -159,7 +159,7 @@ export class ApiService {
 
   private async handleAnthropicRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {
@@ -182,7 +182,7 @@ export class ApiService {
 
   private async handleGoogleRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {
@@ -202,7 +202,7 @@ export class ApiService {
 
   private async handleOpenRouterRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {
@@ -228,7 +228,7 @@ export class ApiService {
 
   private async handleTogetherRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {
@@ -254,7 +254,7 @@ export class ApiService {
 
   private async handleGroqRequest(
     model: string,
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     apiKey?: string
   ): Promise<ChatResponse> {
     if (!apiKey) {

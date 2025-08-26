@@ -270,38 +270,52 @@ const handleSendMessage = async () => {
       usedRAG: false
     };
 
-    // Add the assistant message to the UI immediately
-    setMessages(prev => [...prev, assistantMessage]);
+    // Add the assistant message to the UI immediately with loading state
+    const startTime = Date.now();
+    setMessages(prev => [...prev, {...assistantMessage, isThinking: true, startTime}]);
 
     // === RAG integration (build messagesToSend) ===
     console.log('🔍 Starting RAG integration check...');
     console.log('🔍 settings object:', settings);
     console.log('🔍 settings?.enableRAG:', settings?.enableRAG);
     
-    let messagesToSend: Array<{ role: 'system' | 'user'; content: string }> = [
+    let messagesToSend: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
       { role: 'user', content: input.trim() }
     ];
 
 
     if (FORCE_ENABLE_RAG || settings?.enableRAG) {   
       console.log('🔍 RAG is enabled, querying for context...');
-      console.log('🚨 ABOUT TO MAKE FETCH REQUEST');
-      console.log('🚨 URL: http://localhost:3001/query-rag');
+      const ragRequest = { question: input.trim(), k: 5 };
+      console.log('🚀 RAG Request:', JSON.stringify(ragRequest, null, 2));
+      console.log('🌐 Making request to: http://localhost:3001/query-rag');
 
       try {
-        // Use the working /query-rag endpoint
+        const startTime = Date.now();
         const response = await fetch('http://localhost:3001/query-rag', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question: input.trim(), k: 5 })
+          body: JSON.stringify(ragRequest)
         });
+        const responseTime = Date.now() - startTime;
+
+        console.log(`⏱️ RAG response received in ${responseTime}ms`);
+        console.log(`🔍 Response status: ${response.status} ${response.statusText}`);
 
         if (!response.ok) {
-          throw new Error(`RAG endpoint returned ${response.status}`);
+          const errorText = await response.text();
+          console.error('❌ RAG Error Response:', errorText);
+          throw new Error(`RAG endpoint returned ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();
-        console.log('🔍 RAG response:', data);
+        console.log('📦 RAG Response Data:', JSON.stringify(data, null, 2));
+
+        if (!data.results || data.results.length === 0) {
+          console.warn('⚠️ RAG returned empty results array');
+        } else {
+          console.log(`✅ RAG returned ${data.results.length} results`);
+        }
 
         if (data.results && data.results.length > 0) {
           // Check if the results are actually relevant (strict threshold)
@@ -358,12 +372,17 @@ const handleSendMessage = async () => {
       baseUrl: selectedProvider === "ollama" ? "http://localhost:11434" : undefined
     });
 
-    // Update the assistant message with the response
+    // Calculate thinking time
+    const endTime = Date.now();
+    const thinkingTimeSeconds = ((endTime - startTime) / 1000).toFixed(1);
+    
+    // Update the assistant message with the response and thinking time
     const updatedAssistantMessage = {
       ...assistantMessage,
-      content: response.content,
+      content: `*Thought for ${thinkingTimeSeconds} seconds*\n\n${response.content}`,
       timestamp: new Date(),
-      usedRAG: ragUsed
+      usedRAG: ragUsed,
+      isThinking: false
     };
 
     setMessages(prev => {
