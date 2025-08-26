@@ -16,6 +16,7 @@ export interface ChatResponse {
   provider: string;
   model: string;
   timestamp: Date;
+  responseTime?: number; // Total time in milliseconds from request to response
 }
 
 export class ApiService {
@@ -123,7 +124,8 @@ export class ApiService {
         content: response.message.content,
         provider: 'ollama',
         model: response.model,
-        timestamp: new Date(response.created_at)
+        timestamp: new Date(response.created_at),
+        responseTime: endTime - startTime
       };
     } catch (error) {
       console.error('[handleOllamaRequest] Request failed:', error);
@@ -142,13 +144,16 @@ export class ApiService {
 
     // TODO: Implement actual OpenAI API call
     // For now, return a mock response
+    const startTime = Date.now();
     await new Promise(resolve => setTimeout(resolve, 1000));
+    const endTime = Date.now();
     
     return {
       content: `Mock OpenAI response using ${model}. This is a placeholder until you implement the actual OpenAI API integration.`,
       provider: 'openai',
       model,
-      timestamp: new Date()
+      timestamp: new Date(),
+      responseTime: endTime - startTime
     };
   }
 
@@ -162,13 +167,16 @@ export class ApiService {
     }
 
     // TODO: Implement actual Anthropic API call
+    const startTime = Date.now();
     await new Promise(resolve => setTimeout(resolve, 1000));
+    const endTime = Date.now();
     
     return {
       content: `Mock Anthropic response using ${model}. This is a placeholder until you implement the actual Anthropic API integration.`,
       provider: 'anthropic',
       model,
-      timestamp: new Date()
+      timestamp: new Date(),
+      responseTime: endTime - startTime
     };
   }
 
