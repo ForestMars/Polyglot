@@ -1,0 +1,475 @@
+name: CI/CD Pipeline
+
+env:
+  APP_ENV: CI
+  IS_CI: true
+  CI: true
+  NODE_ENV: 'test'
+  TEST_WITHOUT_LOGS: 'true'
+  PORT: 8080
+  VITE_APP_TITLE: 'Polyglut'
+  VITE_APP_DESCRIPTION: 'Enterprise AI Chat Interface'
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to test (optional)"
+        required: false
+        type: number
+      run_e2e:
+        description: "Run E2E tests"
+        required: false
+        default: true
+        type: boolean
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  statuses: write
+
+jobs:
+  # Security and dependency scanning
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+
+      - name: Check for known vulnerabilities
+        run: npx audit-ci --moderate
+
+  # Code quality checks
+  code-quality:
+    name: Code Quality & Standards
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        node-version: [20, 22]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Assert package-lock.json is correct
+        run: |
+          if ! git diff --quiet; then
+            echo 'Package-lock.json file needs to be updated'
+            git diff
+            exit 1
+          fi
+
+      - name: Run TypeScript type checking
+        run: npm run type-check
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check code formatting with Prettier
+        run: npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"
+
+      - name: Run complexity analysis
+        run: |
+          npx typescript-complexity-analyzer src/
+        continue-on-error: true
+
+  # Build verification across environments
+  build-verification:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [security-audit, code-quality]
+    strategy:
+      matrix:
+        build-mode: [development, production]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application (${{ matrix.build-mode }})
+        run: |
+          if [ "${{ matrix.build-mode }}" = "development" ]; then
+            npm run build:dev
+          else
+            npm run build
+          fi
+
+      - name: Verify build artifacts
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "Build failed: dist directory not found"
+            exit 1
+          fi
+          
+          # Check for essential files
+          if [ ! -f "dist/index.html" ]; then
+            echo "Build failed: index.html not found"
+            exit 1
+          fi
+          
+          # Check bundle size (warn if over 2MB)
+          BUNDLE_SIZE=$(du -sb dist/ | cut -f1)
+          if [ $BUNDLE_SIZE -gt 2097152 ]; then
+            echo "Warning: Bundle size is large ($(($BUNDLE_SIZE / 1024 / 1024))MB)"
+          fi
+          
+          echo "✅ Build artifacts verified for ${{ matrix.build-mode }}"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.build-mode }}
+          path: dist/
+          retention-days: 7
+
+  # Comprehensive testing suite
+  unit-tests:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [code-quality]
+    
+    # Future-proofing: Add services when you implement backend
+    # services:
+    #   postgres:
+    #     image: postgres:15
+    #     env:
+    #       POSTGRES_USER: polyglut
+    #       POSTGRES_PASSWORD: testpass
+    #       POSTGRES_DB: polyglut_test
+    #     options: >-
+    #       --health-cmd pg_isready
+    #       --health-interval 10s
+    #       --health-timeout 5s
+    #       --health-retries 5
+    #     ports:
+    #       - 5432:5432
+    #   redis:
+    #     image: redis:7-alpine
+    #     ports:
+    #       - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:run -- --coverage --reporter=verbose
+
+      - name: Run component tests
+        run: npm run test:run -- --run --coverage
+
+      - name: Generate detailed coverage report
+        run: npm run coverage
+
+      - name: Check coverage thresholds
+        run: |
+          # Set minimum coverage thresholds
+          npx nyc check-coverage --lines 80 --functions 80 --branches 75 --statements 80
+        continue-on-error: true
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-polyglut
+          fail_ci_if_error: false
+
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./coverage/lcov.info
+          flag-name: unit-tests
+          parallel: true
+
+  # End-to-end testing
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [build-verification]
+    if: github.event.inputs.run_e2e != 'false'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start preview server
+        run: npm run preview &
+
+      - name: Wait for server
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:4173; do sleep 2; done'
+
+      - name: Run E2E tests
+        run: npx playwright test
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # Performance and accessibility testing
+  lighthouse-audit:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [build-verification]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Serve application
+        run: npm run preview &
+
+      - name: Wait for server
+        run: sleep 10
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.13.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Upload Lighthouse report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/
+          retention-days: 7
+
+  # Bundle analysis
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build-verification]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with bundle analysis
+        run: npm run build
+
+      - name: Analyze bundle size
+        run: |
+          npx vite-bundle-analyzer dist/assets/*.js --mode=static --report-filename=bundle-report.html
+        continue-on-error: true
+
+      - name: Upload bundle analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-analysis
+          path: bundle-report.html
+          retention-days: 7
+
+  # Finalize coverage reporting
+  finalize-coverage:
+    name: Finalize Coverage Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [unit-tests]
+    if: always()
+    
+    steps:
+      - name: Coveralls Finished
+        uses: coverallsapp/github-action@v2
+        with:
+          parallel-finished: true
+
+  # Deployment readiness check
+  deployment-readiness:
+    name: Deployment Readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [unit-tests, e2e-tests, lighthouse-audit, bundle-analysis]
+    if: always()
+    
+    steps:
+      - name: Check all jobs status
+        run: |
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "E2E Tests: ${{ needs.e2e-tests.result }}"
+          echo "Lighthouse: ${{ needs.lighthouse-audit.result }}"
+          echo "Bundle Analysis: ${{ needs.bundle-analysis.result }}"
+          
+          if [[ "${{ needs.unit-tests.result }}" != "success" ]]; then
+            echo "❌ Unit tests failed - not ready for deployment"
+            exit 1
+          fi
+          
+          if [[ "${{ needs.e2e-tests.result }}" == "failure" ]]; then
+            echo "❌ E2E tests failed - not ready for deployment"
+            exit 1
+          fi
+          
+          echo "✅ All critical checks passed - ready for deployment"
+
+      - name: Post deployment readiness comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const { number } = context.issue;
+            
+            const unitTests = '${{ needs.unit-tests.result }}';
+            const e2eTests = '${{ needs.e2e-tests.result }}';
+            const lighthouse = '${{ needs.lighthouse-audit.result }}';
+            
+            let status = '✅ **Deployment Ready**';
+            let details = [];
+            
+            if (unitTests === 'success') details.push('✅ Unit Tests Passed');
+            else details.push('❌ Unit Tests Failed');
+            
+            if (e2eTests === 'success') details.push('✅ E2E Tests Passed');
+            else if (e2eTests === 'failure') details.push('❌ E2E Tests Failed');
+            else details.push('⏭️ E2E Tests Skipped');
+            
+            if (lighthouse === 'success') details.push('✅ Performance Audit Passed');
+            else details.push('⚠️ Performance Audit Issues');
+            
+            if (unitTests !== 'success' || e2eTests === 'failure') {
+              status = '❌ **Not Ready for Deployment**';
+            }
+            
+            const body = `## 🚀 Deployment Readiness Report
+            
+            ${status}
+            
+            ### Test Results
+            ${details.join('\n')}
+            
+            ### Artifacts
+            - 📊 [Coverage Report](https://app.codecov.io/gh/${owner}/${repo}/pull/${number})
+            - 🎯 Bundle Analysis (check workflow artifacts)
+            - 🔍 Lighthouse Report (check workflow artifacts)
+            `;
+            
+            github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body
+            });
