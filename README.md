@@ -50,9 +50,11 @@ PolyGlut now includes a **complete conversation management system** that keeps y
 ### Getting Started
 
 1. **Start a conversation** - Your first message automatically creates a new conversation
-2. **Switch models** - Click on model badges in the chat header to switch AI models
-3. **Manage history** - Use the sidebar to browse, search, and organize conversations
-4. **Archive conversations** - Right-click on conversations to archive or delete them
+2. **Select RAG option** - Use the RAG checkbox to select a RAG provider
+3. **Switch models** - Click on model badges in the chat header to switch AI models
+4. **Manage history** - Use the sidebar to browse, search, and organize conversations
+5. **Archive conversations** - Right-click on conversations to archive or delete them
+
 
 ## Quick Start
 
