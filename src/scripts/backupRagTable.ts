@@ -1,7 +1,12 @@
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import path from 'path';
+import { exec } from 'child_process';
 
 dotenv.config();
+
+const backupDirectory = process.env.BACKUP_DIRECTORY || path.join(__dirname, 'backups');
+const backupFile = path.join(backupDirectory, 'rag_table_backup.sql');
 
 const pool = new Pool({
   host: process.env.PGHOST || 'localhost',
@@ -13,7 +18,6 @@ const pool = new Pool({
 
 const backupTable = async () => {
   try {
-    const backupFile = 'rag_table_backup.sql';
     const query = `pg_dump -U ${pool.user} -d ${pool.database} -t rag_documents > ${backupFile}`;
     await exec(query);
     console.log(`Backup created: ${backupFile}`);
