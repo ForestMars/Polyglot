@@ -165,7 +165,7 @@ src/
 
 ### System Architecture
 
-PolyGlut follows a clean, layered architecture that separates concerns and provides a maintainable codebase:
+PolyGlot follows a clean, layered architecture that separates concerns and provides a maintainable codebase:
 
 ![PolyGlut Component Architecture](assets/component-architecture.png)
 
