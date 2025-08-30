@@ -1,4 +1,4 @@
-# PolyGlut - AI Chat Interface
+# PolyGlot - AI Chat Interface
 
 A modern, elegant AI chat interface built with React, TypeScript, and Tailwind CSS. Connect to multiple AI providers (OpenAI, Anthropic, Google) with a beautiful glass-morphism design.
 
