@@ -167,7 +167,7 @@ src/
 
 PolyGlot follows a clean, layered architecture that separates concerns and provides a maintainable codebase:
 
-![PolyGlut Component Architecture](assets/component-architecture.png)
+![PolyGlot Component Architecture](assets/component-architecture.png)
 
 The architecture diagram above shows how the different layers interact:
 - **UI Components**: User interface components for chat and conversation management
