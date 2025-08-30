@@ -27,7 +27,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 
 ## Conversation Persistence
 
-PolyGlut now includes a **complete conversation management system** that keeps your AI chat history safe and organized:
+PolyGlot now includes a **complete conversation management system** that keeps your AI chat history safe and organized:
 
 ### Key Features
 
