@@ -65,7 +65,7 @@ PolyGlot now includes a **complete conversation management system** that keeps y
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/polyglut.git
+   git clone https://github.com/yourusername/polyglot.git
    cd polyglut
    ```
 
