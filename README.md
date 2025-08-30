@@ -256,7 +256,7 @@ npm run coverage    # Coverage report
 
 ## Current Status
 
-**✅ Feature Complete**: PolyGlut now includes a fully functional conversation persistence system!
+**✅ Feature Complete**: PolyGlot now includes a fully functional conversation persistence system!
 
 ### What's Working
 
