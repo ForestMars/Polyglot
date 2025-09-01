@@ -7,7 +7,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 [![Vite](https://img.shields.io/badge/Vite-5.4.1-purple?style=flat&logo=vite)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.11-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
 
-![Polyglut UI](/assets/polyglut-screencap.png)
+![Polyglot UI](/assets/polyglot-screencap.png)
 
 
 ## Features
