@@ -1,5 +1,6 @@
 .DS_Store
 .notion
+node_modules/.vite/deps
 
 .auth
 #.env
