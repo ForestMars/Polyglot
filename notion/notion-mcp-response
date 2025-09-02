@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# client.sh - Fixed to handle MCP protocol properly
+source .notion
+
+# Use the original token from your server output
+SERVER_AUTH_TOKEN="e467504324a97b3cb9ad546bf785a7127175fcd06ac52324a0986c0cb869b69f"
+
+echo "Testing MCP server connection..."
+
+echo "=== Testing MCP initialize ==="
+RESPONSE=$(curl -s -X POST \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -H "Authorization: Bearer $SERVER_AUTH_TOKEN" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "roots": {
+          "listChanged": true
+        },
+        "sampling": {}
+      },
+      "clientInfo": {
+        "name": "test-client",
+        "version": "1.0.0"
+      }
+    },
+    "id": 1
+  }' \
+  http://localhost:9001/mcp)
+
+echo "$RESPONSE"
+
+# Extract session info if present
+SESSION_ID=$(echo "$RESPONSE" | jq -r '.result.sessionId // empty')
+if [ ! -z "$SESSION_ID" ]; then
+    echo "Got session ID: $SESSION_ID"
+    
+    echo -e "\n=== Testing list resources with session ==="
+    curl -s -X POST \
+      -H "Content-Type: application/json" \
+      -H "Accept: application/json, text/event-stream" \
+      -H "Authorization: Bearer $SERVER_AUTH_TOKEN" \
+      -H "X-Session-ID: $SESSION_ID" \
+      -d '{
+        "jsonrpc": "2.0",
+        "method": "resources/list",
+        "params": {},
+        "id": 2
+      }' \
+      http://localhost:9001/mcp
+
+    echo -e "\n\n=== Testing list tools with session ==="
+    curl -s -X POST \
+      -H "Content-Type: application/json" \
+      -H "Accept: application/json, text/event-stream" \
+      -H "Authorization: Bearer $SERVER_AUTH_TOKEN" \
+      -H "X-Session-ID: $SESSION_ID" \
+      -d '{
+        "jsonrpc": "2.0",
+        "method": "tools/list",
+        "params": {},
+        "id": 3
+      }' \
+      http://localhost:9001/mcp
+else
+    echo "No session ID returned, trying without session headers..."
+    
+    echo -e "\n=== Testing list resources ==="
+    curl -s -X POST \
+      -H "Content-Type: application/json" \
+      -H "Accept: application/json, text/event-stream" \
+      -H "Authorization: Bearer $SERVER_AUTH_TOKEN" \
+      -d '{
+        "jsonrpc": "2.0",
+        "method": "resources/list",
+        "params": {},
+        "id": 2
+      }' \
+      http://localhost:9001/mcp
+fi
