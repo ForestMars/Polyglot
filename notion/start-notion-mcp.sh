@@ -11,4 +11,5 @@ export NOTION_VERSION
 export OPENAPI_MCP_HEADERS="{\"Authorization\": \"Bearer $NOTION_TOKEN\", \"Notion-Version\": \"$NOTION_VERSION\"}"
 
 # Run the Notion MCP server
-npx -y @notionhq/notion-mcp-server
+npx -y @notionhq/notion-mcp-server --transport http --port 9001
+# npx -y @notionhq/notion-mcp-server
