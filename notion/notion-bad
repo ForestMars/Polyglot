@@ -1,0 +1,8 @@
+source .notion
+echo $NOTION_TOKEN
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Notion-Version: 2022-06-28" \
+  -d '{ "jsonrpc": "2.0", "method": "list-pages", "id": 1 }' \
+  http://localhost:9001/mcp
