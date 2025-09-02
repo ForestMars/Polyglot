@@ -1,0 +1,9 @@
+{
+  "servers": [
+    {
+      "name": "day-server",
+      "description": "Provides current day of week",
+      "url": "ws://localhost:9081"
+    }
+  ]
+}
