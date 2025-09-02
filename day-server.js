@@ -1,6 +1,6 @@
 // day-server.js - The MCP server (run separately)
 const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 9001 });
 
 console.log('Day MCP Server running on ws://localhost:8080');
 
