@@ -17,14 +17,25 @@ class McpService {
   private tools: McpTool[] = [];
 
   async initialize() {
+    console.log('🔌 Initializing MCP service...');
+    
     // Load server configuration
     const config = await import('../../config/mcp.json');
     this.servers = config.servers;
+    console.log(`📋 Found ${this.servers.length} MCP servers in config:`, this.servers.map(s => s.name));
     
     // Connect to all configured servers
     for (const server of this.servers) {
-      await this.connectToServer(server);
+      console.log(`🔗 Attempting to connect to ${server.name} at ${server.url}...`);
+      try {
+        await this.connectToServer(server);
+        console.log(`✅ Successfully connected to ${server.name}`);
+      } catch (error) {
+        console.error(`❌ Failed to connect to ${server.name}:`, error);
+      }
     }
+    
+    console.log(`🛠️ MCP initialization complete. Total tools available: ${this.tools.length}`);
   }
 
   private async connectToServer(server: McpServer): Promise<void> {
@@ -32,14 +43,16 @@ class McpService {
       const ws = new WebSocket(server.url);
       
       ws.onopen = () => {
+        console.log(`🟢 WebSocket connection established to ${server.name}`);
         this.connections.set(server.name, ws);
+        console.log(`🔍 Discovering tools from ${server.name}...`);
         this.discoverTools(server.name);
         resolve();
       };
       
-      ws.onerror = () => {
-        console.error(`Failed to connect to ${server.name}`);
-        reject();
+      ws.onerror = (error) => {
+        console.error(`🔴 WebSocket connection failed to ${server.name}:`, error);
+        reject(error);
       };
       
       ws.onmessage = (event) => {
@@ -52,6 +65,7 @@ class McpService {
     const ws = this.connections.get(serverName);
     if (!ws) return;
     
+    console.log(`📡 Sending tools/list request to ${serverName}...`);
     ws.send(JSON.stringify({
       jsonrpc: '2.0',
       id: 1,
@@ -65,13 +79,19 @@ class McpService {
         ...tool,
         server: serverName
       }));
+      console.log(`🛠️ Received ${serverTools.length} tools from ${serverName}:`, serverTools.map(t => t.name));
       this.tools.push(...serverTools);
     }
   }
 
   async callTool(toolName: string, serverName: string, args = {}): Promise<string | null> {
     const ws = this.connections.get(serverName);
-    if (!ws) return null;
+    if (!ws) {
+      console.error(`❌ No connection to server ${serverName} for tool ${toolName}`);
+      return null;
+    }
+
+    console.log(`🔧 Calling tool ${toolName} on ${serverName} with args:`, args);
 
     return new Promise((resolve) => {
       const id = Date.now();
@@ -80,7 +100,9 @@ class McpService {
         const msg = JSON.parse(event.data);
         if (msg.id === id) {
           ws.removeEventListener('message', handler);
-          resolve(msg.result?.content?.[0]?.text || null);
+          const result = msg.result?.content?.[0]?.text || null;
+          console.log(`✨ Tool ${toolName} result:`, result);
+          resolve(result);
         }
       };
       
@@ -100,52 +122,4 @@ class McpService {
 }
 
 export const mcpService = new McpService();
-
-// src/hooks/useMcp.ts - React hook for using MCP in components
-import { useState, useEffect } from 'react';
-import { mcpService } from '../services/mcpService';
-
-export function useMcp() {
-  const [tools, setTools] = useState<any[]>([]);
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    mcpService.initialize().then(() => {
-      setTools(mcpService.getAvailableTools());
-      setIsReady(true);
-    });
-  }, []);
-
-  const callTool = async (toolName: string, serverName: string, args = {}) => {
-    return await mcpService.callTool(toolName, serverName, args);
-  };
-
-  return { tools, callTool, isReady };
-}
-
-// Modification to existing ChatInterface.tsx
-import { useMcp } from '../hooks/useMcp';
-
-export function ChatInterface() {
-  const { tools, callTool, isReady } = useMcp();
-  
-  const handleMessage = async (userMessage: string) => {
-    // Check if we can handle this with MCP tools
-    if (userMessage.toLowerCase().includes('day')) {
-      const dayTool = tools.find(t => t.name === 'get_day');
-      if (dayTool) {
-        const result = await callTool('get_day', dayTool.server);
-        if (result) {
-          // Add as assistant message
-          return result;
-        }
-      }
-    }
-    
-    // Fall back to normal AI provider handling
-    // ... your existing message handling
-  };
-  
-  // ... rest of your existing component
-}
 
