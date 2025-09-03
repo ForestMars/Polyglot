@@ -10,7 +10,7 @@ export class MessageRouter {
         lowerMessage.includes('what time') || 
         lowerMessage.includes('current date') ||
         lowerMessage.includes('today')) {
-      return { useMCP: true, toolName: 'get_current_date', serverName: 'day-server' };
+      return { useMCP: true, toolName: 'get_day', serverName: 'day-server' };
     }
     
     // Everything else goes to your AI providers
