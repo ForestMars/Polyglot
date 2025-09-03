@@ -23,7 +23,7 @@ class McpService {
     // Load server configuration
     // const config = await import('../../config/mcp.json');
     // Test with hardcoded config first
-    const config = { servers: [{ name: "test", description: "test", url: "ws://localhost:3001" }] };
+    const config = { servers: [{ name: "test", description: "test", url: "ws://localhost:9001" }] };
     this.servers = config.servers;
     console.log(`📋 Found ${this.servers.length} MCP servers in config:`, this.servers.map(s => s.name));
     
