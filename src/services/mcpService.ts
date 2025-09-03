@@ -15,15 +15,13 @@ class McpService {
   private servers: McpServer[] = [];
   private connections: Map<string, WebSocket> = new Map();
   private tools: McpTool[] = [];
+  private pendingToolDiscovery: Map<string, { resolve: () => void; reject: (error: any) => void }> = new Map();
 
   async initialize() {
     console.log('🔌 Initializing MCP service...');
-    // const config = await import('../../config/mcp.json');
     
-    // Load server configuration
-    // const config = await import('../../config/mcp.json');
     // Test with hardcoded config first
-    const config = { servers: [{ name: "test", description: "test", url: "ws://localhost:9001" }] };
+    const config = { servers: [{ name: "day-server", description: "day-server test", url: "ws://localhost:9001" }] };
     this.servers = config.servers;
     console.log(`📋 Found ${this.servers.length} MCP servers in config:`, this.servers.map(s => s.name));
     
@@ -45,16 +43,40 @@ class McpService {
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(server.url);
       
-      ws.onopen = () => {
+      // Set up tool discovery promise before connection
+      const toolDiscoveryPromise = new Promise<void>((resolveTools, rejectTools) => {
+        this.pendingToolDiscovery.set(server.name, { resolve: resolveTools, reject: rejectTools });
+        
+        // Add timeout for tool discovery
+        setTimeout(() => {
+          if (this.pendingToolDiscovery.has(server.name)) {
+            this.pendingToolDiscovery.delete(server.name);
+            rejectTools(new Error(`Tool discovery timeout for ${server.name}`));
+          }
+        }, 10000);
+      });
+      
+      ws.onopen = async () => {
         console.log(`🟢 WebSocket connection established to ${server.name}`);
         this.connections.set(server.name, ws);
         console.log(`🔍 Discovering tools from ${server.name}...`);
         this.discoverTools(server.name);
-        resolve();
+        
+        // Wait for tool discovery to complete
+        try {
+          await toolDiscoveryPromise;
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
       };
       
       ws.onerror = (error) => {
         console.error(`🔴 WebSocket connection failed to ${server.name}:`, error);
+        // Clean up pending tool discovery
+        if (this.pendingToolDiscovery.has(server.name)) {
+          this.pendingToolDiscovery.delete(server.name);
+        }
         reject(error);
       };
       
@@ -84,6 +106,23 @@ class McpService {
       }));
       console.log(`🛠️ Received ${serverTools.length} tools from ${serverName}:`, serverTools.map(t => t.name));
       this.tools.push(...serverTools);
+      
+      // Resolve the tool discovery promise
+      const pending = this.pendingToolDiscovery.get(serverName);
+      if (pending) {
+        this.pendingToolDiscovery.delete(serverName);
+        pending.resolve();
+      }
+    }
+    
+    // Handle errors
+    if (message.error) {
+      console.error(`❌ Error from ${serverName}:`, message.error);
+      const pending = this.pendingToolDiscovery.get(serverName);
+      if (pending) {
+        this.pendingToolDiscovery.delete(serverName);
+        pending.reject(new Error(message.error.message || 'Unknown MCP error'));
+      }
     }
   }
 
@@ -125,4 +164,3 @@ class McpService {
 }
 
 export const mcpService = new McpService();
-
