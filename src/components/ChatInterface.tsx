@@ -11,6 +11,8 @@ import { useSettings } from '@/hooks/useSettings';
 import { ApiService } from '@/services/api';
 import { Badge } from '@/components/ui/badge';
 import { Conversation, Message } from '@/types/conversation';
+import { messageRouter } from '@/services/messageRouter';
+
 
 import { runRAGPipeline } from "@/services/rag/ragPipeline";
 
@@ -203,6 +205,35 @@ export const ChatInterface = () => {
       if (conversationState.createConversation) {
         const newConversation = await conversationState.createConversation(selectedProvider, selectedModel);
         
+        // === MCP integration ===
+        // MCP (Model Context Protocol) routing decision logic:
+        // The messageRouter.handleMessage() function analyzes the user's input using keyword matching
+        // to determine if this is a request that should be handled by MCP tools instead of AI models.
+        // For example, "What day is it?" matches date/time keywords and gets routed to the MCP day-server
+        // via WebSocket, while "Write me a poem" has no MCP tool matches and goes to AI providers.
+        const mcpResult = await messageRouter.handleMessage(input.trim());
+        if (mcpResult) {
+        // MCP tool successfully handled the request and returned a direct answer
+        // (e.g., day-server returned "Friday, November 22, 2024")
+        // Display this result immediately without involving any AI processing
+        const mcpAssistantMessage: Message = {
+          id: `msg_${Date.now() + 1}`,
+          role: 'assistant',
+          content: mcpResult,
+          timestamp: new Date(),
+          provider: 'MCP'
+        };
+        
+        setMessages(prev => [...prev, mcpAssistantMessage]);
+        
+        // Persist the MCP response to conversation history for future reference
+        if (conversationState.addMessage) {
+          await conversationState.addMessage(mcpAssistantMessage);
+        }
+        return; // Exit early - MCP provided the answer, no need for AI processing
+      }
+        // === End MCP integration ===
+
         // Make sure the conversation is properly set as current
         if (conversationState.loadConversation) {
           await conversationState.loadConversation(newConversation.id);
