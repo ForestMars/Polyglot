@@ -60,17 +60,12 @@ PolyGlot now includes a **robust, multi-layer persistence system** that ensures 
 
 ### Use Cases
 
-- **Research & Learning**: Keep track of AI-assisted research across multiple sessions
-- **Code Development**: Maintain context while iterating on coding problems
+- **Research & Learning**: Keep AI-assisted research synced across all devices  
+- **Code Development**: Maintain context while iterating on coding problems across desktop / laptop
 - **Content Creation**: Build upon previous AI conversations for long-term projects
 - **Model Comparison**: Easily compare responses from different AI models
 - **Knowledge Management**: Organize and retrieve AI-generated insights
-
-- **Research & Learning**: Keep AI-assisted research synced across all devices  
-- **Code Development**: Maintain context between laptop and desktop without missing a beat  
-- **Content Creation**: Resume work from any browser with full history intact  
 - **Team Environments**: Ensure consistency when testing or demoing across machines  
-
 
 ### Getting Started
 
