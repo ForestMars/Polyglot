@@ -51,7 +51,18 @@ export class IndexedDbStorageService {
     this.db = new AppDatabase();
 
     // Expose a ready promise so callers can await initialization
-    this.ready = this.initialize();
+    this.ready = (async () => {
+      try {
+        await this.db.open();
+        console.log('[IndexedDB] Database opened');
+      } catch (err) {
+        console.error('[IndexedDB] Failed to open DB:', err);
+        // If open fails (e.g., corrupted DB), delete and retry
+        await Dexie.delete('PolyglotDB');
+        await this.db.open();
+        console.log('[IndexedDB] Database recreated and opened');
+      }
+    })();
   }
 
   // Meta helpers
