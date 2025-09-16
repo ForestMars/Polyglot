@@ -8,6 +8,7 @@ import { Conversation, UserSettings } from '../types/conversation';
 interface AppDatabaseSchema {
   conversations: Table<Conversation, string>;
   settings: Table<UserSettings, number>;
+  meta: Table<{ key: string; value: any }, string>;
 }
 
 /**
@@ -16,6 +17,7 @@ interface AppDatabaseSchema {
 class AppDatabase extends Dexie implements AppDatabaseSchema {
   public conversations!: Table<Conversation, string>;
   public settings!: Table<UserSettings, number>;
+  public meta!: Table<{ key: string; value: any }, string>;
 
   constructor() {
     super('PolyglotDB');
@@ -24,7 +26,8 @@ class AppDatabase extends Dexie implements AppDatabaseSchema {
     // NOTE: Dexie store syntax: 'primaryKey, index1, index2'
     this.version(1).stores({
       conversations: 'id, title, createdAt, lastModified, isArchived',
-      settings: '++id'
+      settings: '++id',
+      meta: 'key'
     });
 
     // Example of future upgrade hook:
@@ -39,11 +42,27 @@ export class IndexedDbStorageService {
   private db: AppDatabase;
   public ready: Promise<void>;
 
+  // Expose the Dexie instance for advanced use
+  public getDb(): AppDatabase {
+    return this.db;
+  }
+
   constructor() {
     this.db = new AppDatabase();
 
     // Expose a ready promise so callers can await initialization
     this.ready = this.initialize();
+  }
+
+  // Meta helpers
+  public async getMeta(key: string): Promise<any> {
+    await this.ready;
+    return this.db.meta.get(key);
+  }
+
+  public async setMeta(key: string, value: any): Promise<void> {
+    await this.ready;
+    await this.db.meta.put({ key, value });
   }
 
   /**
