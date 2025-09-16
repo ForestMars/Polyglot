@@ -283,6 +283,11 @@ export class IndexedDbStorageService {
    *
    * Returns: { migrated, total }
    */
+  /**
+   * One-time migration from localStorage to IndexedDB.
+   * Only runs if meta flag is unset and Dexie is empty.
+   * Sets flag in meta table after success.
+   */
   public async migrateFromLocalStorage(): Promise<{ migrated: number; total: number }> {
     if (typeof window === 'undefined') {
       return { migrated: 0, total: 0 };
@@ -292,11 +297,20 @@ export class IndexedDbStorageService {
     const SETTINGS_KEY = 'user_settings';
     const MIGRATED_FLAG = 'migrated_to_indexeddb';
 
-    // If already migrated, no-op
-    if (localStorage.getItem(MIGRATED_FLAG)) {
+    // Check meta table for migration flag
+    const migratedMeta = await this.getMeta(MIGRATED_FLAG);
+    if (migratedMeta && migratedMeta.value === true) {
       return { migrated: 0, total: 0 };
     }
 
+    // If conversations already present, assume migrated
+    const count = await this.db.conversations.count();
+    if (count > 0) {
+      await this.setMeta(MIGRATED_FLAG, true);
+      return { migrated: 0, total: 0 };
+    }
+
+    // Now check localStorage keys synchronously
     const conversationKeys: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -304,18 +318,16 @@ export class IndexedDbStorageService {
     }
 
     if (conversationKeys.length === 0 && !localStorage.getItem(SETTINGS_KEY)) {
-      localStorage.setItem(MIGRATED_FLAG, 'true');
+      await this.setMeta(MIGRATED_FLAG, true);
       return { migrated: 0, total: 0 };
     }
 
     const toInsert: Conversation[] = [];
-
     for (const key of conversationKeys) {
       try {
         const raw = localStorage.getItem(key);
         if (!raw) continue;
         const parsed = JSON.parse(raw);
-
         // Normalize dates -> Date objects
         parsed.createdAt = parsed.createdAt ? new Date(parsed.createdAt) : new Date();
         parsed.lastModified = parsed.lastModified ? new Date(parsed.lastModified) : new Date();
@@ -323,13 +335,9 @@ export class IndexedDbStorageService {
           ...m,
           timestamp: m.timestamp ? new Date(m.timestamp) : new Date()
         }));
-
-        // Ensure shape matches Conversation type expectations (light guard)
-        // If parsed.id missing, try to infer from key
         if (!parsed.id) {
           parsed.id = key.replace(CONVERSATION_PREFIX, '') || `${Date.now()}`;
         }
-
         toInsert.push(parsed as Conversation);
       } catch (err) {
         console.error(`[IndexedDB] Error parsing localStorage conversation ${key}:`, err);
@@ -356,22 +364,18 @@ export class IndexedDbStorageService {
 
     try {
       // Use a transaction to write conversations + settings atomically
-      await this.db.transaction('rw', this.db.conversations, this.db.settings, async () => {
+      await this.db.transaction('rw', this.db.conversations, this.db.settings, this.db.meta, async () => {
         if (toInsert.length > 0) {
-          // bulkPut is much faster than many individual puts
           await this.db.conversations.bulkPut(toInsert);
           console.log(`[IndexedDB] Migrated ${toInsert.length} conversations`);
         }
-
         if (settingsToSave) {
           await this.db.settings.put(settingsToSave, 1);
           console.log('[IndexedDB] Migrated settings');
         }
+        // Mark migration complete in meta table
+        await this.db.meta.put({ key: MIGRATED_FLAG, value: true });
       });
-
-      // Mark migration complete
-      localStorage.setItem(MIGRATED_FLAG, 'true');
-
       return { migrated: toInsert.length, total: conversationKeys.length };
     } catch (error) {
       console.error('[IndexedDB] Migration failed:', error);
