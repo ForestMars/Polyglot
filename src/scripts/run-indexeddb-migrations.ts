@@ -10,7 +10,7 @@ type MigrationModule = {
   down?: (db: Dexie) => Promise<void>;
 };
 
-const MIGRATIONS_DIR = path.resolve(__dirname, '../migrations');
+const MIGRATIONS_DIR = path.resolve(__dirname, '../server/migrations');
 const MIGRATIONS_STORE = 'appliedMigrations';
 
 /**
