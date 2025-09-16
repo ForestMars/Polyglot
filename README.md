@@ -13,7 +13,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 ## Features
 
 - **Multi-Provider Support**: Connect to OpenAI, Anthropic, Google AI services, and Ollama (local)
-- **Conversation Persistence**: Complete conversation management with automatic saving and history
+- **Conversation Persistence**: Complete conversation management with automatic saving, history and cross-browser/device sync
 - **Beautiful UI**: Glass-morphism design with smooth animations and modern aesthetics
 - **API Key Management**: Securely store and manage multiple API keys per provider
 - **Local AI Support**: Run AI models locally with Ollama (no API keys required)
@@ -27,25 +27,45 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 
 ## Conversation Persistence
 
-PolyGlot now includes a **complete conversation management system** that keeps your AI chat history safe and organized:
+PolyGlot now includes a **robust, multi-layer persistence system** that ensures your conversations are safe, portable, and available everywhere you log in.  
+
+### Persistence Layers
+
+- **IndexedDB (Client-Side)**  
+  - Optimized for fast local queries and offline-first access.  
+  - Provides instant load times and full chat history even without network.  
+
+- **SQLite / File Store (Server-Side)**  
+  - Canonical single-file database (`chats.sqlite`) that persists conversations across browsers and devices.  
+  - Guarantees that history isn’t lost when switching browsers or clearing client storage.  
+
+- **Automatic Sync / Migration**  
+  - On **every app start** (browser load), PolyGlot runs a migration:  
+    1. Pushes any new IndexedDB chats to the server DB.  
+    2. Pulls any missing chats from the server DB into IndexedDB.  
+  - Ensures a **consistent, unified history** across all browsers.  
 
 ### Key Features
 
-- **Automatic Persistence**: Every conversation is automatically saved to your browser
-- **Conversation History**: Browse and search through all your past conversations
-- **Model Switching**: Switch AI models mid-conversation with full context preservation
+- **Automatic Persistence**: Every conversation is saved locally and synced server-side  
+- **Cross-Browser & Cross-Device**: Open PolyGlot anywhere and see your full history  
+- **Offline-First**: Works seamlessly without network; syncs when reconnected  
+- **Smart Migration**: Runs on each app start to guarantee consistency  
+- **Conversation History**: Browse and search past conversations  
 - **Archive System**: Archive old conversations to keep your sidebar organized
+- **Real-time Sync**: Updates propagate instantly across tabs and devices  
+- **Model Switching**: Switch AI models mid-conversation with full context preservation
 - **Smart Search**: Find conversations by title, content, or model used
-- **Real-time Sync**: Changes sync instantly across all components
 - **Cross-Session**: Your conversations persist even after closing the browser
 
 ### Use Cases
 
-- **Research & Learning**: Keep track of AI-assisted research across multiple sessions
-- **Code Development**: Maintain context while iterating on coding problems
+- **Research & Learning**: Keep AI-assisted research synced across all devices  
+- **Code Development**: Maintain context while iterating on coding problems across desktop / laptop
 - **Content Creation**: Build upon previous AI conversations for long-term projects
 - **Model Comparison**: Easily compare responses from different AI models
 - **Knowledge Management**: Organize and retrieve AI-generated insights
+- **Team Environments**: Ensure consistency when testing or demoing across machines  
 
 ### Getting Started
 
