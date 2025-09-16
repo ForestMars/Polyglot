@@ -13,7 +13,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 ## Features
 
 - **Multi-Provider Support**: Connect to OpenAI, Anthropic, Google AI services, and Ollama (local)
-- **Conversation Persistence**: Complete conversation management with automatic saving and history
+- **Conversation Persistence**: Complete conversation management with automatic saving, history and cross-browser/device sync
 - **Beautiful UI**: Glass-morphism design with smooth animations and modern aesthetics
 - **API Key Management**: Securely store and manage multiple API keys per provider
 - **Local AI Support**: Run AI models locally with Ollama (no API keys required)
