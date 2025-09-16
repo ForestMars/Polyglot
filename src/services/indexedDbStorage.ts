@@ -1,238 +1,189 @@
-// src/services/indexedDbStorage.ts
-import Dexie, { Table } from 'dexie';
-import { Conversation, UserSettings } from '../types/conversation';
+// src/services/indexedDbStorage.ts - Fixed version with proper schema management
 
-interface AppDatabaseSchema {
-  conversations: Table<Conversation, string>;
-  settings: Table<UserSettings, number>;
-  meta: Table<{ key: string; value: any }, string>;
+import Dexie, { Table } from 'dexie';
+
+// Define your interfaces
+export interface Chat {
+  id?: string;
+  title: string;
+  messages: Message[];
+  createdAt: Date;
+  updatedAt: Date;
+  model?: string;
+  provider?: string;
 }
 
-class AppDatabase extends Dexie implements AppDatabaseSchema {
-  public conversations!: Table<Conversation, string>;
-  public settings!: Table<UserSettings, number>;
-  public meta!: Table<{ key: string; value: any }, string>;
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
+export interface AppMeta {
+  id: string;
+  lastSync?: Date;
+  version?: string;
+  [key: string]: any;
+}
+
+// Database class
+export class PolyglotDatabase extends Dexie {
+  chats!: Table<Chat, string>;
+  meta!: Table<AppMeta, string>;
 
   constructor() {
     super('PolyglotDB');
-
-    // Main schema for version 1
+    
+    // Define schemas - CRITICAL: Make sure all object stores are defined here
     this.version(1).stores({
-      conversations: 'id, title, createdAt, lastModified, isArchived',
-      settings: '++id',
-      meta: 'key',
+      chats: '++id, title, createdAt, updatedAt, model, provider',
+      meta: 'id, lastSync, version'
     });
 
-    // Ensure future upgrades can safely add stores
-    this.on('blocked', () => console.warn('[IndexedDB] DB upgrade blocked'));
-    this.on('versionchange', () => this.close());
+    // Add upgrade hooks if you need to migrate data
+    this.version(1).upgrade(async (trans) => {
+      console.log('Initializing database v1...');
+      // Initialize default meta if needed
+      await trans.table('meta').put({
+        id: 'app',
+        version: '1.0.0',
+        lastSync: null
+      });
+    });
   }
 }
 
-export class IndexedDbStorageService {
-  private db: AppDatabase;
-  public ready: Promise<void>;
+// Create singleton instance
+export const db = new PolyglotDatabase();
 
-  constructor() {
-    this.db = new AppDatabase();
-    this.ready = this.initialize();
+// Database operations with proper error handling
+export class IndexedDbStorage {
+  private db: PolyglotDatabase;
+
+  constructor(database: PolyglotDatabase) {
+    this.db = database;
   }
 
-  public getDb(): AppDatabase {
-    return this.db;
-  }
-
-  private async initialize(): Promise<void> {
+  // Initialize and validate database
+  async initialize(): Promise<void> {
     try {
+      // Force database to open and validate schema
       await this.db.open();
-
-      // Check if meta store exists; create if missing
-      if (!this.db.tables.find(t => t.name === 'meta')) {
-        console.warn('[IndexedDB] Meta store missing; recreating DB with meta store');
-        this.db.close();
-        await Dexie.delete('PolyglotDB');
-        this.db = new AppDatabase();
-        await this.db.open();
+      
+      // Verify that all expected tables exist
+      const tableNames = this.db.tables.map(table => table.name);
+      const expectedTables = ['chats', 'meta'];
+      
+      for (const expectedTable of expectedTables) {
+        if (!tableNames.includes(expectedTable)) {
+          throw new Error(`Missing expected table: ${expectedTable}`);
+        }
       }
-
-      console.log('[IndexedDB] Database opened');
-    } catch (err) {
-      console.error('[IndexedDB] Failed to open database:', err);
-      throw new Error('Failed to initialize database');
-    }
-  }
-
-  // ---------------- Meta ----------------
-  public async getMeta(key: string): Promise<any> {
-    await this.ready;
-    return this.db.meta.get(key);
-  }
-
-  public async setMeta(key: string, value: any): Promise<void> {
-    await this.ready;
-    await this.db.meta.put({ key, value });
-  }
-
-  // ---------------- Conversations ----------------
-  public async saveConversation(conversation: Conversation): Promise<void> {
-    await this.ready;
-    const now = new Date();
-    const toSave: Conversation = {
-      ...conversation,
-      createdAt: conversation.createdAt ? new Date(conversation.createdAt) : now,
-      lastModified: now,
-      messages: (conversation.messages || []).map(msg => ({
-        ...msg,
-        timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-      })),
-    };
-    await this.db.conversations.put(toSave);
-  }
-
-  public async loadConversation(id: string): Promise<Conversation> {
-    await this.ready;
-    const conv = await this.db.conversations.get(id);
-    if (!conv) throw new Error(`Conversation not found: ${id}`);
-    return conv;
-  }
-
-  public async listConversations(opts?: { includeArchived?: boolean; page?: number; limit?: number }): Promise<Conversation[]> {
-    await this.ready;
-    const includeArchived = opts?.includeArchived ?? false;
-    const page = opts?.page;
-    const limit = opts?.limit;
-
-    const collection = includeArchived ? this.db.conversations : this.db.conversations.where('isArchived').equals(false);
-    const arr = await collection.sortBy('lastModified');
-    const sorted = arr.reverse();
-    if (page && limit) {
-      const start = (page - 1) * limit;
-      return sorted.slice(start, start + limit);
-    }
-    return sorted;
-  }
-
-  public async countConversations(includeArchived: boolean = false): Promise<number> {
-    await this.ready;
-    return includeArchived
-      ? this.db.conversations.count()
-      : this.db.conversations.where('isArchived').equals(false).count();
-  }
-
-  public async deleteConversation(id: string): Promise<void> {
-    await this.ready;
-    await this.db.conversations.delete(id);
-  }
-
-  public async archiveConversation(id: string): Promise<void> {
-    await this.ready;
-    await this.db.conversations.update(id, { isArchived: true, lastModified: new Date() });
-  }
-
-  public async unarchiveConversation(id: string): Promise<void> {
-    await this.ready;
-    await this.db.conversations.update(id, { isArchived: false, lastModified: new Date() });
-  }
-
-  // ---------------- Settings ----------------
-  public async saveSettings(settings: UserSettings): Promise<void> {
-    await this.ready;
-    await this.db.settings.put(settings, 1);
-  }
-
-  public async loadSettings(): Promise<UserSettings> {
-    await this.ready;
-    const settings = await this.db.settings.get(1);
-    return settings ?? this.getDefaultSettings();
-  }
-
-  private getDefaultSettings(): UserSettings {
-    return {
-      selectedProvider: 'ollama',
-      selectedModel: 'llama3.2',
-      selectedApiKey: '',
-      showArchivedChats: false,
-      ollamaBaseUrl: 'http://localhost:11434',
-    };
-  }
-
-  // ---------------- Migration ----------------
-  public async migrateFromLocalStorage(): Promise<{ migrated: number; total: number }> {
-    await this.ready;
-
-    const MIGRATED_FLAG = 'migrated_to_indexeddb';
-    const migratedMeta = await this.getMeta(MIGRATED_FLAG);
-    if (migratedMeta?.value === true) return { migrated: 0, total: 0 };
-
-    const count = await this.db.conversations.count();
-    if (count > 0) {
-      await this.setMeta(MIGRATED_FLAG, true);
-      return { migrated: 0, total: 0 };
-    }
-
-    // Collect localStorage conversations
-    const CONVERSATION_PREFIX = 'conversation_';
-    const SETTINGS_KEY = 'user_settings';
-    const conversationKeys: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key?.startsWith(CONVERSATION_PREFIX)) conversationKeys.push(key);
-    }
-
-    const toInsert: Conversation[] = [];
-    for (const key of conversationKeys) {
-      try {
-        const raw = localStorage.getItem(key);
-        if (!raw) continue;
-        const parsed = JSON.parse(raw);
-        parsed.createdAt = parsed.createdAt ? new Date(parsed.createdAt) : new Date();
-        parsed.lastModified = parsed.lastModified ? new Date(parsed.lastModified) : new Date();
-        parsed.messages = (parsed.messages || []).map((m: any) => ({
-          ...m,
-          timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
-        }));
-        if (!parsed.id) parsed.id = key.replace(CONVERSATION_PREFIX, '') || `${Date.now()}`;
-        toInsert.push(parsed as Conversation);
-      } catch (err) {
-        console.error(`[IndexedDB] Error parsing conversation ${key}:`, err);
+      
+      console.log('Database initialized successfully with tables:', tableNames);
+    } catch (error) {
+      console.error('Database initialization failed:', error);
+      
+      // If there's a schema mismatch, delete and recreate the database
+      if (error.name === 'VersionError' || error.name === 'NotFoundError') {
+        console.log('Schema mismatch detected, recreating database...');
+        await this.resetDatabase();
+      } else {
+        throw error;
       }
     }
-
-    // Migrate settings
-    let settingsToSave: UserSettings | null = null;
-    const settingsRaw = localStorage.getItem(SETTINGS_KEY);
-    if (settingsRaw) {
-      try {
-        const parsedSettings = JSON.parse(settingsRaw);
-        settingsToSave = {
-          selectedProvider: parsedSettings.selectedProvider ?? 'ollama',
-          selectedModel: parsedSettings.selectedModel ?? 'llama3.2',
-          selectedApiKey: parsedSettings.selectedApiKey ?? '',
-          showArchivedChats: parsedSettings.showArchivedChats ?? false,
-          ollamaBaseUrl: parsedSettings.ollamaBaseUrl ?? 'http://localhost:11434',
-        };
-      } catch (err) {
-        console.error('[IndexedDB] Error parsing settings:', err);
-      }
-    }
-
-    await this.db.transaction('rw', this.db.conversations, this.db.settings, this.db.meta, async () => {
-      if (toInsert.length > 0) await this.db.conversations.bulkPut(toInsert);
-      if (settingsToSave) await this.db.settings.put(settingsToSave, 1);
-      await this.setMeta(MIGRATED_FLAG, true);
-    });
-
-    return { migrated: toInsert.length, total: conversationKeys.length };
   }
 
-  // ---------------- Utilities ----------------
-  public async clearDatabase(): Promise<void> {
-    await this.ready;
-    await this.db.transaction('rw', this.db.conversations, this.db.settings, async () => {
-      await this.db.conversations.clear();
-      await this.db.settings.clear();
-    });
+  // Reset database by deleting and recreating
+  private async resetDatabase(): Promise<void> {
+    try {
+      await this.db.delete();
+      console.log('Database deleted');
+      
+      // Recreate the database
+      this.db = new PolyglotDatabase();
+      await this.db.open();
+      
+      console.log('Database recreated successfully');
+    } catch (error) {
+      console.error('Failed to reset database:', error);
+      throw error;
+    }
+  }
+
+  // Safe metadata operations
+  async getMeta(id: string = 'app'): Promise<AppMeta | null> {
+    try {
+      const meta = await this.db.meta.get(id);
+      return meta || null;
+    } catch (error) {
+      console.error('Failed to get meta:', error);
+      return null;
+    }
+  }
+
+  async setMeta(meta: AppMeta): Promise<void> {
+    try {
+      await this.db.meta.put(meta);
+    } catch (error) {
+      console.error('Failed to set meta:', error);
+      
+      // If it's a NotFoundError, try to reinitialize the database
+      if (error.name === 'NotFoundError') {
+        console.log('Meta table not found, reinitializing database...');
+        await this.initialize();
+        // Retry the operation
+        await this.db.meta.put(meta);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  // Chat operations with error handling
+  async getChats(): Promise<Chat[]> {
+    try {
+      const chats = await this.db.chats.orderBy('updatedAt').reverse().toArray();
+      return chats;
+    } catch (error) {
+      console.error('Failed to get chats:', error);
+      return [];
+    }
+  }
+
+  async saveChat(chat: Chat): Promise<string> {
+    try {
+      const chatId = await this.db.chats.put(chat);
+      return typeof chatId === 'string' ? chatId : String(chatId);
+    } catch (error) {
+      console.error('Failed to save chat:', error);
+      throw error;
+    }
+  }
+
+  async deleteChat(id: string): Promise<void> {
+    try {
+      await this.db.chats.delete(id);
+    } catch (error) {
+      console.error('Failed to delete chat:', error);
+      throw error;
+    }
+  }
+
+  // Check if database is ready
+  async isReady(): Promise<boolean> {
+    try {
+      await this.db.meta.limit(1).toArray();
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
 
-export const indexedDbStorage = new IndexedDbStorageService();
+// Create and export storage instance
+export const storage = new IndexedDbStorage(db);
+
+// Initialize database on module load
+storage.initialize().catch(console.error);
