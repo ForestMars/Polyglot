@@ -1,39 +1,81 @@
-// Minimal REST API for chat sync
-const express = require('express');
-const cors = require('cors');
-const { getAllChats, addOrUpdateChats } = require('./chatStore');
+// src/server/chatSyncApi.js
+// Minimal REST API for chat sync, no Express required.
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+import http from 'http';
+import { getAllChats, addOrUpdateChats } from './chatStore.js';
 
-// Fetch all chats (for initial sync)
-app.get('/fetchChats', (req, res) => {
-  res.json(getAllChats());
-});
+// Utility: parse JSON body
+function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', chunk => data += chunk);
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(data || '{}'));
+      } catch (err) {
+        reject(err);
+      }
+    });
+  });
+}
 
-// Push new/updated chats from client
-app.post('/pushChats', (req, res) => {
-  const { chats } = req.body;
-  if (!Array.isArray(chats)) return res.status(400).json({ error: 'chats must be array' });
-  addOrUpdateChats(chats);
-  res.json({ ok: true });
-});
+// Create server
+const server = http.createServer(async (req, res) => {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-// Sync endpoint: client sends local chats, gets missing server chats
-app.post('/sync', (req, res) => {
-  const { chats: clientChats } = req.body;
-  if (!Array.isArray(clientChats)) return res.status(400).json({ error: 'chats must be array' });
-  addOrUpdateChats(clientChats);
-  const serverChats = getAllChats();
-  // Return chats not present on client (by id)
-  const clientIds = new Set(clientChats.map(c => c.id));
-  const missing = serverChats.filter(c => !clientIds.has(c.id));
-  res.json({ missing });
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    return res.end();
+  }
+
+  try {
+    // GET /fetchChats → return all server chats
+    if (req.method === 'GET' && req.url === '/fetchChats') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify(getAllChats()));
+    }
+
+    // POST /pushChats or /sync → add/update chats
+    if (req.method === 'POST' && (req.url === '/pushChats' || req.url === '/sync')) {
+      const body = await parseBody(req);
+      const { chats } = body;
+
+      if (!Array.isArray(chats)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'chats must be array' }));
+      }
+
+      // Add or update incoming chats
+      addOrUpdateChats(chats);
+
+      // If syncing, return chats missing on the client
+      if (req.url === '/sync') {
+        const serverChats = getAllChats();
+        const clientIds = new Set(chats.map(c => c.id));
+        const missing = serverChats.filter(c => !clientIds.has(c.id));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ missing }));
+      }
+
+      // POST /pushChats response
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: true }));
+    }
+
+    // Fallback 404
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not found' }));
+  } catch (err) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: err.message }));
+  }
 });
 
 // Start server
 const PORT = process.env.CHAT_SYNC_PORT || 4001;
-app.listen(PORT, () => {
-  console.log(`Chat sync API running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Chat sync API running on http://localhost:${PORT}`);
 });

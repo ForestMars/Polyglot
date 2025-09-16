@@ -1,6 +1,11 @@
+// src/server/chatStore.js
 // Simple JSON file-based chat store for prototyping
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const STORE_PATH = path.join(__dirname, 'chatStore.json');
 
@@ -18,11 +23,11 @@ function writeChats(chats) {
   fs.writeFileSync(STORE_PATH, JSON.stringify(chats, null, 2));
 }
 
-function getAllChats() {
+export function getAllChats() {
   return readChats();
 }
 
-function addOrUpdateChats(newChats) {
+export function addOrUpdateChats(newChats) {
   const chats = readChats();
   const byId = Object.fromEntries(chats.map(c => [c.id, c]));
   for (const chat of newChats) {
@@ -30,5 +35,3 @@ function addOrUpdateChats(newChats) {
   }
   writeChats(Object.values(byId));
 }
-
-module.exports = { getAllChats, addOrUpdateChats };

@@ -1,6 +1,8 @@
+// src/hooks/useConversationState.ts
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ConversationStateManager, ConversationState, ConversationFilters } from '@/services/conversationStateManager';
 import { Conversation, Message } from '@/types/conversation';
+import { indexedDbStorage } from '@/services/indexedDbStorage';
 
 export const useConversationState = () => {
   const [state, setState] = useState<ConversationState>({
@@ -17,8 +19,11 @@ export const useConversationState = () => {
 
   // Initialize state manager
   useEffect(() => {
+
     const initializeManager = async () => {
       try {
+        const testChats = await indexedDbStorage.listConversations();
+        console.log('Direct IndexedDB test:', testChats.length);
         // Subscribe to state changes
         const unsubscribe = stateManager.subscribe(setState);
         unsubscribeRef.current = unsubscribe;

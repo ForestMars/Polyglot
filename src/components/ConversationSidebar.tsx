@@ -1,3 +1,4 @@
+// src/components/ConversationSidebar.tsx
 import { useState, useEffect, useCallback } from 'react';
 import { 
   Search, 
