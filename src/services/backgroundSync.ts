@@ -1,4 +1,3 @@
-// src/services/backgroundSync.ts
 import { indexedDbStorage } from './indexedDbStorage';
 
 // Helper to merge messages by id, preferring latest lastModified
@@ -6,17 +5,11 @@ function mergeMessages(localMsgs: any[], serverMsgs: any[]) {
   const byId = new Map();
   for (const m of localMsgs) byId.set(m.id, m);
   for (const m of serverMsgs) {
-    if (
-      !byId.has(m.id) ||
-      new Date(byId.get(m.id).lastModified || byId.get(m.id).timestamp) <
-        new Date(m.lastModified || m.timestamp)
-    ) {
+    if (!byId.has(m.id) || new Date(byId.get(m.id).lastModified || byId.get(m.id).timestamp) < new Date(m.lastModified || m.timestamp)) {
       byId.set(m.id, m);
     }
   }
-  return Array.from(byId.values()).sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-  );
+  return Array.from(byId.values()).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 }
 
 export async function backgroundSyncWithServer() {
@@ -29,27 +22,25 @@ export async function backgroundSyncWithServer() {
 
   const db = indexedDbStorage.getDb();
 
-  // 1. Collect local changes to push
+  // 1. Push local changes
   const localChanges = await db.conversations
     .where('lastModified')
     .above(lastSyncedAt ? lastSyncedAt.getTime() : 0)
     .toArray();
   console.log('[sync] Local changes to push:', localChanges);
 
-  // 2. Push local changes to server
   try {
-    console.log('[sync] Pushing local changes to server...');
     await fetch('http://localhost:4001/pushChats', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chats: localChanges }),
+      body: JSON.stringify({ chats: localChanges })
     });
     console.log('[sync] Successfully pushed local changes to server.');
   } catch (err) {
     console.error('[sync] Failed to push local changes:', err);
   }
 
-  // 3. Fetch server-side deltas
+  // 2. Fetch server-side conversations
   try {
     console.log('[sync] Fetching server conversations...');
     const res = await fetch(`http://localhost:4001/fetchChats`);
@@ -57,38 +48,46 @@ export async function backgroundSyncWithServer() {
     console.log('[sync] Server conversations fetched:', serverConvs);
 
     if (Array.isArray(serverConvs) && serverConvs.length > 0) {
-      // Make sure both tables are included in the transaction
-      await db.transaction('rw', db.conversations, db.meta, async () => {
+      await db.transaction('rw', db.conversations, async () => {
         console.log('[sync] Merging server conversations into Dexie...');
         for (const sc of serverConvs) {
-          const local = await db.conversations.get(sc.id);
-          console.log(`[sync] Merging conversation ${sc.id}:`, { local, server: sc });
+          // Normalize server conversation before inserting
+          const normalized = {
+            ...sc,
+            isArchived: sc.isArchived ?? false,
+            createdAt: sc.createdAt ? new Date(sc.createdAt) : new Date(),
+            lastModified: sc.lastModified ? new Date(sc.lastModified) : new Date(),
+            messages: (sc.messages || []).map(m => ({
+              ...m,
+              timestamp: m.timestamp ? new Date(m.timestamp) : new Date()
+            }))
+          };
+
+          const local = await db.conversations.get(normalized.id);
+          console.log(`[sync] Merging conversation ${normalized.id}:`, { local, server: normalized });
+
           if (!local) {
-            await db.conversations.put(sc);
-            console.log(`[sync] Inserted new conversation from server:`, sc);
+            await db.conversations.put(normalized);
+            console.log(`[sync] Inserted new conversation from server:`, normalized);
           } else {
-            const mergedMessages = mergeMessages(local.messages, sc.messages);
-            const chosen =
-              new Date(sc.lastModified) > new Date(local.lastModified) ? sc : local;
+            const mergedMessages = mergeMessages(local.messages, normalized.messages);
+            const chosen = (new Date(normalized.lastModified) > new Date(local.lastModified)) ? normalized : local;
             chosen.messages = mergedMessages;
-            chosen.lastModified = new Date(
-              Math.max(
-                new Date(sc.lastModified).getTime(),
-                new Date(local.lastModified).getTime()
-              )
-            );
+            chosen.isArchived = chosen.isArchived ?? false;
+            chosen.lastModified = new Date(Math.max(new Date(normalized.lastModified).getTime(), new Date(local.lastModified).getTime()));
             await db.conversations.put(chosen);
             console.log(`[sync] Updated conversation after merge:`, chosen);
           }
         }
+        await indexedDbStorage.setMeta('lastSyncedAt', (new Date()).toISOString());
+        console.log('[sync] Updated lastSyncedAt in meta table.');
       });
+    } else {
+      await indexedDbStorage.setMeta('lastSyncedAt', (new Date()).toISOString());
+      console.log('[sync] Updated lastSyncedAt in meta table (no new server convs).');
     }
 
-    // Update lastSyncedAt **outside** conversation transaction to avoid NotFoundError
-    await indexedDbStorage.setMeta('lastSyncedAt', new Date().toISOString());
-    console.log('[sync] Updated lastSyncedAt in meta table.');
-
-    // Notify UI
+    // Trigger UI reload
     if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
       const evt = new Event('conversations-updated', { bubbles: true });
       window.dispatchEvent(evt);
