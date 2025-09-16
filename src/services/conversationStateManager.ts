@@ -1,3 +1,14 @@
+
+interface ConversationFilters {
+  searchQuery: string;
+  provider: string;
+  model: string;
+  showArchived: boolean;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+}
 import { Conversation, Message, ModelChange } from '@/types/conversation';
 import { StorageService } from './storage';
 import { ConversationUtils } from './conversationUtils';
@@ -9,17 +20,6 @@ export interface ConversationState {
   isLoading: boolean;
   error: string | null;
   lastUpdated: Date;
-}
-
-export interface ConversationFilters {
-  searchQuery: string;
-  provider: string;
-  model: string;
-  showArchived: boolean;
-  dateRange?: {
-    start: Date;
-    end: Date;
-  };
 }
 
 export class ConversationStateManager {
@@ -43,6 +43,12 @@ export class ConversationStateManager {
       lastUpdated: new Date()
     };
     this.listeners = new Set();
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('conversations-updated', async () => {
+        console.log('[StateManager] Detected conversations-updated event, reloading conversations from storage...');
+        await this.loadConversations();
+      });
+    }
   }
 
   /**
@@ -65,6 +71,7 @@ export class ConversationStateManager {
       
       // Load conversations
       await this.loadConversations();
+
       
       this.isInitialized = true;
       this.setState({ isLoading: false });

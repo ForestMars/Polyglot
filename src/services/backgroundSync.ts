@@ -73,6 +73,12 @@ export async function backgroundSyncWithServer() {
       await indexedDbStorage.setMeta('lastSyncedAt', (new Date()).toISOString());
       console.log('[sync] Updated lastSyncedAt in meta table (no new server convs).');
     }
+    // === Trigger global event to notify UI to reload conversations ===
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      const evt = new Event('conversations-updated', { bubbles: true });
+      window.dispatchEvent(evt);
+      console.log('[sync] Dispatched conversations-updated event');
+    }
     console.log('[sync] Background sync complete');
   } catch (err) {
     console.error('[sync] Failed to fetch server deltas:', err);
