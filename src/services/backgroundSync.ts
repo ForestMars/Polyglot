@@ -1,78 +1,102 @@
 // src/services/backgroundSync.ts
 import { indexedDbStorage } from './indexedDbStorage';
-import { Conversation } from '../types/conversation';
 
-const CHAT_STORE_URL = '/chatStore.json'; // adjust path if needed
-
-/**
- * Fetch all conversations from the server.
- */
-async function fetchServerChats(): Promise<Conversation[]> {
-  try {
-    const res = await fetch(CHAT_STORE_URL);
-    if (!res.ok) throw new Error(`Failed to fetch chats: ${res.statusText}`);
-    const data: Conversation[] = await res.json();
-    // Normalize dates
-    return data.map(conv => ({
-      ...conv,
-      createdAt: new Date(conv.createdAt),
-      lastModified: new Date(conv.lastModified),
-      messages: (conv.messages || []).map(m => ({
-        ...m,
-        timestamp: new Date(m.timestamp)
-      }))
-    }));
-  } catch (err) {
-    console.error('[Sync] Error fetching server chats:', err);
-    return [];
+// Helper to merge messages by id, preferring latest lastModified
+function mergeMessages(localMsgs: any[], serverMsgs: any[]) {
+  const byId = new Map();
+  for (const m of localMsgs) byId.set(m.id, m);
+  for (const m of serverMsgs) {
+    if (
+      !byId.has(m.id) ||
+      new Date(byId.get(m.id).lastModified || byId.get(m.id).timestamp) <
+        new Date(m.lastModified || m.timestamp)
+    ) {
+      byId.set(m.id, m);
+    }
   }
+  return Array.from(byId.values()).sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
 }
 
-/**
- * Merge server conversations into IndexedDB.
- * Inserts new conversations and updates existing ones.
- */
-export async function backgroundSyncWithServer(): Promise<void> {
+export async function backgroundSyncWithServer() {
+  await indexedDbStorage.ready;
+  console.log('[sync] Starting background sync with server...');
+
+  const meta = await indexedDbStorage.getMeta('lastSyncedAt');
+  const lastSyncedAt = meta?.value ? new Date(meta.value) : null;
+  console.log('[sync] lastSyncedAt:', lastSyncedAt);
+
+  const db = indexedDbStorage.getDb();
+
+  // 1. Collect local changes to push
+  const localChanges = await db.conversations
+    .where('lastModified')
+    .above(lastSyncedAt ? lastSyncedAt.getTime() : 0)
+    .toArray();
+  console.log('[sync] Local changes to push:', localChanges);
+
+  // 2. Push local changes to server
   try {
-    // Wait for Dexie DB to be ready
-    await indexedDbStorage.ready;
+    console.log('[sync] Pushing local changes to server...');
+    await fetch('http://localhost:4001/pushChats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chats: localChanges }),
+    });
+    console.log('[sync] Successfully pushed local changes to server.');
+  } catch (err) {
+    console.error('[sync] Failed to push local changes:', err);
+  }
 
-    const serverChats = await fetchServerChats();
-    const db = indexedDbStorage.getDb();
+  // 3. Fetch server-side deltas
+  try {
+    console.log('[sync] Fetching server conversations...');
+    const res = await fetch(`http://localhost:4001/fetchChats`);
+    const serverConvs = await res.json();
+    console.log('[sync] Server conversations fetched:', serverConvs);
 
-    await db.transaction('rw', db.conversations, db.meta, async () => {
-      for (const serverConv of serverChats) {
-        const localConv = await db.conversations.get(serverConv.id);
-        if (!localConv) {
-          // insert new conversation
-          await db.conversations.put(serverConv);
-          console.log(`[Sync] Inserted new conversation from server: ${serverConv.id}`);
-        } else {
-          // optionally: merge messages / update lastModified if server is newer
-          if (serverConv.lastModified > localConv.lastModified) {
-            await db.conversations.put(serverConv);
-            console.log(`[Sync] Updated conversation from server: ${serverConv.id}`);
+    if (Array.isArray(serverConvs) && serverConvs.length > 0) {
+      // Make sure both tables are included in the transaction
+      await db.transaction('rw', db.conversations, db.meta, async () => {
+        console.log('[sync] Merging server conversations into Dexie...');
+        for (const sc of serverConvs) {
+          const local = await db.conversations.get(sc.id);
+          console.log(`[sync] Merging conversation ${sc.id}:`, { local, server: sc });
+          if (!local) {
+            await db.conversations.put(sc);
+            console.log(`[sync] Inserted new conversation from server:`, sc);
+          } else {
+            const mergedMessages = mergeMessages(local.messages, sc.messages);
+            const chosen =
+              new Date(sc.lastModified) > new Date(local.lastModified) ? sc : local;
+            chosen.messages = mergedMessages;
+            chosen.lastModified = new Date(
+              Math.max(
+                new Date(sc.lastModified).getTime(),
+                new Date(local.lastModified).getTime()
+              )
+            );
+            await db.conversations.put(chosen);
+            console.log(`[sync] Updated conversation after merge:`, chosen);
           }
         }
-      }
-      // update last sync timestamp
-      await indexedDbStorage.setMeta('lastServerSync', new Date());
-    });
+      });
+    }
 
-    console.log('[Sync] Background sync with server complete');
+    // Update lastSyncedAt **outside** conversation transaction to avoid NotFoundError
+    await indexedDbStorage.setMeta('lastSyncedAt', new Date().toISOString());
+    console.log('[sync] Updated lastSyncedAt in meta table.');
+
+    // Notify UI
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      const evt = new Event('conversations-updated', { bubbles: true });
+      window.dispatchEvent(evt);
+      console.log('[sync] Dispatched conversations-updated event');
+    }
+
+    console.log('[sync] Background sync complete');
   } catch (err) {
-    console.error('[Sync] Failed to sync with server:', err);
-  }
-}
-
-/**
- * Optional: run background sync on idle.
- */
-export function scheduleBackgroundSync(): void {
-  if ('requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(() => backgroundSyncWithServer());
-  } else {
-    // fallback
-    setTimeout(() => backgroundSyncWithServer(), 2000);
+    console.error('[sync] Failed to fetch server deltas:', err);
   }
 }
