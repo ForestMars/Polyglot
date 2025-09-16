@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { useEffect } from 'react';
 import { indexedDbStorage } from './services/indexedDbStorage';
+import { backgroundSyncWithServer } from './services/backgroundSync';
 import { mcpService } from './services/mcpService';
 
 const queryClient = new QueryClient();
@@ -48,9 +49,8 @@ const App = () => {
 
       // Task C: Background sync with server (non-blocking)
       try {
-        // TODO: implement backgroundSyncWithServer()
-        // await backgroundSyncWithServer(indexedDbStorage.getDb());
-        console.log('[startup] Background sync with server scheduled');
+        await backgroundSyncWithServer();
+        console.log('[startup] Background sync with server complete');
       } catch (err) {
         console.error('[startup] Background sync failed', err);
       }
