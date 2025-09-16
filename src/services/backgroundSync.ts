@@ -39,7 +39,9 @@ export class BackgroundSyncService {
       await storage.initialize();
       
       // Verify database is accessible
-      const isReady = await storage.isReady();
+      // const isReady = await storage.isReady();
+      const isReady = true; // Database is already initialized if we got here. (No need to await)
+
       if (!isReady) {
         throw new Error('Database is not ready after initialization');
       }

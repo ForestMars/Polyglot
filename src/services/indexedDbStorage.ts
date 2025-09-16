@@ -171,19 +171,58 @@ export class IndexedDbStorage {
     }
   }
 
-  // Check if database is ready
-  async isReady(): Promise<boolean> {
+  // Add methods your App.tsx expects
+  async listConversations(options: { limit?: number } = {}): Promise<Chat[]> {
     try {
-      await this.db.meta.limit(1).toArray();
-      return true;
+      let query = this.db.chats.orderBy('updatedAt').reverse();
+      if (options.limit) {
+        query = query.limit(options.limit);
+      }
+      return await query.toArray();
     } catch (error) {
-      return false;
+      console.error('Failed to list conversations:', error);
+      return [];
+    }
+  }
+
+  // Add migration method placeholder
+  async migrateFromLocalStorage(): Promise<void> {
+    try {
+      // Check if there's data in localStorage to migrate
+      const localData = localStorage.getItem('polyglot-chats');
+      if (!localData) return;
+
+      const chats: Chat[] = JSON.parse(localData);
+      console.log(`[migration] Found ${chats.length} chats in localStorage`);
+
+      // Save to IndexedDB
+      for (const chat of chats) {
+        await this.saveChat({
+          ...chat,
+          id: chat.id || crypto.randomUUID(),
+          createdAt: new Date(chat.createdAt || Date.now()),
+          updatedAt: new Date(chat.updatedAt || Date.now())
+        });
+      }
+
+      // Clear localStorage after successful migration
+      localStorage.removeItem('polyglot-chats');
+      console.log('[migration] Successfully migrated chats from localStorage');
+      
+    } catch (error) {
+      console.error('[migration] Failed to migrate from localStorage:', error);
     }
   }
 }
 
 // Create and export storage instance
-export const storage = new IndexedDbStorage(db);
+export const indexedDbStorage = new IndexedDbStorage(db);
+
+// Create a ready promise that your App.tsx expects
+export const ready = indexedDbStorage.initialize();
+
+// Also export as storage for compatibility
+export const storage = indexedDbStorage;
 
 // Initialize database on module load
-storage.initialize().catch(console.error);
+ready.catch(console.error);
