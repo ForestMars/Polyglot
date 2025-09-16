@@ -32,13 +32,13 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    // Fetch all chats
+    // GET /fetchChats → return all server chats
     if (req.method === 'GET' && req.url === '/fetchChats') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify(getAllChats()));
     }
 
-    // Push or sync chats
+    // POST /pushChats or /sync → add/update chats
     if (req.method === 'POST' && (req.url === '/pushChats' || req.url === '/sync')) {
       const body = await parseBody(req);
       const { chats } = body;
@@ -48,8 +48,10 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ error: 'chats must be array' }));
       }
 
+      // Add or update incoming chats
       addOrUpdateChats(chats);
 
+      // If syncing, return chats missing on the client
       if (req.url === '/sync') {
         const serverChats = getAllChats();
         const clientIds = new Set(chats.map(c => c.id));
@@ -58,6 +60,7 @@ const server = http.createServer(async (req, res) => {
         return res.end(JSON.stringify({ missing }));
       }
 
+      // POST /pushChats response
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ ok: true }));
     }
