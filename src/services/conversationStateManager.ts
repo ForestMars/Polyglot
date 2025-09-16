@@ -1,4 +1,4 @@
-
+// src/services/conversationStateManager.ts
 interface ConversationFilters {
   searchQuery: string;
   provider: string;
@@ -10,7 +10,8 @@ interface ConversationFilters {
   };
 }
 import { Conversation, Message, ModelChange } from '@/types/conversation';
-import { StorageService } from './storage';
+// import { StorageService } from './storage';
+import { indexedDbStorage } from './indexedDbStorage';
 import { ConversationUtils } from './conversationUtils';
 import { SettingsService, AppSettings } from './settingsService';
 
@@ -33,7 +34,8 @@ export class ConversationStateManager {
   private cacheEnabled: boolean = true;
 
   constructor() {
-    this.storageService = new StorageService();
+    // this.storageService = new StorageService();
+    this.storage = indexedDbStorage;  // Use the instance directly, don't call 'new'
     this.settingsService = new SettingsService();
     this.state = {
       conversations: [],

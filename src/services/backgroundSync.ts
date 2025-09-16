@@ -141,7 +141,7 @@ export class BackgroundSyncService {
   private async loadChatStoreFile(): Promise<Chat[]> {
     try {
       // Try to fetch the static chatStore.json file
-      const response = await fetch('/src/server/chatStore.json');
+      const response = await fetch('/api/chatStore.json');
       
       if (!response.ok) {
         console.log('[sync] chatStore.json not found or not accessible');
