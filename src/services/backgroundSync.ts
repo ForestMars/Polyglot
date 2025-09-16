@@ -19,7 +19,8 @@ export async function backgroundSyncWithServer() {
   const lastSyncedAt = meta?.value ? new Date(meta.value) : null;
 
   // 2. Collect local changes to push (unsynced or lastModified > lastSyncedAt)
-  const localChanges = await indexedDbStorage.db.conversations
+  const db = indexedDbStorage.getDb();
+  const localChanges = await db.conversations
     .where('lastModified')
     .above(lastSyncedAt ? lastSyncedAt.getTime() : 0)
     .toArray();
@@ -40,18 +41,18 @@ export async function backgroundSyncWithServer() {
     const res = await fetch(`http://localhost:4001/fetchChats`);
     const serverConvs = await res.json();
     if (Array.isArray(serverConvs) && serverConvs.length > 0) {
-      await indexedDbStorage.db.transaction('rw', indexedDbStorage.db.conversations, async () => {
+      await db.transaction('rw', db.conversations, async () => {
         for (const sc of serverConvs) {
-          const local = await indexedDbStorage.db.conversations.get(sc.id);
+          const local = await db.conversations.get(sc.id);
           if (!local) {
-            await indexedDbStorage.db.conversations.put(sc);
+            await db.conversations.put(sc);
           } else {
             // merge messages by id
             const mergedMessages = mergeMessages(local.messages, sc.messages);
             const chosen = (new Date(sc.lastModified) > new Date(local.lastModified)) ? sc : local;
             chosen.messages = mergedMessages;
             chosen.lastModified = new Date(Math.max(new Date(sc.lastModified).getTime(), new Date(local.lastModified).getTime()));
-            await indexedDbStorage.db.conversations.put(chosen);
+            await db.conversations.put(chosen);
           }
         }
         await indexedDbStorage.setMeta('lastSyncedAt', (new Date()).toISOString());
