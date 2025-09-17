@@ -5,23 +5,47 @@
 # Options: standalone, local_network, cloud, hybrid
 mode: standalone
 
-# Standalone mode configuration (single device, no network required)
-standalone:
-  enabled: true
-  # Core services
-  services:
-    # MCP server (bundled with app)
-    mcp_server:
+# Global services configuration (independent of mode)
+services:
+  # Main application
+  app:
+    enabled: true
+    port: 8080
+    auto_start: true
+  # Merge queue server (conflict resolution)
+  merge_queue_server:
+    enabled: true
+    port: 4001
+    auto_start: true
+    required_for_modes: ["local_network", "hybrid"]
+    optional_for_modes: ["standalone"]
+    disabled_for_modes: ["cloud"]
+  # MCP services (independently selectable)
+  mcp_services:
+    # File system operations
+    filesystem:
       enabled: true
       port: 9001
       auto_start: true
-      bundled: true
-    # Merge queue server (optional external service)
-    merge_queue_server:
+    # Database operations
+    database:
       enabled: false
-      port: 4001
+      port: 9002
       auto_start: false
-      required: false
+    # Web scraping
+    web_scraper:
+      enabled: false
+      port: 9003
+      auto_start: false
+    # Code execution
+    code_runner:
+      enabled: false
+      port: 9004
+      auto_start: false
+
+# Standalone mode configuration (single device, no network required)
+standalone:
+  enabled: true
   # Local model providers
   providers:
     - ollama
@@ -42,21 +66,7 @@ standalone:
 # Local network mode configuration (shared across LAN devices)
 local_network:
   enabled: false
-  # Core services
-  services:
-    mcp_server:
-      enabled: true
-      port: 9001
-      auto_start: true
-      bundled: true
-    merge_queue_server:
-      enabled: true
-      port: 4001
-      auto_start: false
-      required: false
-      # Network sharing settings
-      shared_across_network: true
-      discovery_enabled: true
+
   # Network discovery
   discovery:
     mdns_enabled: true
@@ -75,12 +85,6 @@ local_network:
 # Cloud mode configuration
 cloud:
   enabled: false
-  # Core services (cloud doesn't need local services)
-  services:
-    mcp_server:
-      enabled: false
-    merge_queue_server:
-      enabled: false
   # Cloud providers
   providers:
     - openai
@@ -94,16 +98,6 @@ cloud:
 # Hybrid mode configuration
 hybrid:
   enabled: false
-  # Core services
-  services:
-    mcp_server:
-      enabled: true
-      port: 9001
-      auto_start: true
-    merge_queue_server:
-      enabled: true
-      port: 4001
-      auto_start: false
   # Primary mode for different operations
   primary_providers:
     chat: standalone
@@ -118,15 +112,16 @@ hybrid:
 # Service health checks
 health_checks:
   enabled: true
-  interval: 30000  # milliseconds
-  services:
-    mcp_server:
-      endpoint: "/health"
-      timeout: 5000
-    merge_queue_server:
-      endpoint: "/status"
-      timeout: 5000
+  interval: 30000 # milliseconds
+  endpoints:
+    app: "/health"
+    merge_queue_server: "/status"
+    # MCP services use standard health endpoint
+    mcp_filesystem: "/health"
+    mcp_database: "/health"
+    mcp_web_scraper: "/health"
+    mcp_code_runner: "/health"
 
 # Version and compatibility
-version: "1.0.0"
+version: "0.1.3"
 config_version: "1.0"
