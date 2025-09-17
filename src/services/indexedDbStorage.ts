@@ -1,9 +1,9 @@
 // src/services/indexedDbStorage.ts - Fixed version with proper date conversion
 // manages data store using IndexedDB / Dexie
 
-import Dexie, { Table } from 'dexie';
+import Dexie, { Table } from "dexie";
 
-// Define interfaces - Updated to match what your conversation manager expects
+// Define interfaces - Updated to match what conversation manager expects
 export interface Chat {
   id?: string;
   title: string;
@@ -19,7 +19,7 @@ export interface Chat {
 
 export interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
 }
@@ -37,22 +37,23 @@ export class PolyglotDatabase extends Dexie {
   meta!: Table<AppMeta, string>;
 
   constructor() {
-    super('PolyglotDB'); // Pass DB name to parent constructor 
-    
+    super("PolyglotDB"); // Pass DB name to parent constructor
+
     // Define schemas - CRITICAL: Make sure all object stores are defined here
     this.version(1).stores({
-      chats: '++id, title, createdAt, updatedAt, lastModified, model, provider, currentModel, isArchived',
-      meta: 'id, lastSync, version'
+      chats:
+        "++id, title, createdAt, updatedAt, lastModified, model, provider, currentModel, isArchived",
+      meta: "id, lastSync, version",
     });
 
     // Add upgrade hooks if you need to migrate data
     this.version(1).upgrade(async (trans) => {
-      console.log('Initializing database v1...');
+      console.log("Initializing database v1...");
       // Initialize default meta if needed
-      await trans.table('meta').put({
-        id: 'app',
-        version: '1.0.0',
-        lastSync: null
+      await trans.table("meta").put({
+        id: "app",
+        version: "1.0.0",
+        lastSync: null,
       });
     });
   }
@@ -80,8 +81,8 @@ export class IndexedDbStorage {
       currentModel: chat.currentModel || chat.model,
       messages: (chat.messages || []).map((msg: any) => ({
         ...msg,
-        timestamp: new Date(msg.timestamp)
-      }))
+        timestamp: new Date(msg.timestamp),
+      })),
     };
   }
 
@@ -95,12 +96,12 @@ export class IndexedDbStorage {
       updatedAt: now,
       lastModified: now,
       isArchived: chat.isArchived || false,
-      currentModel: chat.currentModel || chat.model || 'unknown',
-      messages: (chat.messages || []).map(msg => ({
+      currentModel: chat.currentModel || chat.model || "unknown",
+      messages: (chat.messages || []).map((msg) => ({
         ...msg,
         id: msg.id || crypto.randomUUID(),
-        timestamp: msg.timestamp || now
-      }))
+        timestamp: msg.timestamp || now,
+      })),
     };
   }
 
@@ -109,24 +110,24 @@ export class IndexedDbStorage {
     try {
       // Force database to open and validate schema
       await this.db.open();
-      
+
       // Verify that all expected tables exist
-      const tableNames = this.db.tables.map(table => table.name);
-      const expectedTables = ['chats', 'meta'];
-      
+      const tableNames = this.db.tables.map((table) => table.name);
+      const expectedTables = ["chats", "meta"];
+
       for (const expectedTable of expectedTables) {
         if (!tableNames.includes(expectedTable)) {
           throw new Error(`Missing expected table: ${expectedTable}`);
         }
       }
-      
-      console.log('Database initialized successfully with tables:', tableNames);
+
+      console.log("Database initialized successfully with tables:", tableNames);
     } catch (error) {
-      console.error('Database initialization failed:', error);
-      
+      console.error("Database initialization failed:", error);
+
       // If there's a schema mismatch, delete and recreate the database
-      if (error.name === 'VersionError' || error.name === 'NotFoundError') {
-        console.log('Schema mismatch detected, recreating database...');
+      if (error.name === "VersionError" || error.name === "NotFoundError") {
+        console.log("Schema mismatch detected, recreating database...");
         await this.resetDatabase();
       } else {
         throw error;
@@ -138,21 +139,21 @@ export class IndexedDbStorage {
   private async resetDatabase(): Promise<void> {
     try {
       await this.db.delete();
-      console.log('Database deleted');
-      
+      console.log("Database deleted");
+
       // Recreate the database
       this.db = new PolyglotDatabase();
       await this.db.open();
-      
-      console.log('Database recreated successfully');
+
+      console.log("Database recreated successfully");
     } catch (error) {
-      console.error('Failed to reset database:', error);
+      console.error("Failed to reset database:", error);
       throw error;
     }
   }
 
   // Safe metadata operations
-  async getMeta(id: string = 'app'): Promise<AppMeta | null> {
+  async getMeta(id: string = "app"): Promise<AppMeta | null> {
     try {
       const meta = await this.db.meta.get(id);
       if (meta && meta.lastSync) {
@@ -160,7 +161,7 @@ export class IndexedDbStorage {
       }
       return meta || null;
     } catch (error) {
-      console.error('Failed to get meta:', error);
+      console.error("Failed to get meta:", error);
       return null;
     }
   }
@@ -169,11 +170,11 @@ export class IndexedDbStorage {
     try {
       await this.db.meta.put(meta);
     } catch (error) {
-      console.error('Failed to set meta:', error);
-      
+      console.error("Failed to set meta:", error);
+
       // If it's a NotFoundError, try to reinitialize the database
-      if (error.name === 'NotFoundError') {
-        console.log('Meta table not found, reinitializing database...');
+      if (error.name === "NotFoundError") {
+        console.log("Meta table not found, reinitializing database...");
         await this.initialize();
         // Retry the operation
         await this.db.meta.put(meta);
@@ -186,10 +187,13 @@ export class IndexedDbStorage {
   // Chat operations with error handling and proper date conversion
   async getChats(): Promise<Chat[]> {
     try {
-      const chats = await this.db.chats.orderBy('lastModified').reverse().toArray();
-      return chats.map(chat => this.convertDatesToObjects(chat));
+      const chats = await this.db.chats
+        .orderBy("lastModified")
+        .reverse()
+        .toArray();
+      return chats.map((chat) => this.convertDatesToObjects(chat));
     } catch (error) {
-      console.error('Failed to get chats:', error);
+      console.error("Failed to get chats:", error);
       return [];
     }
   }
@@ -199,7 +203,7 @@ export class IndexedDbStorage {
       const chat = await this.db.chats.get(id);
       return chat ? this.convertDatesToObjects(chat) : null;
     } catch (error) {
-      console.error('Failed to get chat:', error);
+      console.error("Failed to get chat:", error);
       return null;
     }
   }
@@ -208,9 +212,9 @@ export class IndexedDbStorage {
     try {
       const preparedChat = this.prepareChatForStorage(chat);
       const chatId = await this.db.chats.put(preparedChat);
-      return typeof chatId === 'string' ? chatId : String(chatId);
+      return typeof chatId === "string" ? chatId : String(chatId);
     } catch (error) {
-      console.error('Failed to save chat:', error);
+      console.error("Failed to save chat:", error);
       throw error;
     }
   }
@@ -219,7 +223,7 @@ export class IndexedDbStorage {
     try {
       await this.db.chats.delete(id);
     } catch (error) {
-      console.error('Failed to delete chat:', error);
+      console.error("Failed to delete chat:", error);
       throw error;
     }
   }
@@ -227,18 +231,20 @@ export class IndexedDbStorage {
   // Methods that your conversation state manager expects
   async listConversations(showArchived: boolean = false): Promise<Chat[]> {
     try {
-      let query = this.db.chats.orderBy('lastModified').reverse();
+      let query = this.db.chats.orderBy("lastModified").reverse();
       const chats = await query.toArray();
-      
-      const convertedChats = chats.map(chat => this.convertDatesToObjects(chat));
-      
+
+      const convertedChats = chats.map((chat) =>
+        this.convertDatesToObjects(chat),
+      );
+
       if (showArchived) {
         return convertedChats;
       } else {
-        return convertedChats.filter(chat => !chat.isArchived);
+        return convertedChats.filter((chat) => !chat.isArchived);
       }
     } catch (error) {
-      console.error('Failed to list conversations:', error);
+      console.error("Failed to list conversations:", error);
       return [];
     }
   }
@@ -251,7 +257,7 @@ export class IndexedDbStorage {
       }
       return this.convertDatesToObjects(chat);
     } catch (error) {
-      console.error('Failed to load conversation:', error);
+      console.error("Failed to load conversation:", error);
       throw error;
     }
   }
@@ -261,7 +267,7 @@ export class IndexedDbStorage {
       const preparedConversation = this.prepareChatForStorage(conversation);
       await this.db.chats.put(preparedConversation);
     } catch (error) {
-      console.error('Failed to save conversation:', error);
+      console.error("Failed to save conversation:", error);
       throw error;
     }
   }
@@ -270,7 +276,7 @@ export class IndexedDbStorage {
     try {
       await this.db.chats.delete(id);
     } catch (error) {
-      console.error('Failed to delete conversation:', error);
+      console.error("Failed to delete conversation:", error);
       throw error;
     }
   }
@@ -279,7 +285,7 @@ export class IndexedDbStorage {
   async migrateFromLocalStorage(): Promise<void> {
     try {
       // Check if there's data in localStorage to migrate
-      const localData = localStorage.getItem('polyglot-chats');
+      const localData = localStorage.getItem("polyglot-chats");
       if (!localData) return;
 
       const chats: Chat[] = JSON.parse(localData);
@@ -291,11 +297,10 @@ export class IndexedDbStorage {
       }
 
       // Clear localStorage after successful migration
-      localStorage.removeItem('polyglot-chats');
-      console.log('[migration] Successfully migrated chats from localStorage');
-      
+      localStorage.removeItem("polyglot-chats");
+      console.log("[migration] Successfully migrated chats from localStorage");
     } catch (error) {
-      console.error('[migration] Failed to migrate from localStorage:', error);
+      console.error("[migration] Failed to migrate from localStorage:", error);
     }
   }
 
