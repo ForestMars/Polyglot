@@ -1,151 +1,132 @@
 # config/mode.yaml
-# Polyglot Application Mode Configuration
+# Polyglut Application Mode Configuration
 
 # Application mode - determines how the app operates and connects
-# Options: offline, local, cloud, bluetooth, mixed
-mode: local
+# Options: standalone, local_network, cloud, hybrid
+mode: standalone
 
-# Local mode configuration
-local:
-  # Use local models and storage only
+# Standalone mode configuration (single device, no network required)
+standalone:
   enabled: true
-  # Local model providers to enable
+  # Core services
+  services:
+    # MCP server (bundled with app)
+    mcp_server:
+      enabled: true
+      port: 9001
+      auto_start: true
+      bundled: true
+    # Merge queue server (optional external service)
+    merge_queue_server:
+      enabled: false
+      port: 4001
+      auto_start: false
+      required: false
+  # Local model providers
   providers:
     - ollama
     - llamacpp
     - openai-compatible
-  # Local storage settings
+  # Storage settings
   storage:
     type: indexeddb
     backup_to_file: false
-    auto_sync: false
   # API endpoints for local services
   endpoints:
     ollama: "http://localhost:11434"
     llamacpp: "http://localhost:8080"
     openai_compatible: "http://localhost:1234"
+    mcp_server: "http://localhost:9001"
+    merge_queue_server: "http://localhost:4001"
+
+# Local network mode configuration (shared across LAN devices)
+local_network:
+  enabled: false
+  # Core services
+  services:
+    mcp_server:
+      enabled: true
+      port: 9001
+      auto_start: true
+      bundled: true
+    merge_queue_server:
+      enabled: true
+      port: 4001
+      auto_start: false
+      required: false
+      # Network sharing settings
+      shared_across_network: true
+      discovery_enabled: true
+  # Network discovery
+  discovery:
+    mdns_enabled: true
+    broadcast_port: 8765
+    service_name: "_polyglut._tcp"
+  # Shared providers across network
+  providers:
+    - ollama
+    - llamacpp
+    - shared_models
+  # Network storage settings
+  storage:
+    type: distributed
+    sync_across_devices: true
 
 # Cloud mode configuration
 cloud:
   enabled: false
-  # Cloud providers to enable
+  # Core services (cloud doesn't need local services)
+  services:
+    mcp_server:
+      enabled: false
+    merge_queue_server:
+      enabled: false
+  # Cloud providers
   providers:
     - openai
     - anthropic
     - google
-    - azure
   # Remote storage/sync settings
   storage:
-    sync_enabled: false
+    sync_enabled: true
     backend_url: ""
-    auth_required: true
-  # API configuration
-  rate_limiting:
-    enabled: true
-    requests_per_minute: 60
-  # Data privacy settings
-  privacy:
-    log_conversations: false
-    encrypt_storage: true
 
-# Bluetooth mode configuration (for device-to-device communication)
-bluetooth:
-  enabled: false
-  # Bluetooth Low Energy settings
-  ble:
-    service_uuid: "12345678-1234-5678-9012-123456789abc"
-    characteristics:
-      chat_data: "87654321-4321-8765-2109-cba987654321"
-      sync_status: "11111111-2222-3333-4444-555555555555"
-  # Device discovery settings
-  discovery:
-    scan_duration: 30000 # milliseconds
-    auto_connect: false
-    trusted_devices: []
-
-# Hybrid mode configuration (combines multiple modes)
+# Hybrid mode configuration
 hybrid:
   enabled: false
+  # Core services
+  services:
+    mcp_server:
+      enabled: true
+      port: 9001
+      auto_start: true
+    merge_queue_server:
+      enabled: true
+      port: 4001
+      auto_start: false
   # Primary mode for different operations
   primary_providers:
-    chat: local
-    storage: local
-    sync: cloud
+    chat: standalone
+    storage: standalone
+    sync: local_network
   # Fallback chain
   fallback_order:
-    - local
+    - standalone
+    - local_network
     - cloud
-  # Load balancing
-  load_balancing:
-    enabled: false
-    strategy: round_robin # round_robin, least_latency, random
 
-# Feature flags
-features:
-  # UI features
-  conversation_export: true
-  conversation_import: true
-  dark_mode: true
-  search_conversations: true
-
-  # Advanced features
-  model_switching: true
-  multi_provider: true
-  offline_mode: true
-  background_sync: true
-
-  # Experimental features
-  voice_input: false
-  real_time_collaboration: false
-  plugin_system: false
-
-# Performance settings
-performance:
-  # Memory management
-  max_conversations_in_memory: 100
-  conversation_cache_size: 50
-  message_batch_size: 20
-
-  # Network settings
-  request_timeout: 30000 # milliseconds
-  retry_attempts: 3
-  concurrent_requests: 5
-
-# Security settings
-security:
-  # API key encryption
-  encrypt_api_keys: true
-  api_key_storage: secure # secure, local, session
-
-  # Content filtering
-  content_filtering:
-    enabled: false
-    level: moderate # strict, moderate, permissive
-
-  # CORS settings (for local development)
-  cors:
-    enabled: true
-    allowed_origins: ["http://localhost:*", "https://localhost:*"]
-
-# Development settings
-development:
-  debug_mode: false
-  verbose_logging: false
-  mock_responses: false
-  # Development server settings
-  dev_server:
-    port: 8080
-    hot_reload: true
-    open_browser: true
+# Service health checks
+health_checks:
+  enabled: true
+  interval: 30000  # milliseconds
+  services:
+    mcp_server:
+      endpoint: "/health"
+      timeout: 5000
+    merge_queue_server:
+      endpoint: "/status"
+      timeout: 5000
 
 # Version and compatibility
 version: "1.0.0"
 config_version: "1.0"
-min_app_version: "1.0.0"
-
-# Metadata
-metadata:
-  created_date: "2025-09-17"
-  last_modified: "20245-09-17"
-  description: "Polyglot application mode configuration"
-  maintainer: "Polyglot Team"
