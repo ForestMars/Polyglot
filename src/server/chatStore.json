@@ -1804,5 +1804,87 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-09-16T23:31:15.014Z"
+  },
+  {
+    "id": "conv_1758071215743_hjmboked2",
+    "title": "what day is it",
+    "createdAt": "2025-09-17T01:06:55.743Z",
+    "lastModified": "2025-09-17T01:07:19.877Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1758071220355",
+        "role": "user",
+        "content": "what day is it",
+        "timestamp": "2025-09-17T01:07:00.355Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1758071220394",
+        "role": "assistant",
+        "content": "Today is Tuesday",
+        "timestamp": "2025-09-17T01:07:00.393Z",
+        "provider": "MCP"
+      },
+      {
+        "id": "msg_1758071227518",
+        "role": "user",
+        "content": "what day is itwhat day is tomorrow",
+        "timestamp": "2025-09-17T01:07:07.518Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1758071227564",
+        "role": "assistant",
+        "content": "Today is Tuesday",
+        "timestamp": "2025-09-17T01:07:07.563Z",
+        "provider": "MCP"
+      },
+      {
+        "id": "msg_1758071239827",
+        "role": "user",
+        "content": "what day is tomorrow",
+        "timestamp": "2025-09-17T01:07:19.827Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1758071239878",
+        "role": "assistant",
+        "content": "Today is Tuesday",
+        "timestamp": "2025-09-17T01:07:19.877Z",
+        "provider": "MCP"
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-09-17T01:07:19.877Z"
+  },
+  {
+    "id": "conv_1758071192427_9rdc1r34i",
+    "title": "what day is it",
+    "createdAt": "2025-09-17T01:06:32.428Z",
+    "lastModified": "2025-09-17T01:06:48.666Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1758071208614",
+        "role": "user",
+        "content": "what day is it",
+        "timestamp": "2025-09-17T01:06:48.614Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1758071208667",
+        "role": "assistant",
+        "content": "Today is Tuesday",
+        "timestamp": "2025-09-17T01:06:48.666Z",
+        "provider": "MCP"
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-09-17T01:06:48.666Z"
   }
 ]
