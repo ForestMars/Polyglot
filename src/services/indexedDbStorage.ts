@@ -1,8 +1,9 @@
 // src/services/indexedDbStorage.ts - Fixed version with proper date conversion
+// manages data store using IndexedDB / Dexie
 
 import Dexie, { Table } from 'dexie';
 
-// Define your interfaces - Updated to match what your conversation manager expects
+// Define interfaces - Updated to match what your conversation manager expects
 export interface Chat {
   id?: string;
   title: string;
@@ -36,7 +37,7 @@ export class PolyglotDatabase extends Dexie {
   meta!: Table<AppMeta, string>;
 
   constructor() {
-    super('PolyglotDB');
+    super('PolyglotDB'); // Pass DB name to parent constructor 
     
     // Define schemas - CRITICAL: Make sure all object stores are defined here
     this.version(1).stores({
