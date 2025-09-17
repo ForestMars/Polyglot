@@ -24,7 +24,7 @@ export interface ConversationState {
 }
 
 export class ConversationStateManager {
-  private storageService: StorageService;
+  private storageService: any; // Changed this to match what you're actually using
   private settingsService: SettingsService;
   private state: ConversationState;
   private listeners: Set<(state: ConversationState) => void>;
@@ -34,8 +34,8 @@ export class ConversationStateManager {
   private cacheEnabled: boolean = true;
 
   constructor() {
-    // this.storageService = new StorageService();
-    this.storage = indexedDbStorage;  // Use the instance directly, don't call 'new'
+    // Fixed: assign to storageService, not storage
+    this.storageService = indexedDbStorage;  // Use the instance directly, don't call 'new'
     this.settingsService = new SettingsService();
     this.state = {
       conversations: [],
