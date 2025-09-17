@@ -1,16 +1,19 @@
-// src/services/indexedDbStorage.ts - Fixed version with proper schema management
+// src/services/indexedDbStorage.ts - Fixed version with proper date conversion
 
 import Dexie, { Table } from 'dexie';
 
-// Define your interfaces
+// Define your interfaces - Updated to match what your conversation manager expects
 export interface Chat {
   id?: string;
   title: string;
   messages: Message[];
   createdAt: Date;
   updatedAt: Date;
+  lastModified: Date;
   model?: string;
   provider?: string;
+  currentModel?: string;
+  isArchived?: boolean;
 }
 
 export interface Message {
@@ -37,7 +40,7 @@ export class PolyglotDatabase extends Dexie {
     
     // Define schemas - CRITICAL: Make sure all object stores are defined here
     this.version(1).stores({
-      chats: '++id, title, createdAt, updatedAt, model, provider',
+      chats: '++id, title, createdAt, updatedAt, lastModified, model, provider, currentModel, isArchived',
       meta: 'id, lastSync, version'
     });
 
@@ -57,12 +60,47 @@ export class PolyglotDatabase extends Dexie {
 // Create singleton instance
 export const db = new PolyglotDatabase();
 
-// Database operations with proper error handling
+// Database operations with proper error handling and date conversion
 export class IndexedDbStorage {
   private db: PolyglotDatabase;
 
   constructor(database: PolyglotDatabase) {
     this.db = database;
+  }
+
+  // Helper method to convert string dates back to Date objects
+  private convertDatesToObjects(chat: any): Chat {
+    return {
+      ...chat,
+      createdAt: new Date(chat.createdAt),
+      updatedAt: new Date(chat.updatedAt),
+      lastModified: new Date(chat.lastModified || chat.updatedAt || Date.now()),
+      isArchived: chat.isArchived || false,
+      currentModel: chat.currentModel || chat.model,
+      messages: (chat.messages || []).map((msg: any) => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }))
+    };
+  }
+
+  // Helper method to prepare chat for storage (ensure dates are properly set)
+  private prepareChatForStorage(chat: Chat): Chat {
+    const now = new Date();
+    return {
+      ...chat,
+      id: chat.id || crypto.randomUUID(),
+      createdAt: chat.createdAt || now,
+      updatedAt: now,
+      lastModified: now,
+      isArchived: chat.isArchived || false,
+      currentModel: chat.currentModel || chat.model || 'unknown',
+      messages: (chat.messages || []).map(msg => ({
+        ...msg,
+        id: msg.id || crypto.randomUUID(),
+        timestamp: msg.timestamp || now
+      }))
+    };
   }
 
   // Initialize and validate database
@@ -116,6 +154,9 @@ export class IndexedDbStorage {
   async getMeta(id: string = 'app'): Promise<AppMeta | null> {
     try {
       const meta = await this.db.meta.get(id);
+      if (meta && meta.lastSync) {
+        meta.lastSync = new Date(meta.lastSync);
+      }
       return meta || null;
     } catch (error) {
       console.error('Failed to get meta:', error);
@@ -141,20 +182,31 @@ export class IndexedDbStorage {
     }
   }
 
-  // Chat operations with error handling
+  // Chat operations with error handling and proper date conversion
   async getChats(): Promise<Chat[]> {
     try {
-      const chats = await this.db.chats.orderBy('updatedAt').reverse().toArray();
-      return chats;
+      const chats = await this.db.chats.orderBy('lastModified').reverse().toArray();
+      return chats.map(chat => this.convertDatesToObjects(chat));
     } catch (error) {
       console.error('Failed to get chats:', error);
       return [];
     }
   }
 
+  async getChat(id: string): Promise<Chat | null> {
+    try {
+      const chat = await this.db.chats.get(id);
+      return chat ? this.convertDatesToObjects(chat) : null;
+    } catch (error) {
+      console.error('Failed to get chat:', error);
+      return null;
+    }
+  }
+
   async saveChat(chat: Chat): Promise<string> {
     try {
-      const chatId = await this.db.chats.put(chat);
+      const preparedChat = this.prepareChatForStorage(chat);
+      const chatId = await this.db.chats.put(preparedChat);
       return typeof chatId === 'string' ? chatId : String(chatId);
     } catch (error) {
       console.error('Failed to save chat:', error);
@@ -171,21 +223,58 @@ export class IndexedDbStorage {
     }
   }
 
-  // Add methods your App.tsx expects
-  async listConversations(options: { limit?: number } = {}): Promise<Chat[]> {
+  // Methods that your conversation state manager expects
+  async listConversations(showArchived: boolean = false): Promise<Chat[]> {
     try {
-      let query = this.db.chats.orderBy('updatedAt').reverse();
-      if (options.limit) {
-        query = query.limit(options.limit);
+      let query = this.db.chats.orderBy('lastModified').reverse();
+      const chats = await query.toArray();
+      
+      const convertedChats = chats.map(chat => this.convertDatesToObjects(chat));
+      
+      if (showArchived) {
+        return convertedChats;
+      } else {
+        return convertedChats.filter(chat => !chat.isArchived);
       }
-      return await query.toArray();
     } catch (error) {
       console.error('Failed to list conversations:', error);
       return [];
     }
   }
 
-  // Add migration method placeholder
+  async loadConversation(id: string): Promise<Chat> {
+    try {
+      const chat = await this.db.chats.get(id);
+      if (!chat) {
+        throw new Error(`Conversation not found: ${id}`);
+      }
+      return this.convertDatesToObjects(chat);
+    } catch (error) {
+      console.error('Failed to load conversation:', error);
+      throw error;
+    }
+  }
+
+  async saveConversation(conversation: Chat): Promise<void> {
+    try {
+      const preparedConversation = this.prepareChatForStorage(conversation);
+      await this.db.chats.put(preparedConversation);
+    } catch (error) {
+      console.error('Failed to save conversation:', error);
+      throw error;
+    }
+  }
+
+  async deleteConversation(id: string): Promise<void> {
+    try {
+      await this.db.chats.delete(id);
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      throw error;
+    }
+  }
+
+  // Add migration method
   async migrateFromLocalStorage(): Promise<void> {
     try {
       // Check if there's data in localStorage to migrate
@@ -195,14 +284,9 @@ export class IndexedDbStorage {
       const chats: Chat[] = JSON.parse(localData);
       console.log(`[migration] Found ${chats.length} chats in localStorage`);
 
-      // Save to IndexedDB
+      // Save to IndexedDB with proper date conversion
       for (const chat of chats) {
-        await this.saveChat({
-          ...chat,
-          id: chat.id || crypto.randomUUID(),
-          createdAt: new Date(chat.createdAt || Date.now()),
-          updatedAt: new Date(chat.updatedAt || Date.now())
-        });
+        await this.saveChat(chat);
       }
 
       // Clear localStorage after successful migration
@@ -211,6 +295,16 @@ export class IndexedDbStorage {
       
     } catch (error) {
       console.error('[migration] Failed to migrate from localStorage:', error);
+    }
+  }
+
+  // Utility method to check if database is ready
+  async isReady(): Promise<boolean> {
+    try {
+      await this.db.open();
+      return true;
+    } catch (error) {
+      return false;
     }
   }
 }
