@@ -1,44 +1,45 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Root directory
 ROOT="docs"
 
-# Define directories and files
-declare -A structure=(
-  ["$ROOT/README.md"]=""
-  ["$ROOT/getting-started/installation.md"]=""
-  ["$ROOT/getting-started/quick-start.md"]=""
-  ["$ROOT/getting-started/configuration.md"]=""
-  ["$ROOT/architecture/overview.md"]=""
-  ["$ROOT/architecture/client-storage.md"]=""
-  ["$ROOT/architecture/server-storage.md"]=""
-  ["$ROOT/architecture/sync-protocol.md"]=""
-  ["$ROOT/architecture/data-models.md"]=""
-  ["$ROOT/api/sync-api.md"]=""
-  ["$ROOT/api/client-api.md"]=""
-  ["$ROOT/api/storage-api.md"]=""
-  ["$ROOT/deployment/client-deployment.md"]=""
-  ["$ROOT/deployment/server-deployment.md"]=""
-  ["$ROOT/deployment/docker.md"]=""
-  ["$ROOT/development/contributing.md"]=""
-  ["$ROOT/development/coding-standards.md"]=""
-  ["$ROOT/development/testing.md"]=""
-  ["$ROOT/development/debugging.md"]=""
-  ["$ROOT/user-guide/features.md"]=""
-  ["$ROOT/user-guide/chat-management.md"]=""
-  ["$ROOT/user-guide/sync-usage.md"]=""
-  ["$ROOT/reference/changelog.md"]=""
-  ["$ROOT/reference/roadmap.md"]=""
-  ["$ROOT/reference/faq.md"]=""
+# Relative paths (no $ROOT here)
+paths=(
+  "README.md"
+  "getting-started/installation.md"
+  "getting-started/quick-start.md"
+  "getting-started/configuration.md"
+  "architecture/overview.md"
+  "architecture/client-storage.md"
+  "architecture/server-storage.md"
+  "architecture/sync-protocol.md"
+  "architecture/data-models.md"
+  "api/sync-api.md"
+  "api/client-api.md"
+  "api/storage-api.md"
+  "deployment/client-deployment.md"
+  "deployment/server-deployment.md"
+  "deployment/docker.md"
+  "development/contributing.md"
+  "development/coding-standards.md"
+  "development/testing.md"
+  "development/debugging.md"
+  "user-guide/features.md"
+  "user-guide/chat-management.md"
+  "user-guide/sync-usage.md"
+  "reference/changelog.md"
+  "reference/roadmap.md"
+  "reference/faq.md"
 )
 
 # Create directories and files
-for path in "${!structure[@]}"; do
+for relpath in "${paths[@]}"; do
+  path="$ROOT/$relpath"
   dir=$(dirname "$path")
   mkdir -p "$dir"
   if [[ ! -f "$path" ]]; then
-    echo "# $(basename "$path" .md | sed -E 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')" > "$path"
+    title=$(basename "$path" .md | sed -E 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')
+    echo "# $title" > "$path"
   fi
 done
 
