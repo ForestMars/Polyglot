@@ -11,6 +11,8 @@ Knowledge integration: Add your documents (RAG) and external tools (MCP)
 Research continuity: Long-term projects that build context over time
 Local-first: Your playground, your data, your control
 
+Full documentation at https://polyglot.gitbook.io
+
 ## AI Chat Interface
 
 A modern, elegant AI chat interface built with React, TypeScript, and Tailwind CSS. Connect to multiple AI providers (OpenAI, Anthropic, Google) with a beautiful glass-morphism design.
