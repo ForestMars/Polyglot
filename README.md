@@ -1,4 +1,17 @@
-# PolyGlot - AI Chat Interface
+
+# Polyglot Local Research Playground 
+
+Polyglot is a local AI research playground where you control memory across models and conversations.
+Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (GPT, Claude, Gemini, local models) perform with the same controlled memory context. Everything runs locally with optional sync, so your research environment and accumulated knowledge stays private and under your control.
+Key capabilities:
+
+Memory control: Decide what persists across all conversations and models
+Model comparison: Switch between GPT, Claude, Gemini, and local models with consistent context
+Knowledge integration: Add your documents (RAG) and external tools (MCP)
+Research continuity: Long-term projects that build context over time
+Local-first: Your playground, your data, your control
+
+## AI Chat Interface
 
 A modern, elegant AI chat interface built with React, TypeScript, and Tailwind CSS. Connect to multiple AI providers (OpenAI, Anthropic, Google) with a beautiful glass-morphism design.
 
@@ -27,7 +40,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 
 ## Conversation Persistence
 
-PolyGlot now includes a **robust, multi-layer persistence system** that ensures your conversations are safe, portable, and available everywhere you log in.  
+PolyGlot includes a **robust, multi-layer persistence system** that ensures your conversations are safe, portable, and available everywhere you log in.  
 
 ### Persistence Layers
 
