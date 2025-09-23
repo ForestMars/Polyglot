@@ -1,36 +1,181 @@
-# REAMDE
+# Polyglot Documentation
 
-* [README](README.md)
-* Getting Started
-  * [Installation](getting-started/installation.md)
-  * [Configuration](getting-started/configuration.md)
-  * [Quick Start](getting-started/quick-start.md)
-* Architecture
-  * [Overview](architecture/overview.md)
-  * [Client Storage](architecture/client-storage.md)
-  * [Server Storage](architecture/server-storage.md)
-  * [Data Models](architecture/data-models.md)
-  * [Sync Protocol](architecture/sync-protocol.md)
-* [CRDT](crdt.md)
-* Deployment
-  * [Client Deployment](deployment/client-deployment.md)
-  * [Server Deployment](deployment/server-deployment.md)
-  * [Docker](deployment/docker.md)
-* Development
-  * [Coding Standards](development/coding-standards.md)
-  * [Contributing](development/contributing.md)
-  * [Debugging](development/debugging.md)
-  * [Testing](development/testing.md)
-* API
-  * [Client API](api/client-api.md)
-  * [Storage API](api/storage-api.md)
-  * [Sync API](api/sync-api.md)
-* Reference
-  * [Changelog](reference/changelog.md)
-  * [FAQ](reference/faq.md)
-  * [Roadmap](reference/roadmap.md)
-* User Guide
-  * [Features](user-guide/features.md)
-  * [Chat Management](user-guide/chat-management.md)
-  * [Sync Usage](user-guide/sync-usage.md)
+Multi-model chat interface with offline-first architecture and cloud synchronization.
+
+## Essential Documents
+- **[Installation](installation.md)** - Complete setup guide
+- **[Quick Start](quick-start.md)** - 5-minute getting started
+- **[API Reference](api-reference.md)** - REST endpoints and client APIs
+- **[Deployment](deployment.md)** - Production deployment
+- **[Troubleshooting](troubleshooting.md)** - Common issues and fixes
+
+## System Requirements
+- Node.js 18+ (server optional)
+- Modern browser with IndexedDB support
+- 50MB disk space for client storage
+
+## Architecture Overview
+Client-side IndexedDB storage with optional server synchronization via REST API.
+3. docs/quick-start.md
+markdown# Quick Start Guide
+
+## 1. Install and Run (2 minutes)
+```bash
+git clone https://github.com/ForestMars/Polyglot.git
+cd Polyglot && npm install && npm run dev
+2. Create Your First Chat (1 minute)
+
+Open http://localhost:3000
+Click "New Chat"
+Type a message and press Enter
+Chat is automatically saved to browser storage
+
+3. Test Offline Mode (1 minute)
+
+Disconnect from internet
+Create more chats and messages
+Refresh browser - data persists
+Reconnect internet - ready to sync
+
+4. Optional: Enable Sync (1 minute)
+bash# New terminal
+cd src/server && node chatSyncApi.js
+Chats now sync across devices and browsers.
+Next Steps
+
+API Reference - Integrate with your backend
+Deployment - Deploy to production
+Architecture - Understand the system design
+
+
+### 4. docs/api-reference.md
+```markdown
+# API Reference
+
+## Client Storage API
+
+### IndexedDbStorage Class
+```typescript
+import { indexedDbStorage } from './src/services/indexedDbStorage';
+
+// Save conversation
+await indexedDbStorage.saveConversation({
+  id: 'chat-123',
+  title: 'My Chat',
+  messages: [{ id: 'msg-1', role: 'user', content: 'Hello', timestamp: new Date() }],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastModified: new Date()
+});
+
+// List conversations
+const chats = await indexedDbStorage.listConversations(false); // excludeArchived
+
+// Load specific conversation
+const chat = await indexedDbStorage.loadConversation('chat-123');
+
+// Delete conversation
+await indexedDbStorage.deleteConversation('chat-123');
+Sync Server API
+Base URL
+http://localhost:4001
+GET /fetchChats
+Returns all server-stored chats.
+Response:
+json[{
+  "id": "chat-123",
+  "title": "My Chat", 
+  "messages": [...],
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "lastModified": "2024-01-01T00:00:00.000Z"
+}]
+POST /sync
+Bidirectional synchronization.
+Request:
+json{
+  "chats": [Chat[]]
+}
+Response:
+json{
+  "missing": [Chat[]]  // Chats on server not sent by client
+}
+Curl Example:
+bashcurl -X POST http://localhost:4001/sync \
+  -H "Content-Type: application/json" \
+  -d '{"chats": []}'
+Data Types
+Chat Interface
+typescriptinterface Chat {
+  id?: string;
+  title: string;
+  messages: Message[];
+  createdAt: Date;
+  updatedAt: Date; 
+  lastModified: Date;
+  model?: string;
+  provider?: string;
+  currentModel?: string;
+  isArchived?: boolean;
+}
+Message Interface
+typescriptinterface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+Error Handling
+Client Errors
+
+Database initialization failure: Automatic recovery and recreation
+Storage quota exceeded: Automatic cleanup of oldest chats
+Date conversion errors: Fallback to current timestamp
+
+Server Errors
+
+400 Bad Request: Invalid JSON or missing chats array
+500 Internal Server Error: File system or JSON parsing error
+404 Not Found: Invalid endpoint
+
+Rate Limiting
+No rate limiting implemented. For production, consider:
+
+Request throttling per IP
+Maximum payload size limits
+Authentication tokens
+
+
+### 2. docs/installation.md
+```markdown
+# Installation Guide
+
+## Client-Only Setup (Recommended for Most Users)
+```bash
+git clone https://github.com/ForestMars/Polyglot.git
+cd Polyglot
+npm install
+npm run dev
+Access at http://localhost:3000
+Full Setup with Sync Server
+bash# Terminal 1: Client
+npm run dev
+
+# Terminal 2: Server
+cd src/server
+node chatSyncApi.js
+Production Build
+bashnpm run build
+# Deploy dist/ directory to static hosting
+Verification
+
+Create a chat conversation
+Check browser DevTools → Application → IndexedDB → PolyglotDB
+For sync: POST test data to http://localhost:4001/sync
+
+Common Issues
+
+Port conflicts: Change CHAT_SYNC_PORT environment variable
+IndexedDB errors: Clear browser storage and reload
+CORS errors: Ensure server allows origin domain
 
