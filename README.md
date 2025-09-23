@@ -2,7 +2,7 @@
 # Polyglot Local Research Playground 
 
 Polyglot is a local AI research playground where you control memory across models and conversations.
-Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (GPT, Claude, Gemini, local models) perform with the same controlled memory context. Everything runs locally with optional sync, so your research environment and accumulated knowledge stays private and under your control.
+Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (Cloud-based and local models) perform with the same controlled memory context. Everything runs locally with optional sync, so your research environment and accumulated knowledge stays private and under your control.
 Key capabilities:
 
 Memory control: Decide what persists across all conversations and models
