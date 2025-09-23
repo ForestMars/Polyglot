@@ -7,8 +7,6 @@
 [![Vite](https://img.shields.io/badge/Vite-5.4.1-purple?style=flat&logo=vite)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.11-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
 
-![Polyglot UI](/assets/polyglot-screencap.png)
-
 Polyglot is a local AI research playground where you control memory across models and conversations.
 Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (GPT, Claude, Gemini, local models) perform with the same controlled memory context. Everything runs locally with optional sync, so your research environment and accumulated knowledge stays private and under your control.
 Key capabilities:
@@ -20,6 +18,8 @@ Research continuity: Long-term projects that build context over time
 Local-first: Your playground, your data, your control
 
 Full documentation at https://polyglot.gitbook.io
+
+![Polyglot UI](/assets/polyglot-screencap.png)
 
 ## AI Chat Interface
 
