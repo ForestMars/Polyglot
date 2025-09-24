@@ -1,172 +1,165 @@
-# Sync API Reference
+# Sync API
 
-## Base URL
+The Sync API enables optional synchronization of research data and memory context across devices while maintaining local-first architecture and privacy control.
+
+## Sync Server Endpoints
+
+Base URL: `http://localhost:4001` (configurable)
+
+### Research-Aware Synchronization
+
+#### GET /sync/projects
+
+Retrieve synchronized research projects with memory context.
+
+```bash
+curl -X GET http://localhost:4001/sync/projects?includeMemory=true
 ```
-http://localhost:4001
-```
-
-## Authentication
-None. All endpoints are publicly accessible.
-
-## Endpoints
-
-### GET /fetchChats
-Retrieve all server-stored chats.
-
-**Request:**
-- Method: `GET`
-- Headers: None required
-- Body: None
 
 **Response:**
 ```json
-[
-  {
-    "id": "chat-123",
-    "title": "Example Chat",
-    "messages": [
-      {
-        "id": "msg-456",
-        "role": "user",
-        "content": "Hello world",
-        "timestamp": "2024-01-15T10:30:00.000Z"
-      }
-    ],
-    "createdAt": "2024-01-15T10:00:00.000Z",
-    "updatedAt": "2024-01-15T10:30:00.000Z",
-    "lastModified": "2024-01-15T10:30:00.000Z",
-    "model": "gpt-4",
-    "provider": "openai",
-    "currentModel": "gpt-4",
-    "isArchived": false
+{
+  "projects": [
+    {
+      "id": "ai-comparison-study-2024",
+      "title": "Multi-Model AI Comparative Analysis",
+      "conversations": ["research-session-1", "research-session-2"],
+      "knowledgeBase": ["doc-1", "doc-2"],
+      "memoryContext": {
+        "globalInsights": ["insight-1", "insight-2"],
+        "crossConversationLinks": [...]
+      },
+      "lastSynced": "2024-03-15T10:30:00.000Z"
+    }
+  ],
+  "syncMetadata": {
+    "serverVersion": "1.2.0",
+    "lastFullSync": "2024-03-15T09:00:00.000Z"
   }
-]
-```
-
-**Status Codes:**
-- `200` - Success
-- `500` - Server error (file read failure)
-
-**Example:**
-```bash
-curl http://localhost:4001/fetchChats
-```
-
-### POST /pushChats
-Upload client chats to server without receiving server chats back.
-
-**Request:**
-- Method: `POST`
-- Headers: `Content-Type: application/json`
-- Body:
-```json
-{
-  "chats": [Chat[]]
 }
 ```
 
-**Response:**
-```json
-{
-  "ok": true
-}
-```
+#### POST /sync/conversations
 
-**Status Codes:**
-- `200` - Success
-- `400` - Invalid request (missing chats array)
-- `500` - Server error (file write failure)
+Synchronize conversation data with memory preservation.
 
-**Example:**
 ```bash
-curl -X POST http://localhost:4001/pushChats \
+curl -X POST http://localhost:4001/sync/conversations \
   -H "Content-Type: application/json" \
-  -d '{"chats": [{"id": "test", "title": "Test", "messages": [], "createdAt": "2024-01-15T10:00:00.000Z", "updatedAt": "2024-01-15T10:00:00.000Z", "lastModified": "2024-01-15T10:00:00.000Z"}]}'
+  -d '{
+    "conversations": [...],
+    "memoryContexts": [...],
+    "syncPreferences": {
+      "preservePrivacy": true,
+      "memoryLevel": "full"
+    }
+  }'
 ```
 
-### POST /sync
-Bidirectional synchronization. Upload client chats and receive missing server chats.
-
-**Request:**
-- Method: `POST`
-- Headers: `Content-Type: application/json`
-- Body:
+**Request Body:**
 ```json
 {
-  "chats": [Chat[]]
+  "conversations": [
+    {
+      "id": "research-session-1",
+      "projectId": "ai-comparison-study-2024",
+      "title": "GPT-4 Baseline Analysis",
+      "messages": [...],
+      "memoryMarkers": ["baseline-established", "methodology-defined"],
+      "modelHistory": [
+        {
+          "model": "gpt-4o",
+          "messageRange": [0, 15],
+          "contextTransfer": "full"
+        }
+      ],
+      "knowledgeReferences": ["methodology-doc"],
+      "lastModified": "2024-03-15T14:22:00.000Z"
+    }
+  ],
+  "memoryContexts": [
+    {
+      "conversationId": "research-session-1",
+      "contextData": {
+        "insights": ["key-insight-1"],
+        "hypotheses": ["hypothesis-1"],
+        "researchState": "baseline-complete"
+      },
+      "privacyLevel": "encrypted"
+    }
+  ]
 }
 ```
 
 **Response:**
 ```json
 {
-  "missing": [Chat[]]
+  "synced": ["research-session-1"],
+  "conflicts": [],
+  "missing": [],
+  "memoryIntegrity": "preserved",
+  "syncTimestamp": "2024-03-15T14:25:00.000Z"
 }
 ```
 
-The `missing` array contains chats that exist on the server but were not included in the client's request.
+#### POST /sync/knowledge-base
 
-**Status Codes:**
-- `200` - Success
-- `400` - Invalid request (missing chats array)
-- `500` - Server error
+Synchronize RAG documents and knowledge integration.
 
-**Example:**
 ```bash
-curl -X POST http://localhost:4001/sync \
+curl -X POST http://localhost:4001/sync/knowledge-base \
   -H "Content-Type: application/json" \
-  -d '{"chats": []}'
+  -d '{
+    "documents": [...],
+    "integrations": [...],
+    "privacySettings": {...}
+  }'
 ```
 
-### OPTIONS (All Endpoints)
-CORS preflight support.
+## Sync Client API
 
-**Response:**
-- Status: `204 No Content`
-- Headers: CORS headers set
+### Research Project Synchronization
 
-## Error Handling
-
-### 400 Bad Request
-```json
-{
-  "error": "chats must be array"
-}
+```typescript
+// Sync entire research project with memory preservation
+await syncClient.syncProject({
+  projectId: 'ai-comparison-study-2024',
+  syncComponents: {
+    conversations: true,
+    memoryContext: true,
+    knowledgeBase: true,
+    modelConfigurations: true
+  },
+  privacySettings: {
+    encryptMemory: true,
+    excludePersonalData: true,
+    anonymizeMetrics: false
+  },
+  conflictResolution: 'preserve-local-memory'
+});
 ```
 
-### 404 Not Found
-```json
-{
-  "error": "Not found"
-}
+### Selective Memory Synchronization
+
+```typescript
+// Sync only specific memory contexts
+await syncClient.syncMemoryContexts({
+  conversationIds: ['research-session-1', 'research-session-2'],
+  memoryLevel: 'markers-and-insights', // or 'full' or 'summary'
+  crossDeviceAccess: true,
+  retentionPolicy: 'permanent'
+});
+
+// Sync knowledge base with privacy controls
+await syncClient.syncKnowledgeBase({
+  documentIds: ['methodology-paper', 'previous-results'],
+  processingLevel: 'embeddings-only', // exclude raw text for privacy
+  accessibility: 'project-scoped',
+  encryptionLevel: 'device-key'
+});
 ```
 
-### 500 Internal Server Error
-```json
-{
-  "error": "Error message details"
-}
-```
+### Conflict Resolution for Research Data
 
-## CORS Configuration
-- `Access-Control-Allow-Origin: *`
-- `Access-Control-Allow-Methods: GET, POST, OPTIONS`
-- `Access-Control-Allow-Headers: Content-Type`
-
-## Data Persistence
-- Server stores all chats in `chatStore.json`
-- Merge strategy: ID-based deduplication (newer chats overwrite existing)
-- File format: JSON array of Chat objects
-
-## Conflict Resolution
-- **Strategy**: Last-write-wins based on chat ID
-- **No timestamp comparison**: Server accepts all incoming chats
-- **Duplicate handling**: Incoming chats replace existing chats with same ID
-
-## Rate Limiting
-None implemented. Consider adding rate limiting for production use.
-
-## Server Configuration
-- **Port**: Environment variable `CHAT_SYNC_PORT` (default: 4001)
-- **Storage**: `chatStore.json` in server directory
-- **Dependencies**: Node.js standard library only
+```typescript
+// Handle sync conflicts with
