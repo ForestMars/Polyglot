@@ -1,6 +1,20 @@
 # Polyglot Documentation
 
-Multi-model chat interface with offline-first architecture and cloud synchronization.
+Polyglot is a local playground for AI research where you control memory across models and conversations.
+Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (cloud or local) perform with the same controlled memory context. Everything runs locally with ability to syncronize multiple devices, so your research environment and accumulated knowledge stays private and under your control while being accessible anywhere.
+
+## What Makes Polyglot Different
+
+- Memory Control: You decide what persists across all conversations and models - no black box algorithms deciding what's "relevant"
+- Model Agnostic Research: Compare cloud and local models with identical memory context
+- Knowledge Integration: Import your documents (RAG) and connect external tools (MCP) to enhance AI capabilities
+- Research Continuity: Long-term projects that build context and knowledge over weeks and months
+- Local-First Architecture: Your research environment stays private and under your control
+
+## Core Use Cases
+- AI Researchers: Compare model performance with controlled variables, maintain experimental context across sessions, integrate custom knowledge bases for grounded responses.
+- Developers: Iterate on code with persistent context, maintain architectural discussions across multiple sessions, integrate development tools via MCP.
+- Knowledge Workers: Build long-term research projects, synthesize information across multiple AI interactions, maintain private knowledge environments.
 
 ## Essential Documents
 - **[Installation](installation.md)** - Complete setup guide
@@ -84,7 +98,7 @@ Returns all server-stored chats.
 Response:
 json[{
   "id": "chat-123",
-  "title": "My Chat", 
+  "title": "My Chat",
   "messages": [...],
   "createdAt": "2024-01-01T00:00:00.000Z",
   "updatedAt": "2024-01-01T00:00:00.000Z",
@@ -111,7 +125,7 @@ typescriptinterface Chat {
   title: string;
   messages: Message[];
   createdAt: Date;
-  updatedAt: Date; 
+  updatedAt: Date;
   lastModified: Date;
   model?: string;
   provider?: string;
@@ -178,4 +192,3 @@ Common Issues
 Port conflicts: Change CHAT_SYNC_PORT environment variable
 IndexedDB errors: Clear browser storage and reload
 CORS errors: Ensure server allows origin domain
-
