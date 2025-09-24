@@ -1,6 +1,6 @@
 # Summary
 
-* [README](README.md)
+* [Overview](README.md)
 * Getting Started
   * [Installation](getting-started/installation.md)
   * [Configuration](getting-started/configuration.md)
@@ -33,4 +33,3 @@
   * [Features](user-guide/features.md)
   * [Chat Management](user-guide/chat-management.md)
   * [Sync Usage](user-guide/sync-usage.md)
-
