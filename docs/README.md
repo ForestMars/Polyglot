@@ -33,6 +33,9 @@ Client-side IndexedDB storage with optional server synchronization via REST API.
 3. docs/quick-start.md
 markdown# Quick Start Guide
 
+---
+---
+
 ## 1. Install and Run (2 minutes)
 ```bash
 git clone https://github.com/ForestMars/Polyglot.git
