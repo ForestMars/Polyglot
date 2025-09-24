@@ -19,3 +19,4 @@ await indexedDbStorage.saveConversation(chat);
 const chats = await indexedDbStorage.listConversations();
 const chat = await indexedDbStorage.loadConversation(id);
 await indexedDbStorage.deleteConversation(id);
+```
