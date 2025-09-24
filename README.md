@@ -11,7 +11,7 @@ Knowledge integration: Add your documents (RAG) and external tools (MCP)
 Research continuity: Long-term projects that build context over time
 Local-first: Your playground, your data, your control
 
-Full documentation at https://polyglot-2.gitbook.io/polyglot/
+Full documentation at https://polyglot.gitbook.io/polyglot/
 
 
 ![Polyglot UI](/assets/polyglot-screencap.png)
