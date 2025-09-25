@@ -25,7 +25,7 @@
   * [Docker](deployment/docker.md)
 * Development
   * [Coding Standards](development/coding-standards.md)
-  * [Contributing](development/contributing.md)
+  * [Project Structure](development/contributing.md)
   * [Debugging](development/debugging.md)
   * [Testing](development/testing.md)
 * Reference
