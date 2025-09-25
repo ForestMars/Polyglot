@@ -60,6 +60,7 @@ A modern, elegant AI chat interface built with React, TypeScript, and Tailwind C
 - **Team Environments**: Ensure consistency when testing or demoing across machines  
 
 ## Development
+Full documentation at https://polyglot.gitbook.io/polyglot/
 
 ### Available Scripts
 
@@ -92,8 +93,6 @@ npm run type-check   # TypeScript type checking
 - **Icons**: Lucide React
 - **Animations**: CSS animations with Tailwind
 - **Testing**: Vitest, React Testing Library, MSW
-
-Full documentation at https://polyglot.gitbook.io/polyglot/
 
 ## License
 
