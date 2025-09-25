@@ -1,18 +1,22 @@
 
 # Polyglot Local Research Playground 
 
-Polyglot is a local AI research playground where you control memory across models and conversations.
-Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (Cloud-based and local models) perform with the same controlled memory context. Everything runs locally with optional sync, so your research environment and accumulated knowledge stays private and under your control.
-Key capabilities:
+A local AI playground for both personal use and research, where you control memory across models and conversations. Polyglot works equally well as a personal AI companion that remembers your interests and projects, or as a rigorous research environment for comparative AI studies. Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (Cloud-based and local models) perform with the same controlled memory context. Everything runs locally with optional sync, so your research environment and accumulated knowledge stays private and under your control.
 
-Memory control: Decide what persists across all conversations and models
-Model comparison: Switch between GPT, Claude, Gemini, and local models with consistent context
-Knowledge integration: Add your documents (RAG) and external tools (MCP)
-Research continuity: Long-term projects that build context over time
-Local-first: Your playground, your data, your control
+## Philosophy: Memory as the Foundation of Intelligence
+
+Traditional AI interfaces treat each conversation as isolated and ephemeral. Polyglot recognizes that true intelligence—both artificial and human—depends on continuity of memory, the ability to build upon previous understanding, and the freedom to explore ideas across different perspectives without losing context.
+By making memory persistent and transferable across AI models, Polyglot enables new forms of investigation: controlled comparative studies, longitudinal research projects, and cumulative knowledge systems that grow more valuable over time.
+
+### Key capabilities:
+
+- Memory control: Decide what persists across all conversations and models
+- Model comparison: Switch between GPT, Claude, Gemini, and local models with consistent context
+- Knowledge integration: Add your documents (RAG) and external tools (MCP)
+- Research continuity: Long-term projects that build context over time
+- Local-first: Your playground, your data, your control
 
 Full documentation at https://polyglot.gitbook.io/polyglot/
-
 
 ![Polyglot UI](/assets/polyglot-screencap.png)
 
@@ -88,40 +92,6 @@ PolyGlot includes a **robust, multi-layer persistence system** that ensures your
 2. **Switch models** - Click on model badges in the chat header to switch AI models
 3. **Manage history** - Use the sidebar to browse, search, and organize conversations
 4. **Archive conversations** - Right-click on conversations to archive or delete them
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn (bun support coming soon)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/polyglot.git
-   cd polyglot
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables** (optional for development)
-   ```bash
-   cp .env.example .env.local
-   # Edit .env.local with your API keys if testing real integrations
-   ```
-
-4. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Open your browser**
-   Navigate to `http://localhost:8080`
 
 ## Configuration
 
