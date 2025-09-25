@@ -1,9 +1,10 @@
 # Polyglot Documentation
+## Polyglot Dokumentation
 
 Polyglot is a local playground for AI research where you control memory across models and conversations.
 Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (cloud or local) perform with the same controlled memory context. Everything runs locally with ability to syncronize multiple devices, so your research environment and accumulated knowledge stays private and under your control while being accessible anywhere.
 
-## What Makes Polyglot So Different
+## What Makes Polyglot Different
 
 - Memory Control: You decide what persists across all conversations and models - no black box algorithms deciding what's "relevant"
 - Model Agnostic Research: Compare cloud and local models with identical memory context
