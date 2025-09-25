@@ -31,4 +31,5 @@
 * Reference
   * [FAQ](reference/faq.md)
   * [Roadmap](reference/roadmap.md)
+  * [Security](security.md)
 * [Changelog](reference/changelog.md)
