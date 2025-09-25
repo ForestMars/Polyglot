@@ -1,7 +1,7 @@
 
 # Polyglot Local Research Playground 
 
-A local AI playground for both personal use and research, where you control memory across models and conversations. Polyglot works equally well as a personal AI companion that remembers your interests and projects, or as a rigorous research environment for comparative AI studies. Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (Cloud-based and local models) perform with the same controlled memory context. Everything runs locally with optional sync, so your research environment and accumulated knowledge stays private and under your control.
+A local AI playground for both personal use and research, where you control memory and context across models and conversations. Polyglot works equally well as a personal AI companion that remembers your interests and projects, or as a rigorous research environment for comparative AI studies. Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (Cloud-based and local models) perform with the same controlled memory context. Everything runs locally with optional sync, so your research environment and accumulated knowledge stays private and under your control.
 
 Full documentation at https://polyglot.gitbook.io/polyglot/
 
