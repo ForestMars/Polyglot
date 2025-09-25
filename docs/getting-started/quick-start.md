@@ -1,6 +1,6 @@
 ## Get Your Research Environment Running (3 minutes)
-```git clone https://github.com/ForestMars/Polyglot.git
-   cd Polyglot && npm install && npm run dev```
+```git clone https://github.com/ForestMars/Polyglot.git```
+```cd Polyglot && npm install && npm run dev```
 
 ## Your First Research Session (2 minutes)
 
