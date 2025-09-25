@@ -1,8 +1,43 @@
-## Get Your Research Environment Running (3 minutes)
+## Quick Start
+
+### TL;DR
 ```bash
     git clone https://github.com/ForestMars/Polyglot.git
    cd Polyglot && npm install && npm run dev
 ```
+
+---
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn (bun support coming soon)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/polyglot.git
+   cd polyglot
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables** (optional for development)
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your API keys if testing real integrations
+   ```
+
+4. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser**
+   Navigate to `http://localhost:8080`
 
 ## Your First Research Session (2 minutes)
 
