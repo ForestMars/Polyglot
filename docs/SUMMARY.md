@@ -1,7 +1,7 @@
 # Summary
 
-* [Overview](README.md)
-* Getting Started
+* [README](README.md)
+* Getting It Started
   * [Installation](getting-started/installation.md)
   * [Configuration](getting-started/configuration.md)
   * [Quick Start](getting-started/quick-start.md)
