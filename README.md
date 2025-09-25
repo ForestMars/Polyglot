@@ -7,7 +7,7 @@ Full documentation at https://polyglot.gitbook.io/polyglot/
 
 ## Philosophy: Memory as the Foundation of Intelligence
 
-Traditional AI interfaces treat each conversation as isolated and ephemeral. Polyglot recognizes that true intelligence—both artificial and human—depends on continuity of memory, the ability to build upon previous understanding, and the freedom to explore ideas across different perspectives without losing context.
+Traditional AI interfaces treat each conversation as isolated and ephemeral. Polyglot recognizes that 'true' intelligence (both artificial and human) depends on continuity of memory, the ability to build upon previous understanding, and the freedom to explore ideas across different perspectives without losing context.
 By making memory persistent and transferable across AI models, Polyglot enables new forms of investigation: controlled comparative studies, longitudinal research projects, and cumulative knowledge systems that grow more valuable over time.
 
 ### Key capabilities:
