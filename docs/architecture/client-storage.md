@@ -1,337 +1,363 @@
-# Client Storage Architecture
+# Client Storage
 
-## IndexedDB Implementation
+The client storage layer is designed specifically for AI research workflows, providing persistent memory management, knowledge integration, and research continuity across sessions and model switches.
 
-### Database Schema
+## Storage Architecture
 
-#### PolyglotDB Structure
-```typescript
-class PolyglotDatabase extends Dexie {
-  chats!: Table<Chat, string>;
-  meta!: Table<AppMeta, string>;
+### Memory-First Design
 
-  constructor() {
-    super('PolyglotDB');
+All storage operations prioritize research memory preservation and retrieval:
 
-    this.version(1).stores({
-      chats: '++id, title, createdAt, updatedAt, lastModified, model, provider, currentModel, isArchived',
-      meta: 'id, lastSync, version'
-    });
-  }
-}
+```
+IndexedDB Storage Structure
+├── ConversationMemory
+│   ├── Messages (full conversation history)
+│   ├── MemoryMarkers (research insights, decisions)
+│   ├── ModelHistory (model switches with context)
+│   └── ResearchContext (project links, methodology)
+├── KnowledgeBase
+│   ├── RAGDocuments (processed document chunks)
+│   ├── Embeddings (semantic search vectors)
+│   ├── MCPIntegrations (tool usage and results)
+│   └── CrossReferences (links to conversations)
+├── ResearchProjects
+│   ├── ProjectMetadata (goals, methodology, timeline)
+│   ├── ConversationLinks (related discussions)
+│   ├── InsightEvolution (knowledge growth over time)
+│   └── ComparativeData (cross-model performance)
+└── SyncData
+    ├── DeviceState (multi-device coordination)
+    ├── ConflictResolution (merge strategies)
+    └── PrivacyControls (sync permissions)
 ```
 
-#### Table Definitions
+### Research-Optimized Storage Patterns
 
-##### chats Table
-- **Primary Key**: `++id` (auto-incrementing string)
-- **Indexes**:
-  - `title` - Chat title for searching
-  - `createdAt` - Creation timestamp for sorting
-  - `updatedAt` - Last update for change tracking
-  - `lastModified` - Sync timestamp for conflict resolution
-  - `model` - AI model filtering
-  - `provider` - AI provider filtering
-  - `currentModel` - Active model tracking
-  - `isArchived` - Archive status filtering
+**Memory Context Retrieval**: Optimized indexing for instant access to conversation memory when switching between models or resuming research sessions.
 
-##### meta Table
-- **Primary Key**: `id` (string)
-- **Indexes**:
-  - `lastSync` - Synchronization timestamp
-  - `version` - Application version tracking
+**Knowledge Base Integration**: Semantic indexing of RAG documents with conversation cross-referencing for enhanced research context.
 
-### Data Models
+**Comparative Study Storage**: Specialized storage for side-by-side model comparisons with identical input contexts and performance metrics.
 
-#### Chat Entity
-```typescript
-interface Chat {
-  id?: string;                    // UUID, auto-generated if not provided
-  title: string;                  // Display name for the chat
-  messages: Message[];            // Array of conversation messages
-  createdAt: Date;               // When chat was first created
-  updatedAt: Date;               // Last time chat was modified
-  lastModified: Date;            // Used for sync conflict resolution
-  model?: string;                // AI model identifier (e.g., 'gpt-4')
-  provider?: string;             // AI provider (e.g., 'openai')
-  currentModel?: string;         // Currently active model
-  isArchived?: boolean;          // Archive status (default: false)
-}
-```
+**Long-term Research Persistence**: Efficient storage patterns for research projects spanning weeks or months with accumulated knowledge.
 
-#### Message Entity
-```typescript
-interface Message {
-  id: string;                    // Unique message identifier
-  role: 'user' | 'assistant';    // Message sender type
-  content: string;               // Message text content
-  timestamp: Date;               // When message was created
-}
-```
+## Memory Management
 
-#### AppMeta Entity
-```typescript
-interface AppMeta {
-  id: string;                    // Metadata record identifier
-  lastSync?: Date;               // Last synchronization timestamp
-  version?: string;              // Application version
-  [key: string]: any;            // Extensible metadata fields
-}
-```
+### Conversation Memory Storage
 
-## Storage Operations
-
-### CRUD Operations
-
-#### Create/Update Chat
-```typescript
-async saveConversation(conversation: Chat): Promise<void> {
-  const preparedConversation = this.prepareChatForStorage(conversation);
-  await this.db.chats.put(preparedConversation);
-}
-
-private prepareChatForStorage(chat: Chat): Chat {
-  const now = new Date();
-  return {
-    ...chat,
-    id: chat.id || crypto.randomUUID(),
-    createdAt: chat.createdAt || now,
-    updatedAt: now,
-    lastModified: now,
-    isArchived: chat.isArchived || false,
-    currentModel: chat.currentModel || chat.model || 'unknown',
-    messages: (chat.messages || []).map(msg => ({
-      ...msg,
-      id: msg.id || crypto.randomUUID(),
-      timestamp: msg.timestamp || now
-    }))
-  };
-}
-```
-
-#### Read Operations
-```typescript
-// Get all chats (ordered by last modified)
-async listConversations(showArchived: boolean = false): Promise<Chat[]> {
-  let query = this.db.chats.orderBy('lastModified').reverse();
-  const chats = await query.toArray();
-  const convertedChats = chats.map(chat => this.convertDatesToObjects(chat));
-
-  return showArchived ?
-    convertedChats :
-    convertedChats.filter(chat => !chat.isArchived);
-}
-
-// Get specific chat
-async loadConversation(id: string): Promise<Chat> {
-  const chat = await this.db.chats.get(id);
-  if (!chat) throw new Error(`Conversation not found: ${id}`);
-  return this.convertDatesToObjects(chat);
-}
-```
-
-#### Delete Operations
-```typescript
-async deleteConversation(id: string): Promise<void> {
-  await this.db.chats.delete(id);
-}
-```
-
-### Date Handling
-
-#### Storage Format
-IndexedDB stores dates as ISO string representations for cross-browser compatibility.
-
-#### Conversion Logic
-```typescript
-private convertDatesToObjects(chat: any): Chat {
-  return {
-    ...chat,
-    createdAt: new Date(chat.createdAt),
-    updatedAt: new Date(chat.updatedAt),
-    lastModified: new Date(chat.lastModified || chat.updatedAt || Date.now()),
-    isArchived: chat.isArchived || false,
-    currentModel: chat.currentModel || chat.model,
-    messages: (chat.messages || []).map((msg: any) => ({
-      ...msg,
-      timestamp: new Date(msg.timestamp)
-    }))
-  };
-}
-```
-
-#### Error Handling
-- Invalid dates default to current timestamp
-- Missing dates use fallback chain: `lastModified || updatedAt || Date.now()`
-- Conversion errors are logged but don't throw exceptions
-
-## Database Management
-
-### Initialization Process
-```typescript
-async initialize(): Promise<void> {
-  await this.db.open();
-
-  // Verify schema integrity
-  const tableNames = this.db.tables.map(table => table.name);
-  const expectedTables = ['chats', 'meta'];
-
-  for (const expectedTable of expectedTables) {
-    if (!tableNames.includes(expectedTable)) {
-      throw new Error(`Missing expected table: ${expectedTable}`);
+```javascript
+// Store conversation with research memory context
+const conversationMemory = {
+  id: 'research-session-1',
+  projectId: 'ai-comparison-study-2024',
+  title: 'GPT-4 Baseline Analysis',
+  messages: [
+    {
+      id: 'msg-1',
+      role: 'user',
+      content: 'Analyze the methodology in this research paper...',
+      timestamp: new Date(),
+      memoryMarkers: ['methodology-analysis-request'],
+      knowledgeReferences: ['research-paper-doc-1']
+    },
+    {
+      id: 'msg-2',
+      role: 'assistant',
+      content: 'The methodology follows a comparative approach...',
+      timestamp: new Date(),
+      model: 'gpt-4o',
+      memoryMarkers: ['methodology-insight-1', 'comparative-approach-identified'],
+      contextQuality: 'high'
     }
+  ],
+  memoryMarkers: [
+    {
+      id: 'methodology-insight-1',
+      type: 'research-finding',
+      content: 'Comparative approach with controlled variables',
+      confidence: 0.9,
+      messageIds: ['msg-2'],
+      researchRelevance: 'critical'
+    }
+  ],
+  modelHistory: [
+    {
+      model: 'gpt-4o',
+      provider: 'openai',
+      messageRange: [0, 10],
+      contextPreservation: 'full',
+      performanceMetrics: {
+        responseTime: '2.3s',
+        contextRetention: 'excellent',
+        insightQuality: 'high'
+      }
+    }
+  ],
+  knowledgeIntegration: {
+    ragDocuments: ['research-paper-doc-1'],
+    mcpTools: ['file-analyzer'],
+    externalData: []
+  },
+  researchMetadata: {
+    studyPhase: 'baseline-establishment',
+    hypotheses: ['hypothesis-1'],
+    methodology: 'comparative-analysis'
   }
-}
+};
+
+await clientStorage.saveConversationMemory(conversationMemory);
 ```
 
-### Version Management
-```typescript
-this.version(1).upgrade(async (trans) => {
-  // Initialize default metadata
-  await trans.table('meta').put({
-    id: 'app',
-    version: '1.0.0',
-    lastSync: null
-  });
+### Memory Context Preservation
+
+```javascript
+// Preserve memory context for model switching
+const memoryContext = {
+  conversationId: 'research-session-1',
+  contextSnapshot: {
+    fullHistory: messages,
+    criticalInsights: extractedMemoryMarkers,
+    researchState: currentHypotheses,
+    knowledgeState: activeRAGDocuments,
+    modelPerformance: performanceMetrics
+  },
+  preservationLevel: 'full', // maintains complete research context
+  timestamp: new Date(),
+  integrityHash: computeContextHash(contextSnapshot)
+};
+
+await clientStorage.saveMemoryContext(memoryContext);
+
+// Restore context after model switch
+const restoredContext = await clientStorage.loadMemoryContext({
+  conversationId: 'research-session-1',
+  targetModel: 'claude-sonnet-4',
+  preservationLevel: 'full'
 });
 ```
 
-### Error Recovery
-```typescript
-private async resetDatabase(): Promise<void> {
-  await this.db.delete();
-  this.db = new PolyglotDatabase();
-  await this.db.open();
-}
-```
+## Knowledge Base Storage
 
-Recovery triggers:
-- `VersionError`: Schema version mismatch
-- `NotFoundError`: Missing database or tables
-- Corruption detection during operations
+### RAG Document Integration
 
-## Query Optimization
-
-### Index Usage
-```typescript
-// Efficient: Uses lastModified index
-this.db.chats.orderBy('lastModified').reverse()
-
-// Efficient: Uses primary key
-this.db.chats.get(id)
-
-// Efficient: Uses isArchived index
-this.db.chats.where('isArchived').equals(false)
-
-// Less efficient: Full table scan
-this.db.chats.filter(chat => chat.title.includes(searchTerm))
-```
-
-### Performance Considerations
-- **Primary key lookups**: O(log n)
-- **Indexed queries**: O(log n + m) where m = result size
-- **Full table scans**: O(n) - avoided where possible
-- **Sorting**: Uses index when possible
-
-## Storage Capacity Management
-
-### Browser Limits
-- **Chrome**: ~60% of available disk space
-- **Firefox**: Up to 2GB per origin
-- **Safari**: 1GB per origin
-- **Edge**: Similar to Chrome
-
-### Quota Monitoring
-```typescript
-async checkStorageQuota(): Promise<{usage: number, quota: number}> {
-  const estimate = await navigator.storage.estimate();
-  return {
-    usage: estimate.usage || 0,
-    quota: estimate.quota || 0
-  };
-}
-```
-
-### Cleanup Strategies
-- Archive old conversations instead of deleting
-- Implement LRU eviction for message history
-- Compress large message content
-- User-initiated cleanup tools
-
-## Data Migration
-
-### localStorage Migration
-```typescript
-async migrateFromLocalStorage(): Promise<void> {
-  const localData = localStorage.getItem('polyglot-chats');
-  if (!localData) return;
-
-  const chats: Chat[] = JSON.parse(localData);
-  for (const chat of chats) {
-    await this.saveChat(chat);
+```javascript
+// Store processed RAG documents with research context
+const ragDocument = {
+  id: 'methodology-paper-2024',
+  title: 'Advanced AI Model Comparison Methodologies',
+  metadata: {
+    authors: ['Dr. Smith', 'Dr. Johnson'],
+    publicationDate: '2024-01-15',
+    researchDomain: 'ai-evaluation',
+    documentType: 'research-paper'
+  },
+  content: {
+    rawText: fullDocumentText,
+    processedChunks: [
+      {
+        id: 'chunk-1',
+        text: 'Comparative methodology requires controlled variables...',
+        semanticSummary: 'Methodology requirements for fair comparison',
+        embedding: vectorEmbedding,
+        researchRelevance: 0.95,
+        keyTerms: ['comparative-methodology', 'controlled-variables']
+      }
+    ]
+  },
+  researchIntegration: {
+    projectIds: ['ai-comparison-study-2024'],
+    conversationReferences: ['research-session-1'],
+    insightGeneration: [
+      {
+        insight: 'controlled-variable-importance',
+        confidence: 0.9,
+        sourceChunk: 'chunk-1'
+      }
+    ]
+  },
+  accessControl: {
+    scope: 'project-wide',
+    permissions: 'read-reference',
+    retention: 'permanent'
   }
+};
 
-  localStorage.removeItem('polyglot-chats');
-}
+await clientStorage.storeRAGDocument(ragDocument);
 ```
 
-### Version Upgrades
-Future version upgrades handled via Dexie version management:
-```typescript
-this.version(2).stores({
-  // Modified schema
-}).upgrade(async (trans) => {
-  // Migration logic
+### Semantic Search Integration
+
+```javascript
+// Semantic search with research context awareness
+const searchResults = await clientStorage.searchKnowledgeBase({
+  query: 'methodology for comparative AI analysis',
+  conversationContext: 'research-session-1',
+  projectContext: 'ai-comparison-study-2024',
+  searchParameters: {
+    semanticSimilarity: 0.8,
+    maxResults: 10,
+    includeContext: true,
+    prioritizeRecent: false, // prioritize relevance over recency
+    researchRelevance: 'high'
+  }
 });
-```
 
-## Synchronization Support
-
-### Conflict Detection
-```typescript
-// lastModified field used for conflict resolution
-const isNewer = serverChat.lastModified > localChat.lastModified;
-```
-
-### Sync Preparation
-```typescript
-// Prepare chats for server sync
-const chatsForSync = await this.listConversations(true); // Include archived
-const syncPayload = chatsForSync.map(chat => ({
-  ...chat,
-  // Ensure dates are ISO strings
-  createdAt: chat.createdAt.toISOString(),
-  updatedAt: chat.updatedAt.toISOString(),
-  lastModified: chat.lastModified.toISOString(),
-  messages: chat.messages.map(msg => ({
-    ...msg,
-    timestamp: msg.timestamp.toISOString()
-  }))
+// Results include semantic matches with research context
+const enhancedResults = searchResults.map(result => ({
+  ...result,
+  researchContext: {
+    projectRelevance: calculateProjectRelevance(result, projectContext),
+    conversationRelevance: calculateConversationRelevance(result, conversationContext),
+    insightPotential: assessInsightPotential(result)
+  }
 }));
 ```
 
-## Error Handling Strategy
+## Research Project Storage
 
-### Graceful Degradation
-- Database initialization failures trigger reset
-- Query failures return empty results
-- Storage quota exceeded logs warnings
-- Date conversion errors use fallbacks
+### Project Organization
 
-### Error Recovery
-```typescript
-async safeOperation<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
-  try {
-    return await operation();
-  } catch (error) {
-    console.error('Storage operation failed:', error);
-    return fallback;
+```javascript
+// Store research project with hierarchical organization
+const researchProject = {
+  id: 'ai-comparison-study-2024',
+  title: 'Multi-Model AI Comparative Analysis',
+  metadata: {
+    startDate: new Date('2024-01-01'),
+    researchers: ['primary-researcher-id'],
+    researchDomain: 'ai-evaluation',
+    methodology: 'controlled-comparative-analysis'
+  },
+  structure: {
+    conversations: [
+      {
+        id: 'gpt4-baseline-session',
+        role: 'baseline-establishment',
+        model: 'gpt-4o',
+        phase: 'initial-testing'
+      },
+      {
+        id: 'claude-baseline-session',
+        role: 'baseline-establishment',
+        model: 'claude-sonnet-4',
+        phase: 'initial-testing'
+      },
+      {
+        id: 'cross-model-comparison',
+        role: 'comparative-analysis',
+        models: ['gpt-4o', 'claude-sonnet-4'],
+        phase: 'comparison'
+      }
+    ],
+    knowledgeBase: [
+      {
+        id: 'methodology-paper',
+        type: 'research-foundation',
+        importance: 'critical'
+      },
+      {
+        id: 'previous-study-results',
+        type: 'comparative-data',
+        importance: 'high'
+      }
+    ],
+    memoryArchitecture: {
+      crossConversationLinks: true,
+      insightEvolution: true,
+      comparativeTracking: true
+    }
+  },
+  researchProgress: {
+    currentPhase: 'baseline-complete',
+    completedMilestones: ['methodology-established', 'tools-configured'],
+    nextMilestones: ['comparative-analysis', 'results-synthesis'],
+    insightEvolution: [
+      {
+        timestamp: new Date('2024-01-15'),
+        insight: 'baseline-methodology-effective',
+        confidence: 0.9,
+        source: 'gpt4-baseline-session'
+      }
+    ]
   }
-}
+};
+
+await clientStorage.saveResearchProject(researchProject);
 ```
 
-### User Experience
-- Operations fail silently with logging
-- User sees loading states during recovery
-- Data integrity prioritized over perfect UX
-- Clear error messages for irrecoverable failures
+### Cross-Conversation Linking
+
+```javascript
+// Link related conversations for research continuity
+await clientStorage.linkConversations({
+  projectId: 'ai-comparison-study-2024',
+  links: [
+    {
+      primary: 'gpt4-baseline-session',
+      related: 'claude-baseline-session',
+      relationship: 'comparative-pair',
+      linkMetadata: {
+        comparisonType: 'baseline-establishment',
+        sharedContext: 'identical-input-prompts',
+        analysisReadiness: true
+      }
+    },
+    {
+      primary: 'cross-model-comparison',
+      related: ['gpt4-baseline-session', 'claude-baseline-session'],
+      relationship: 'synthesis-source',
+      linkMetadata: {
+        synthesisType: 'comparative-analysis',
+        dataSource: 'baseline-results'
+      }
+    }
+  ]
+});
+```
+
+## Performance and Optimization
+
+### Memory-Optimized Storage
+
+```javascript
+// Configure storage optimization for research workloads
+await clientStorage.configureOptimization({
+  memoryManagement: {
+    contextCaching: 'aggressive', // fast model switching
+    insightIndexing: 'semantic', // research-aware search
+    compressionStrategy: 'lossless-research' // preserve research integrity
+  },
+  knowledgeBase: {
+    embeddingStorage: 'optimized', // fast semantic search
+    chunkRetrieval: 'context-aware', // research context prioritization
+    crossReferenceIndex: 'comprehensive' // full relationship mapping
+  },
+  researchWorkflow: {
+    projectLoadTime: 'sub-100ms', // instant project switching
+    conversationRetrieval: 'instant', // immediate memory access
+    comparativeDataAccess: 'prioritized' // fast cross-model analysis
+  }
+});
+```
+
+### Storage Analytics
+
+```javascript
+// Monitor storage performance for research efficiency
+const storageAnalytics = await clientStorage.getAnalytics({
+  timeRange: '30-days',
+  metrics: [
+    'memory-context-retrieval-time',
+    'knowledge-base-search-performance',
+    'cross-conversation-link-efficiency',
+    'research-data-growth-rate'
+  ]
+});
+
+console.log({
+  averageContextRetrievalTime: storageAnalytics.memoryContext.averageTime,
+  knowledgeSearchPerformance: storageAnalytics.knowledgeBase.searchTime,
+  researchDataGrowth: storageAnalytics.growth.monthlyIncrease,
+  storageEfficiency: storageAnalytics.optimization.compressionRatio
+});
+```
