@@ -3,6 +3,8 @@
 
 A local AI playground for both personal use and research, where you control memory across models and conversations. Polyglot works equally well as a personal AI companion that remembers your interests and projects, or as a rigorous research environment for comparative AI studies. Build persistent knowledge that carries across model switches, chat threads, and sessions. Add your own documents via RAG, connect tools through MCP servers, and compare how different AI models (Cloud-based and local models) perform with the same controlled memory context. Everything runs locally with optional sync, so your research environment and accumulated knowledge stays private and under your control.
 
+Full documentation at https://polyglot.gitbook.io/polyglot/
+
 ## Philosophy: Memory as the Foundation of Intelligence
 
 Traditional AI interfaces treat each conversation as isolated and ephemeral. Polyglot recognizes that true intelligence—both artificial and human—depends on continuity of memory, the ability to build upon previous understanding, and the freedom to explore ideas across different perspectives without losing context.
@@ -15,8 +17,6 @@ By making memory persistent and transferable across AI models, Polyglot enables 
 - Knowledge integration: Add your documents (RAG) and external tools (MCP)
 - Research continuity: Long-term projects that build context over time
 - Local-first: Your playground, your data, your control
-
-Full documentation at https://polyglot.gitbook.io/polyglot/
 
 ![Polyglot UI](/assets/polyglot-screencap.png)
 
