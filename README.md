@@ -17,9 +17,8 @@ Traditional AI interfaces treat each conversation as isolated and ephemeral. Pol
 - Research continuity: Long-term projects that build context over time
 - Local-first: Your playground, your data, your control
 
-![Polyglot UI](/assets/polyglot-screencap.png)
-
 ## AI Chat Interface
+![Polyglot UI](/assets/polyglot-screencap.png)
 
 [![React](https://img.shields.io/badge/React-18.3.1-blue?style=flat&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5.3-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
