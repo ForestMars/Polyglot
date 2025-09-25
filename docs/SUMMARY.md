@@ -5,8 +5,7 @@
   * [Installation](getting-started/installation.md)
   * [Configuration](getting-started/configuration.md)
   * [Quick Start](getting-started/quick-start.md)
-* Architecture
-  * [Overview](architecture/overview.md)
+* [Architecture](architecture/overview.md)
   * [Client Storage](architecture/client-storage.md)
   * [Server Storage](architecture/server-storage.md)
   * [Data Models](architecture/data-models.md)
