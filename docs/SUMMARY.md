@@ -5,7 +5,12 @@
   * [Installation](getting-started/installation.md)
   * [Configuration](getting-started/configuration.md)
   * [Quick Start](getting-started/quick-start.md)
+* User Guide
+  * [Features](user-guide/features.md)
+  * [Chat Management](user-guide/chat-management.md)
+  * [Sync Usage](user-guide/sync-usage.md)
 * [Architecture](architecture/overview.md)
+  * [CRDT](crdt.md)
   * [Client Storage](architecture/client-storage.md)
   * [Server Storage](architecture/server-storage.md)
   * [Data Models](architecture/data-models.md)
@@ -14,7 +19,6 @@
   * [Client API](api/client-api.md)
   * [Storage API](api/storage-api.md)
   * [Sync API](api/sync-api.md)
-* [CRDT](crdt.md)
 * [Deployment](deployment/deployment.md)
   * [Client Deployment](deployment/client-deployment.md)
   * [Server Deployment](deployment/server-deployment.md)
@@ -24,12 +28,7 @@
   * [Contributing](development/contributing.md)
   * [Debugging](development/debugging.md)
   * [Testing](development/testing.md)
-
 * Reference
-  * [Changelog](reference/changelog.md)
   * [FAQ](reference/faq.md)
   * [Roadmap](reference/roadmap.md)
-* User Guide
-  * [Features](user-guide/features.md)
-  * [Chat Management](user-guide/chat-management.md)
-  * [Sync Usage](user-guide/sync-usage.md)
+* [Changelog](reference/changelog.md)
