@@ -11,7 +11,7 @@
   * [Data Models](architecture/data-models.md)
   * [Sync Protocol](architecture/sync-protocol.md)
 * [CRDT](crdt.md)
-* Deployment
+* [Deployment](deployment/deployment.md)
   * [Client Deployment](deployment/client-deployment.md)
   * [Server Deployment](deployment/server-deployment.md)
   * [Docker](deployment/docker.md)
