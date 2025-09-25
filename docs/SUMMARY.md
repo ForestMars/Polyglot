@@ -20,7 +20,7 @@
   * [Contributing](development/contributing.md)
   * [Debugging](development/debugging.md)
   * [Testing](development/testing.md)
-* API
+* [API](api/api.md)
   * [Client API](api/client-api.md)
   * [Storage API](api/storage-api.md)
   * [Sync API](api/sync-api.md)
