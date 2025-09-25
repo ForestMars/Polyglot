@@ -2,6 +2,8 @@
 
 Polyglot's architecture is built around a central principle: **controlled memory management for AI research workflows**. Every component is designed to preserve, enhance, and leverage conversational memory across different AI models and research sessions.
 
+![PolyGlot Component Architecture](../assets/component-architecture.png)
+
 ## Core Architecture Philosophy
 
 ### Memory-Centric Design
