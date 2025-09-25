@@ -1,4 +1,4 @@
-# Client API Reference
+# Client API Reference Page
 
 ## IndexedDbStorage Class
 
