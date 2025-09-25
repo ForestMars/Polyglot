@@ -5,10 +5,9 @@ A local AI playground for both personal use and research, where you control memo
 
 Full documentation at https://polyglot.gitbook.io/polyglot/
 
-## Philosophy: Memory as the Foundation of Intelligence
+## Memory as the Foundation of Intelligence
 
-Traditional AI interfaces treat each conversation as isolated and ephemeral. Polyglot recognizes that 'true' intelligence (both artificial and human) depends on continuity of memory, the ability to build upon previous understanding, and the freedom to explore ideas across different perspectives without losing context.
-By making memory persistent and transferable across AI models, Polyglot enables new forms of investigation: controlled comparative studies, longitudinal research projects, and cumulative knowledge systems that grow more valuable over time.
+Traditional AI interfaces treat each conversation as isolated and ephemeral. Polyglot recognizes that 'true' intelligence (both artificial and human) depends on continuity of memory, the ability to build upon previous understanding, and the freedom to explore ideas across different perspectives without losing context. By making memory persistent and transferable across differentAI models, sessions and threads, Polyglot enables new forms of investigation: controlled comparative studies, longitudinal research projects, and cumulative knowledge systems that grow more valuable over time. This same persistent memory architecture also supports personalized applications, including AI assistants that function as digital twins or "second brains" under individual control. Whether applied to research contexts or personal use, these memory-enabled systems can maintain continuity across different AI models and platforms, accumulating context-specific knowledge and evolving their understanding over extended extended interactions in a highly controllable way. 
 
 ### Key capabilities:
 
