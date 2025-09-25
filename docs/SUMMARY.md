@@ -10,6 +10,10 @@
   * [Server Storage](architecture/server-storage.md)
   * [Data Models](architecture/data-models.md)
   * [Sync Protocol](architecture/sync-protocol.md)
+* [API](api/api.md)
+  * [Client API](api/client-api.md)
+  * [Storage API](api/storage-api.md)
+  * [Sync API](api/sync-api.md)
 * [CRDT](crdt.md)
 * [Deployment](deployment/deployment.md)
   * [Client Deployment](deployment/client-deployment.md)
@@ -20,10 +24,7 @@
   * [Contributing](development/contributing.md)
   * [Debugging](development/debugging.md)
   * [Testing](development/testing.md)
-* [API](api/api.md)
-  * [Client API](api/client-api.md)
-  * [Storage API](api/storage-api.md)
-  * [Sync API](api/sync-api.md)
+
 * Reference
   * [Changelog](reference/changelog.md)
   * [FAQ](reference/faq.md)
