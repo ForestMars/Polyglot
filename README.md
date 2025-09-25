@@ -106,3 +106,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Lucide](https://lucide.dev/) for the beautiful icons
 - [Vitest](https://vitest.dev/) for the fast testing framework
 
+Full documentation at https://polyglot.gitbook.io/polyglot/
