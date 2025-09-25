@@ -1,210 +1,284 @@
-# System Architecture Overview
+# Architecture Overview
 
-## High-Level Architecture
+Polyglot's architecture is built around a central principle: **controlled memory management for AI research workflows**. Every component is designed to preserve, enhance, and leverage conversational memory across different AI models and research sessions.
 
-Polyglot implements a **client-server architecture** with **offline-first design principles**.
+## Core Architecture Philosophy
+
+### Memory-Centric Design
+
+Traditional AI chat interfaces treat conversations as isolated sessions. Polyglot treats them as **accumulated research memory** that grows more valuable over time:
+
+- **Persistent Context**: Conversations maintain full context across browser sessions and model switches
+- **Memory Evolution**: Research insights accumulate and evolve through multiple interactions
+- **Knowledge Integration**: RAG documents and MCP tools become part of persistent memory
+- **Cross-Model Continuity**: Memory context transfers seamlessly between different AI models
+
+### Research-First Architecture
+
+Every architectural decision prioritizes research workflows over generic chat functionality:
+
+- **Comparative Studies**: Architecture supports running identical prompts across multiple models with consistent context
+- **Long-term Projects**: System design accommodates research spanning weeks or months with growing knowledge bases
+- **Knowledge Synthesis**: Built-in support for integrating external documents and tools into AI conversations
+- **Privacy Control**: Research data remains local-first with optional synchronization
+
+## System Architecture Layers
 
 ```
-┌─────────────────┐    HTTP/REST    ┌─────────────────┐
-│                 │◄───────────────►│                 │
-│   Client App    │                 │   Sync Server   │
-│                 │                 │                 │
-│  ┌───────────┐  │                 │  ┌───────────┐  │
-│  │ React UI  │  │                 │  │ HTTP API  │  │
-│  └───────────┘  │                 │  └───────────┘  │
-│  ┌───────────┐  │                 │  ┌───────────┐  │
-│  │IndexedDB  │  │                 │  │JSON Store│  │
-│  │ Storage   │  │                 │  └───────────┘  │
-│  └───────────┘  │                 │                 │
-└─────────────────┘                 └─────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     Research Interface Layer                │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │  Conversation   │  │   Comparative   │  │  Knowledge   │ │
+│  │   Management    │  │   Analysis      │  │ Integration  │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    Memory Management Layer                  │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │ Memory Context  │  │ Research State  │  │ Cross-Model  │ │
+│  │  Preservation   │  │   Tracking      │  │   Context    │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                   Knowledge Integration Layer                │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │  RAG Document  │  │  MCP Tool       │  │  Semantic    │ │
+│  │   Processing    │  │  Integration    │  │   Search     │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    AI Provider Integration                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │ Multi-Provider  │  │ Context Transfer│  │ Performance  │ │
+│  │   API Layer     │  │  & Adaptation   │  │  Monitoring  │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     Storage & Persistence                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │ Local Storage   │  │ Memory Context  │  │  Optional    │ │
+│  │   (IndexedDB)   │  │   Management    │  │   Sync       │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Core Components
+## Key Architectural Components
 
-### Client-Side Components
+### Memory Management System
 
-#### React Frontend
-- **Purpose**: User interface and interaction layer
-- **Technology**: React with TypeScript
-- **Features**: Chat interface, conversation management, settings
-- **State**: Local React state with IndexedDB persistence
+**Purpose**: Preserve and transfer conversation context across models and sessions
 
-#### IndexedDB Storage Layer
-- **File**: `src/services/indexedDbStorage.ts`
-- **Technology**: IndexedDB via Dexie ORM
-- **Purpose**: Offline-first local data persistence
-- **Capacity**: ~50MB typical browser storage
-- **Features**:
-  - CRUD operations for chats and messages
-  - Automatic date conversion
-  - Data migration from localStorage
-  - Error recovery and database reset
+**Components**:
+- **Context Snapshots**: Full conversation state with memory markers and research insights
+- **Memory Markers**: Extracted insights, decisions, and research findings that persist
+- **Cross-Model Translation**: Adapting memory context for different AI model capabilities
+- **Research State Tracking**: Long-term project context and hypothesis evolution
 
-### Server-Side Components
+**Research Benefits**:
+- Switch from GPT-4 to Claude mid-conversation without losing context
+- Build on previous research sessions with accumulated knowledge
+- Track insight evolution over weeks or months of research
+- Compare model performance with identical memory context
 
-#### HTTP Sync Server
-- **File**: `src/server/chatSyncApi.js`
-- **Technology**: Node.js native HTTP module
-- **Purpose**: RESTful API for chat synchronization
-- **Features**:
-  - CORS-enabled endpoints
-  - JSON request/response handling
-  - Error handling and status codes
+### Knowledge Integration Framework
 
-#### JSON File Storage
-- **File**: `src/server/chatStore.js`
-- **Technology**: Node.js file system operations
-- **Purpose**: Simple persistent chat storage
-- **Format**: Single JSON file with chat array
-- **Features**:
-  - Atomic read/write operations
-  - ID-based chat merging
-  - File corruption recovery
+**Purpose**: Integrate external documents and tools into AI conversations
 
-## Design Principles
+**Components**:
+- **RAG Processing**: Document chunking, embedding, and semantic search
+- **MCP Integration**: Tool access and external data source connections
+- **Context Weaving**: Intelligent integration of knowledge into conversation flow
+- **Citation Tracking**: Maintain provenance of information sources
 
-### Offline-First Architecture
-1. **Local Primary Storage**: IndexedDB serves as primary data store
-2. **Server Optional**: Full functionality without server connection
-3. **Sync Enhancement**: Server provides cross-device synchronization
-4. **Graceful Degradation**: App works with partial or no connectivity
+**Research Benefits**:
+- Ground AI responses in your specific research documents and data
+- Access real-time information through connected tools and APIs
+- Maintain citation trails for research reproducibility
+- Build comprehensive knowledge bases that enhance AI capabilities
 
-### Simplicity Over Complexity
-1. **No Database**: Server uses JSON files for simplicity
-2. **Minimal Dependencies**: Client uses Dexie only, server uses Node.js stdlib
-3. **Single Process**: No microservices or distributed components
-4. **REST API**: Simple HTTP endpoints over WebSocket complexity
+### Multi-Model Research Platform
 
-### Data Consistency Model
-1. **Eventually Consistent**: Data eventually syncs across devices
-2. **Last-Write-Wins**: Simple conflict resolution by chat ID
-3. **No Real-Time**: Sync is manual or periodic, not real-time
-4. **Client Authority**: Client decides when to sync
+**Purpose**: Enable seamless switching between AI models for comparative research
+
+**Components**:
+- **Provider Abstraction**: Unified interface for OpenAI, Anthropic, Google, and local models
+- **Context Adaptation**: Intelligent context transfer between different model architectures
+- **Performance Monitoring**: Consistent metrics across all AI providers
+- **Comparative Analytics**: Side-by-side analysis of model responses
+
+**Research Benefits**:
+- Run identical experiments across multiple AI models
+- Identify model-specific strengths and biases in controlled conditions
+- Build model-agnostic research workflows
+- Generate comparative analyses with consistent methodology
+
+### Local-First Storage Architecture
+
+**Purpose**: Maintain complete data control while enabling optional collaboration
+
+**Components**:
+- **IndexedDB Persistence**: Browser-based storage for all research data
+- **Encryption Layer**: Client-side encryption for sensitive research content
+- **Sync Protocol**: Optional server synchronization with privacy controls
+- **Conflict Resolution**: Intelligent merging of research data across devices
+
+**Research Benefits**:
+- Complete ownership of research data and conversations
+- Offline-capable research environment
+- Optional collaboration while maintaining privacy control
+- Multi-device access to research projects
+
+## Research Workflow Architecture
+
+### Comparative Study Workflow
+
+```
+Research Question
+       ↓
+┌─────────────────┐
+│ Baseline Setup  │ ← Identical context and prompts
+└─────────────────┘
+       ↓
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Model A Test  │    │   Model B Test  │    │   Model C Test  │
+│   (with memory  │    │   (with memory  │    │   (with memory  │
+│    context)     │    │    context)     │    │    context)     │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+       ↓                       ↓                       ↓
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Response A +   │    │  Response B +   │    │  Response C +   │
+│ Updated Memory  │    │ Updated Memory  │    │ Updated Memory  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+       ↓                       ↓                       ↓
+       └───────────────────────┼───────────────────────┘
+                              ↓
+                 ┌─────────────────────────┐
+                 │  Comparative Analysis   │
+                 │  + Memory Integration   │
+                 │  + Research Synthesis   │
+                 └─────────────────────────┘
+```
+
+### Long-Term Research Workflow
+
+```
+Project Initiation
+       ↓
+┌─────────────────┐
+│ Knowledge Base  │ ← RAG documents, MCP tools
+│   Integration   │
+└─────────────────┘
+       ↓
+┌─────────────────┐
+│ Session 1:      │ ← Initial conversations with memory markers
+│ Foundation      │
+└─────────────────┘
+       ↓
+┌─────────────────┐
+│ Session 2:      │ ← Builds on Session 1 memory + new insights
+│ Development     │
+└─────────────────┘
+       ↓
+┌─────────────────┐
+│ Session N:      │ ← Accumulated memory + evolved understanding
+│ Synthesis       │
+└─────────────────┘
+       ↓
+┌─────────────────┐
+│ Research        │ ← Export findings with full provenance
+│ Export          │
+└─────────────────┘
+```
 
 ## Data Flow Architecture
 
-### Chat Creation Flow
-```
-1. User creates chat in React UI
-2. React calls indexedDbStorage.saveConversation()
-3. Data stored in IndexedDB immediately
-4. Chat available offline
-5. Optional: Sync to server when connected
-```
+### Memory Context Flow
 
-### Synchronization Flow
 ```
-1. Client calls POST /sync with local chats
-2. Server merges chats into JSON store
-3. Server responds with chats missing on client
-4. Client saves missing chats to IndexedDB
-5. Both client and server have complete chat set
+User Input → Context Assembly → Model Processing → Response + Memory Update
+     ↑              ↓                    ↓                    ↓
+     └──────── Memory Markers ←── Response Analysis ←── Context Integration
+                    ↓
+              Research State Update
+                    ↓
+            Cross-Session Persistence
 ```
 
-### Offline Operation Flow
+**Context Assembly Process**:
+1. **Current Conversation**: Recent message history and immediate context
+2. **Memory Markers**: Persistent insights and research findings from previous sessions
+3. **Knowledge Base**: Relevant RAG documents and MCP tool results
+4. **Research Context**: Project goals, methodology, and accumulated understanding
+5. **Model History**: Previous model interactions and comparative context
+
+### Knowledge Integration Flow
+
 ```
-1. Network unavailable
-2. All chat operations work normally
-3. Data persists in IndexedDB
-4. Sync resumes when network returns
-5. No data loss or functionality degradation
-```
-
-## Technology Stack
-
-### Client Stack
-- **Framework**: React 18+ with TypeScript
-- **Storage**: IndexedDB via Dexie ORM
-- **Build**: Vite bundler
-- **Styling**: Tailwind CSS (assumed)
-- **State**: React hooks (useState, useEffect)
-
-### Server Stack
-- **Runtime**: Node.js 18+
-- **Framework**: Native HTTP module (no Express)
-- **Storage**: JSON files via fs module
-- **Process Management**: PM2 (recommended for production)
-
-### Development Stack
-- **Language**: TypeScript (client), JavaScript (server)
-- **Package Manager**: npm
-- **Version Control**: Git
-- **Deployment**: Static hosting + Node.js server
-
-## Scalability Characteristics
-
-### Current Scale Limits
-- **Users**: Single user per client instance
-- **Chats**: Thousands per user (IndexedDB limit ~50MB)
-- **Messages**: Thousands per chat
-- **Concurrent Users**: Limited by single server instance
-- **Storage**: JSON file size limitations
-
-### Scaling Considerations
-- **Horizontal Scaling**: Requires database backend
-- **Real-Time Features**: Would need WebSocket implementation
-- **Multi-User**: Requires authentication and user isolation
-- **High Availability**: Needs load balancer and multiple instances
-
-## Security Model
-
-### Current Security
-- **Authentication**: None (public access)
-- **Authorization**: None (all chats accessible)
-- **Transport**: HTTP (HTTPS recommended for production)
-- **Storage**: Unencrypted local and server storage
-
-### Production Security Requirements
-- **HTTPS**: Required for production deployment
-- **Authentication**: JWT or session-based auth recommended
-- **CORS**: Specific origins instead of wildcard
-- **Rate Limiting**: Prevent API abuse
-- **Input Validation**: Sanitize all user inputs
-
-## Deployment Architecture
-
-### Development Deployment
-```
-localhost:3000  (React dev server)
-localhost:4001  (Node.js sync server)
+External Knowledge → Processing → Integration → Context Enhancement
+       ↓                ↓            ↓              ↓
+   RAG Documents    Chunking +    Semantic      Enhanced AI
+   MCP Tools        Embedding     Search        Responses
+   External APIs    Indexing      Ranking       Research Context
 ```
 
-### Production Deployment Options
+**Integration Process**:
+1. **Document Processing**: Semantic chunking and embedding generation
+2. **Tool Integration**: MCP server connections and capability mapping
+3. **Context Weaving**: Intelligent integration into conversation flow
+4. **Citation Management**: Maintaining provenance and research integrity
 
-#### Option 1: Static + Server
-```
-CDN/Static Host  (React build)
-VPS/Cloud Server (Node.js API)
-```
+## Performance and Scalability
 
-#### Option 2: Full Stack Platform
-```
-Vercel/Netlify   (React app)
-Heroku/Railway   (Node.js API)
-```
+### Memory Management Performance
 
-#### Option 3: Container Deployment
-```
-Docker Container (React + Nginx)
-Docker Container (Node.js API)
-```
+**Optimization Strategies**:
+- **Context Caching**: Pre-loaded memory contexts for instant model switching
+- **Semantic Indexing**: Fast retrieval of relevant memory markers and knowledge
+- **Incremental Updates**: Efficient memory marker updates without full context reload
+- **Compression**: Lossless compression of conversation data with integrity preservation
 
-## Performance Characteristics
+**Scalability Targets**:
+- **Context Retrieval**: Sub-100ms for any conversation or memory marker
+- **Model Switching**: Sub-second model changes with full context preservation
+- **Knowledge Search**: Real-time semantic search across large document collections
+- **Research Projects**: Support for projects spanning months with gigabytes of data
 
-### Client Performance
-- **Cold Start**: ~1-2 seconds (IndexedDB initialization)
-- **Chat Loading**: <100ms (indexed queries)
-- **Message Rendering**: Real-time (React updates)
-- **Storage Operations**: <50ms typical
+### Storage Architecture Scaling
 
-### Server Performance
-- **Request Latency**: <100ms for sync operations
-- **Throughput**: 100+ requests/second (single instance)
-- **Memory Usage**: <50MB (JSON file caching)
-- **Disk I/O**: Atomic writes on sync operations
+**Local Storage Management**:
+- **Intelligent Archiving**: Automatic compression of older conversations with research preservation
+- **Priority-Based Retention**: Critical research data preserved, temporary data cleaned
+- **Memory Optimization**: Efficient storage patterns for long-term research projects
+- **Backup Integration**: Seamless export/import for data migration and backup
 
-### Network Performance
-- **Sync Payload**: Proportional to chat count
-- **Bandwidth**: ~1KB per chat average
-- **Offline Operation**: Zero network dependency
-- **Sync Frequency**: User-initiated or periodic
+**Optional Cloud Scaling**:
+- **Selective Sync**: Granular control over what data synchronizes across devices
+- **Privacy-Preserving Sync**: End-to-end encryption with zero-knowledge architecture
+- **Collaborative Research**: Multi-researcher coordination with individual privacy preservation
+- **Infrastructure Agnostic**: Deploy sync server on any infrastructure
+
+## Security and Privacy Architecture
+
+### Local-First Security Model
+
+**Data Sovereignty**:
+- **Local Processing**: All sensitive operations happen on user devices
+- **Optional Sync**: Cloud synchronization is opt-in with granular controls
+- **Encryption**: End-to-end encryption for any data that leaves the device
+- **Zero-Knowledge**: Sync servers cannot access conversation content or research data
+
+**Research Data Protection**:
+- **Compartmentalization**: Research projects can be isolated for sensitive work
+- **Access Controls**: Fine-grained permissions for collaborative research
+- **Audit Trails**: Complete logging of data access and modifications
+- **Data Retention**: User-controlled retention policies for research compliance
+
+### Privacy-Preserving Collaboration
+
+**Multi-Researcher Support**:
+- **Individual Privacy**: Personal conversations remain private in collaborative projects
+- **Shared Insights**: Aggregated research findings can be shared while preserving individual data
+- **Anonymization**: Contribution tracking with identity protection
+- **Selective Sharing**: Granular control over what research components are shared
+
+This architecture enables Polyglot to function as a comprehensive AI research environment while maintaining the simplicity and performance of local-first design.
