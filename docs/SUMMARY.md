@@ -5,7 +5,7 @@
   * [Installation](getting-started/installation.md)
   * [Configuration](getting-started/configuration.md)
   * [Quick Start](getting-started/quick-start.md)
-* User Guide
+* [User Guide](user-guide/user-guide.md)
   * [Features](user-guide/features.md)
   * [Chat Management](user-guide/chat-management.md)
   * [Sync Usage](user-guide/sync-usage.md)
