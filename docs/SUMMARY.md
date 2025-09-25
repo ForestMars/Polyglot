@@ -10,7 +10,7 @@
   * [Chat Management](user-guide/chat-management.md)
   * [Sync Usage](user-guide/sync-usage.md)
 * [Architecture](architecture/overview.md)
-  * [CRDT](crdt.md)
+  * [CRDT](architecture/crdt.md)
   * [Client Storage](architecture/client-storage.md)
   * [Server Storage](architecture/server-storage.md)
   * [Data Models](architecture/data-models.md)
