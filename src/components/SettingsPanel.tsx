@@ -250,7 +250,7 @@ export const SettingsPanel = ({
               <SelectValue placeholder="Select provider" />
             </SelectTrigger>
             <SelectContent>
-              {providers.sort((a, b) => (a.name === 'Ollama' ? -1 : b.name === 'Ollama' ? 1 : 0)).map(provider => (
+              {providers.sort((a, b) => (a.id === 'ollama' ? -1 : b.id === 'ollama' ? 1 : 0)).map(provider => (
                 <SelectItem key={provider.id} value={provider.id}>
                   {provider.name}
                 </SelectItem>
