@@ -404,8 +404,7 @@ export const SettingsPanel = ({
         )}
 
         {/* Model Selection */}
-        {selectedProvider && (currentProvider?.isLocal || selectedApiKey) && (
-          <div className="space-y-3">
+        {selectedProvider && currentProvider?.models && (          <div className="space-y-3">
             <Label>Model</Label>
             <Select value={selectedModel} onValueChange={setSelectedModel}>
               <SelectTrigger className="glass-panel">
