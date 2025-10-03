@@ -5,12 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useConversationState } from '@/hooks/useConversationState';
@@ -57,7 +57,7 @@ export const SettingsPanel = ({
   const { toast } = useToast();
   const conversationState = useConversationState();
 
-  const currentProvider = useMemo(() => 
+  const currentProvider = useMemo(() =>
     providers.find(p => p.id === selectedProvider),
     [providers, selectedProvider]
   );
@@ -93,7 +93,7 @@ export const SettingsPanel = ({
     setNewKeyValue('');
     setSelectedProviderForKey('');
     setShowAddKeyDialog(false);
-    
+
     toast({
       title: "API Key Added",
       description: `Successfully added API key "${newKeyName}" to ${providers.find(p => p.id === selectedProviderForKey)?.name}.`
@@ -112,7 +112,7 @@ export const SettingsPanel = ({
     });
 
     setProviders(updatedProviders);
-    
+
     // Reset selection if deleted key was selected
     if (selectedApiKey === keyId) {
       setSelectedApiKey('');
@@ -218,7 +218,7 @@ export const SettingsPanel = ({
                 className="rounded border-gray-300"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <Label htmlFor="cacheToggle">Enable Conversation Cache</Label>
               <input
@@ -229,7 +229,7 @@ export const SettingsPanel = ({
                 className="rounded border-gray-300"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="ollamaUrl">Ollama Base URL</Label>
               <Input
@@ -242,7 +242,6 @@ export const SettingsPanel = ({
           </CardContent>
         </Card>
 
-
         {/* Provider Selection */}
         <div className="space-y-3">
           <Label>Provider</Label>
@@ -251,7 +250,7 @@ export const SettingsPanel = ({
               <SelectValue placeholder="Select provider" />
             </SelectTrigger>
             <SelectContent>
-              {providers.map(provider => (
+              {providers.sort((a, b) => (a.name === 'Ollama' ? -1 : b.name === 'Ollama' ? 1 : 0)).map(provider => (
                 <SelectItem key={provider.id} value={provider.id}>
                   {provider.name}
                 </SelectItem>
@@ -330,7 +329,7 @@ export const SettingsPanel = ({
                 </div>
               </DialogContent>
             </Dialog>
-            
+
             {currentProvider?.apiKeys.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Key className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -345,7 +344,7 @@ export const SettingsPanel = ({
                   }`}>
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between">
-                        <div 
+                        <div
                           className="flex-1 cursor-pointer"
                           onClick={() => setSelectedApiKey(apiKey.id)}
                         >
@@ -382,8 +381,8 @@ export const SettingsPanel = ({
                   id="baseUrl"
                   value={currentProvider.baseUrl || 'http://localhost:11434'}
                   onChange={(e) => {
-                    const updatedProviders = providers.map(p => 
-                      p.id === selectedProvider 
+                    const updatedProviders = providers.map(p =>
+                      p.id === selectedProvider
                         ? { ...p, baseUrl: e.target.value }
                         : p
                     );
@@ -396,7 +395,7 @@ export const SettingsPanel = ({
                   URL where Ollama is running (default: http://localhost:11434)
                 </p>
               </div>
-              
+
               {/* Ollama Status Component */}
               <OllamaStatus baseUrl={currentProvider.baseUrl || 'http://localhost:11434'} />
             </div>
@@ -404,7 +403,8 @@ export const SettingsPanel = ({
         )}
 
         {/* Model Selection */}
-        {selectedProvider && currentProvider?.models && (          <div className="space-y-3">
+        {selectedProvider && currentProvider?.models && (
+          <div className="space-y-3">
             <Label>Model</Label>
             <Select value={selectedModel} onValueChange={setSelectedModel}>
               <SelectTrigger className="glass-panel">
@@ -451,9 +451,10 @@ export const SettingsPanel = ({
             </CardContent>
           </Card>
         )}
+
         {/* Data Transfer Section - Collapsible */}
         <div className="pt-4 border-t mt-4">
-          <button 
+          <button
             onClick={() => setShowDataTransfer(!showDataTransfer)}
             className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -461,13 +462,13 @@ export const SettingsPanel = ({
             Data Transfer
             <span className="ml-auto text-xs">{showDataTransfer ? '▲' : '▼'}</span>
           </button>
-          
+
           {showDataTransfer && (
             <div className="mt-2 space-y-4 pl-6">
               <div className="space-y-2">
                 <Label className="text-sm">Export your data to transfer between browsers</Label>
-                <Button 
-                  onClick={handleExportData} 
+                <Button
+                  onClick={handleExportData}
                   disabled={isExporting}
                   className="w-full"
                   variant="outline"
@@ -480,11 +481,11 @@ export const SettingsPanel = ({
                   Downloads conversations.json, settings.json, and storage-index.json
                 </p>
               </div>
-              
+
               <div className="space-y-2">
                 <Label className="text-sm">Import data from another browser</Label>
-                <Button 
-                  onClick={triggerFileUpload} 
+                <Button
+                  onClick={triggerFileUpload}
                   disabled={isImporting}
                   className="w-full"
                   variant="outline"
