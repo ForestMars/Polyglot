@@ -131,21 +131,22 @@ export class ConversationStateManager {
   async createConversation(provider: string, model: string): Promise<Conversation> {
     try {
       const conversation = ConversationUtils.createConversation(provider, model);
-      
-      // Save to storage
-      await this.storageService.saveConversation(conversation);
-      
-      // Update state
-      this.setState({
-        conversations: [conversation, ...this.state.conversations],
-        currentConversation: conversation,
-        lastUpdated: new Date()
-      });
-      
-      return conversation;
-    } catch (error) {
-      console.error('Failed to create conversation:', error);
-      throw error;
+      try {
+        const conversation = ConversationUtils.createConversation(provider, model);
+        // Save to storage
+        await this.storageService.saveConversation(conversation);
+        // Immediately reload the conversation list from Dexie to ensure sidebar is up-to-date
+        await this.loadConversations();
+        // Set the new conversation as current
+        this.setState({
+          currentConversation: conversation,
+          lastUpdated: new Date()
+        });
+        return conversation;
+      } catch (error) {
+        console.error('Failed to create conversation:', error);
+        throw error;
+      }
     }
   }
 
