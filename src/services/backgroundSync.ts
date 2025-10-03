@@ -176,7 +176,7 @@ export class BackgroundSyncService {
         id: 'app',
         version: '1.0.0'
       };
-      
+      if (!currentMeta.id) currentMeta.id = 'app';
       await storage.setMeta({
         ...currentMeta,
         lastSync: new Date()
