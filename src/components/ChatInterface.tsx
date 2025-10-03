@@ -72,6 +72,21 @@ const DEFAULT_PROVIDERS = [
     defaultModel: 'claude-sonnet-4-20250514'
   },
   {
+    id: 'mistral',
+    name: 'Mistral',
+    apiKeys: [],
+    models: [
+      'mistral-large-latest',
+      'mistral-medium-latest',
+      'mistral-small-latest',
+      'open-mistral-7b',
+      'open-mixtral-8x7b',
+      'open-mixtral-8x22b',
+      'codestral-latest'
+    ],
+    defaultModel: 'mistral-large-latest'
+  },
+  {
     id: 'google',
     name: 'Google',
     apiKeys: [],
