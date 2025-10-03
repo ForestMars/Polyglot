@@ -647,8 +647,10 @@ export class ConversationStateManager {
    * Update state and notify listeners
    */
   private setState(updates: Partial<ConversationState>): void {
+    const prevConvs = this.state.conversations?.map(c => c.id) || [];
     this.state = { ...this.state, ...updates };
-    
+    const newConvs = this.state.conversations?.map(c => c.id) || [];
+    console.log('[StateManager] setState called. Previous conv IDs:', prevConvs, 'New conv IDs:', newConvs, 'Current:', this.state.currentConversation?.id);
     // Notify all listeners
     this.listeners.forEach(listener => {
       try {

@@ -57,6 +57,10 @@ export const ConversationSidebar = ({
   const [filterModel, setFilterModel] = useState<string>('');
   const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  // Debug: log when sidebar renders and what conversations it sees
+  useEffect(() => {
+    console.log('[Sidebar] Rendered. Conversations:', filteredConversations.map(c => ({id: c.id, title: c.title})));
+  }, [filteredConversations]);
   
   // Use the new centralized state management hook
   const { 
