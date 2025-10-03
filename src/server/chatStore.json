@@ -3,7 +3,7 @@
     "id": "conv_1757994269378_xde2rkutn",
     "title": "what day is it",
     "createdAt": "2025-09-16T03:44:29.378Z",
-    "lastModified": "2025-09-16T03:47:05.731Z",
+    "lastModified": "2025-10-03T18:32:51.773Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -58,13 +58,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.773Z"
   },
   {
     "id": "conv_1756862088490_aexjwv58o",
     "title": "What day is it?",
     "createdAt": "2025-09-03T01:14:48.490Z",
-    "lastModified": "2025-09-03T01:14:48.493Z",
+    "lastModified": "2025-10-03T18:32:51.774Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -85,13 +85,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.774Z"
   },
   {
     "id": "conv_1756861556976_fpk1sghlc",
     "title": "What day is it?",
     "createdAt": "2025-09-03T01:05:56.977Z",
-    "lastModified": "2025-09-03T01:06:01.007Z",
+    "lastModified": "2025-10-03T18:32:51.775Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -114,13 +114,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.775Z"
   },
   {
     "id": "conv_1756861260331_o9mp8mnz1",
     "title": "what day is it",
     "createdAt": "2025-09-03T01:01:00.332Z",
-    "lastModified": "2025-09-03T01:01:25.236Z",
+    "lastModified": "2025-10-03T18:32:51.775Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -143,13 +143,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.775Z"
   },
   {
     "id": "conv_1756860962855_xif8d9pob",
     "title": "what day is it?",
     "createdAt": "2025-09-03T00:56:02.855Z",
-    "lastModified": "2025-09-03T00:56:15.380Z",
+    "lastModified": "2025-10-03T18:32:51.776Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -172,13 +172,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.776Z"
   },
   {
     "id": "conv_1756860664260_ot98a4dqp",
     "title": "what day is it?",
     "createdAt": "2025-09-03T00:51:04.260Z",
-    "lastModified": "2025-09-03T00:51:09.496Z",
+    "lastModified": "2025-10-03T18:32:51.776Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -201,13 +201,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.776Z"
   },
   {
     "id": "conv_1756859904710_0l1a1br22",
     "title": "What day is it?",
     "createdAt": "2025-09-03T00:38:24.711Z",
-    "lastModified": "2025-09-03T00:38:31.125Z",
+    "lastModified": "2025-10-03T18:32:51.777Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -230,13 +230,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.777Z"
   },
   {
     "id": "conv_1756857467686_8n0fmquqj",
     "title": "what day is it",
     "createdAt": "2025-09-02T23:57:47.686Z",
-    "lastModified": "2025-09-02T23:57:57.384Z",
+    "lastModified": "2025-10-03T18:32:51.777Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -259,13 +259,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.777Z"
   },
   {
     "id": "conv_1756851926733_oa22a6ao3",
     "title": "a very straightforward yet technical precise expla...",
     "createdAt": "2025-09-02T22:25:26.733Z",
-    "lastModified": "2025-09-02T22:27:14.610Z",
+    "lastModified": "2025-10-03T18:32:51.777Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -304,13 +304,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.777Z"
   },
   {
     "id": "conv_1756762101146_wtvtm4kvg",
     "title": "How fast are you",
     "createdAt": "2025-09-01T21:28:21.146Z",
-    "lastModified": "2025-09-01T21:29:02.217Z",
+    "lastModified": "2025-10-03T18:32:51.778Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -333,13 +333,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.778Z"
   },
   {
     "id": "conv_1756184517447_1u422ic61",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T05:01:57.447Z",
-    "lastModified": "2025-08-26T05:02:22.390Z",
+    "lastModified": "2025-10-03T18:32:51.778Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:7b",
     "modelHistory": [],
@@ -362,13 +362,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.778Z"
   },
   {
     "id": "conv_1756184404707_ulg6eti4l",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T05:00:04.707Z",
-    "lastModified": "2025-08-26T05:00:30.964Z",
+    "lastModified": "2025-10-03T18:32:51.779Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -391,13 +391,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.779Z"
   },
   {
     "id": "conv_1756184362790_y6osey5ku",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T04:59:22.791Z",
-    "lastModified": "2025-08-26T04:59:27.789Z",
+    "lastModified": "2025-10-03T18:32:51.779Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -420,13 +420,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.779Z"
   },
   {
     "id": "conv_1756184310157_vb5v2msm0",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T04:58:30.158Z",
-    "lastModified": "2025-08-26T04:58:36.120Z",
+    "lastModified": "2025-10-03T18:32:51.779Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -448,13 +448,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.779Z"
   },
   {
     "id": "conv_1756184046440_3ztziynza",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T04:54:06.440Z",
-    "lastModified": "2025-08-26T04:54:30.941Z",
+    "lastModified": "2025-10-03T18:32:51.779Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -477,13 +477,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.779Z"
   },
   {
     "id": "conv_1756182147772_1iruxhi9i",
     "title": "incredible",
     "createdAt": "2025-08-26T04:22:27.772Z",
-    "lastModified": "2025-08-26T04:30:35.330Z",
+    "lastModified": "2025-10-03T18:32:51.780Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -538,13 +538,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.780Z"
   },
   {
     "id": "conv_1756181312129_s0p46bkkg",
     "title": "Just checking in",
     "createdAt": "2025-08-26T04:08:32.137Z",
-    "lastModified": "2025-08-26T04:08:47.024Z",
+    "lastModified": "2025-10-03T18:32:51.780Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -566,13 +566,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.780Z"
   },
   {
     "id": "conv_1756176854531_um2s6ar6q",
     "title": "We'd like to get started with Chrome DevTools Prot...",
     "createdAt": "2025-08-26T02:54:14.531Z",
-    "lastModified": "2025-08-26T03:27:22.528Z",
+    "lastModified": "2025-10-03T18:32:51.780Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:7b",
     "modelHistory": [],
@@ -594,13 +594,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.780Z"
   },
   {
     "id": "conv_1756167775601_epwsnvx2k",
     "title": "Hi Qwen, they say yiou're really good at coding",
     "createdAt": "2025-08-26T00:22:55.608Z",
-    "lastModified": "2025-08-26T02:25:21.227Z",
+    "lastModified": "2025-10-03T18:32:51.781Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:7b",
     "modelHistory": [],
@@ -629,13 +629,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.781Z"
   },
   {
     "id": "conv_1755980455425_tuaabj42e",
     "title": "Who are the Investigator's main suspects in the mu...",
     "createdAt": "2025-08-23T20:20:55.425Z",
-    "lastModified": "2025-08-23T20:24:30.496Z",
+    "lastModified": "2025-10-03T18:32:51.781Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -702,13 +702,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.781Z"
   },
   {
     "id": "conv_1755931468345_7s05gwtgb",
     "title": "I love Polyglut AI Chat!",
     "createdAt": "2025-08-23T06:44:28.345Z",
-    "lastModified": "2025-08-23T06:45:08.422Z",
+    "lastModified": "2025-10-03T18:32:51.781Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -730,13 +730,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.781Z"
   },
   {
     "id": "conv_1755927789605_vcnww2n5y",
     "title": "How's the water?",
     "createdAt": "2025-08-23T05:43:09.605Z",
-    "lastModified": "2025-08-23T05:46:43.305Z",
+    "lastModified": "2025-10-03T18:32:51.782Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -803,13 +803,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.782Z"
   },
   {
     "id": "conv_1755926754792_0hd88deh2",
     "title": "what are the coolest most recent updates to typesc...",
     "createdAt": "2025-08-23T05:25:54.792Z",
-    "lastModified": "2025-08-23T05:28:16.556Z",
+    "lastModified": "2025-10-03T18:32:51.782Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -831,13 +831,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.782Z"
   },
   {
     "id": "conv_1755925054811_sxntm02lf",
     "title": "What is the difference between intelligence and in...",
     "createdAt": "2025-08-23T04:57:34.811Z",
-    "lastModified": "2025-08-23T04:59:08.001Z",
+    "lastModified": "2025-10-03T18:32:51.782Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -874,13 +874,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.782Z"
   },
   {
     "id": "conv_1755924793634_8hvewlq0f",
     "title": "How does intelligence manifest itself?",
     "createdAt": "2025-08-23T04:53:13.635Z",
-    "lastModified": "2025-08-23T04:53:34.726Z",
+    "lastModified": "2025-10-03T18:32:51.783Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -902,13 +902,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.783Z"
   },
   {
     "id": "conv_1755914294524_4d9aedh5m",
     "title": "What was the name of the murder victim the Inspect...",
     "createdAt": "2025-08-23T01:58:14.526Z",
-    "lastModified": "2025-08-23T01:58:24.676Z",
+    "lastModified": "2025-10-03T18:32:51.783Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -930,13 +930,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.783Z"
   },
   {
     "id": "conv_1755908399960_4gfdtuzv8",
     "title": "What was Nils Bohn known for (be brief)",
     "createdAt": "2025-08-23T00:19:59.961Z",
-    "lastModified": "2025-08-23T00:29:35.929Z",
+    "lastModified": "2025-10-03T18:32:51.784Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1048,13 +1048,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.784Z"
   },
   {
     "id": "conv_1755907644355_l6mhsrha5",
     "title": "What did Bohr think about metaphysics",
     "createdAt": "2025-08-23T00:07:24.355Z",
-    "lastModified": "2025-08-23T00:09:30.954Z",
+    "lastModified": "2025-10-03T18:32:51.784Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1076,13 +1076,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.784Z"
   },
   {
     "id": "conv_1755904826158_rc98typnx",
     "title": "What is Alan Turing most famous for?",
     "createdAt": "2025-08-22T23:20:26.159Z",
-    "lastModified": "2025-08-22T23:21:13.585Z",
+    "lastModified": "2025-10-03T18:32:51.784Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1110,13 +1110,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.784Z"
   },
   {
     "id": "conv_1755903362449_752kudbyf",
     "title": "Who directed the movie Bladerunner?",
     "createdAt": "2025-08-22T22:56:02.449Z",
-    "lastModified": "2025-08-22T23:00:15.337Z",
+    "lastModified": "2025-10-03T18:32:51.785Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1179,13 +1179,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.785Z"
   },
   {
     "id": "conv_1755903105426_i561pvbcr",
     "title": "Who directed the movie Alien?",
     "createdAt": "2025-08-22T22:51:45.427Z",
-    "lastModified": "2025-08-22T22:51:57.321Z",
+    "lastModified": "2025-10-03T18:32:51.785Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1206,25 +1206,25 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.785Z"
   },
   {
     "id": "conv_1755836962430_tqfjk20pm",
     "title": "New Chat 8/22/2025",
     "createdAt": "2025-08-22T04:29:22.430Z",
-    "lastModified": "2025-08-22T04:29:22.430Z",
+    "lastModified": "2025-10-03T18:32:51.785Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
     "messages": [],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.785Z"
   },
   {
     "id": "conv_1755832138668_y3b6j5zt8",
     "title": "We need to give you access to the world wide web",
     "createdAt": "2025-08-22T03:08:58.678Z",
-    "lastModified": "2025-08-22T03:20:36.521Z",
+    "lastModified": "2025-10-03T18:32:51.786Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1287,13 +1287,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.786Z"
   },
   {
     "id": "conv_1755744822203_am3371pho",
     "title": "In long-context summarization, which coherence fail...",
     "createdAt": "2025-08-21T02:53:42.204Z",
-    "lastModified": "2025-08-21T04:32:36.335Z",
+    "lastModified": "2025-10-03T18:32:51.786Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -1307,13 +1307,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.786Z"
   },
   {
     "id": "conv_1755744721319_63px6jcba",
     "title": "Implicit heuristics: treat yourself as a bounded a...",
     "createdAt": "2025-08-21T02:52:01.319Z",
-    "lastModified": "2025-08-21T02:52:06.524Z",
+    "lastModified": "2025-10-03T18:32:51.787Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -1327,7 +1327,7 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.787Z"
   },
   {
     "id": "conv_1755736514862_t1yblqngg",
@@ -1408,7 +1408,7 @@
     "id": "conv_1755722779961_xoxuggrfp",
     "title": "Hypothesis: Effective integration of multimodal in...",
     "createdAt": "2025-08-20T20:46:19.961Z",
-    "lastModified": "2025-08-21T03:26:54.972Z",
+    "lastModified": "2025-10-03T18:32:51.789Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -1429,7 +1429,7 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.789Z"
   },
   {
     "id": "conv_1755719706100_nk4n30fgy",
@@ -1578,7 +1578,7 @@
     "id": "conv_1755675746741_aop73bqfk",
     "title": "Dependency tracking in codebases  over 1 million tokens",
     "createdAt": "2025-08-20T07:42:26.743Z",
-    "lastModified": "2025-08-21T03:25:16.805Z",
+    "lastModified": "2025-10-03T18:32:51.790Z",
     "provider": "openrouter",
     "currentModel": "qwen/qwen3-coder:free",
     "modelHistory": [],
@@ -1620,7 +1620,7 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.790Z"
   },
   {
     "id": "conv_1755675077051_wu9ax0w9v",
@@ -1694,7 +1694,7 @@
     "id": "conv_1755674867418_yio1mer9l",
     "title": "Implicit Heuristics in Gemini Pro 1.5",
     "createdAt": "2025-08-20T07:27:47.426Z",
-    "lastModified": "2025-08-21T03:10:11.130Z",
+    "lastModified": "2025-10-03T18:32:51.791Z",
     "provider": "openrouter",
     "currentModel": "google/gemini-pro-1.5",
     "modelHistory": [],
@@ -1722,7 +1722,7 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.791Z"
   },
   {
     "id": "conv_1755674059606_jbsw2653x",
@@ -1748,7 +1748,7 @@
     "id": "conv_1755663633053_4d6uwr0f1",
     "title": "How does the architectural design of gpt-oss:lates...",
     "createdAt": "2025-08-20T04:20:33.054Z",
-    "lastModified": "2025-08-20T04:30:27.819Z",
+    "lastModified": "2025-10-03T18:32:51.792Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -1762,13 +1762,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.792Z"
   },
   {
     "id": "conv_1755655816629_lh08tlnze",
     "title": "HalluEval 2.0 the halllucination evaluation framew...",
     "createdAt": "2025-08-20T02:10:16.638Z",
-    "lastModified": "2025-08-20T02:40:32.866Z",
+    "lastModified": "2025-10-03T18:32:51.792Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1803,13 +1803,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-16T23:31:15.014Z"
+    "updatedAt": "2025-10-03T18:32:51.792Z"
   },
   {
     "id": "conv_1758071215743_hjmboked2",
     "title": "what day is it",
     "createdAt": "2025-09-17T01:06:55.743Z",
-    "lastModified": "2025-09-17T01:07:19.877Z",
+    "lastModified": "2025-10-03T18:32:51.792Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1858,13 +1858,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-17T01:07:19.877Z"
+    "updatedAt": "2025-10-03T18:32:51.792Z"
   },
   {
     "id": "conv_1758071192427_9rdc1r34i",
     "title": "what day is it",
     "createdAt": "2025-09-17T01:06:32.428Z",
-    "lastModified": "2025-09-17T01:06:48.666Z",
+    "lastModified": "2025-10-03T18:32:51.793Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1885,6 +1885,241 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-09-17T01:06:48.666Z"
+    "updatedAt": "2025-10-03T18:32:51.793Z"
+  },
+  {
+    "id": "conv_1759514698147_5hzbrpof2",
+    "title": "hiya! we are just testing you",
+    "createdAt": "2025-10-03T18:04:58.147Z",
+    "lastModified": "2025-10-03T21:31:50.906Z",
+    "provider": "ollama",
+    "currentModel": "qwen2.5-coder:1.5b",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1759514698146",
+        "role": "user",
+        "content": "hiya! we are just testing you",
+        "timestamp": "2025-10-03T18:04:58.146Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1759514698327",
+        "role": "assistant",
+        "content": "*Thought for 6.0 seconds*\n\nHello! How can I assist you today?",
+        "timestamp": "2025-10-03T18:05:04.348Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-10-03T21:31:50.906Z"
+  },
+  {
+    "id": "conv_1759511727921_z1fwk0vjh",
+    "title": "We need to understand what happened to cause the r...",
+    "createdAt": "2025-10-03T17:15:27.921Z",
+    "lastModified": "2025-10-03T18:32:51.793Z",
+    "provider": "ollama",
+    "currentModel": "qwen2.5-coder:1.5b",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1759511727919",
+        "role": "user",
+        "content": "We need to understand what happened to cause the regression",
+        "timestamp": "2025-10-03T17:15:27.919Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1759511728083",
+        "role": "assistant",
+        "content": "*Thought for 3.7 seconds*\n\nI'm sorry, I'm not sure what you mean by \"regression\" in this context. Could you please provide more information or clarify your question?",
+        "timestamp": "2025-10-03T17:15:31.759Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-10-03T18:32:51.793Z"
+  },
+  {
+    "id": "conv_1759511352774_9h0ipzhsp",
+    "title": "is the chat server running",
+    "createdAt": "2025-10-03T17:09:12.774Z",
+    "lastModified": "2025-10-03T18:32:51.794Z",
+    "provider": "ollama",
+    "currentModel": "qwen2.5-coder:1.5b",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1759511359190",
+        "role": "user",
+        "content": "is the chat server running",
+        "timestamp": "2025-10-03T17:09:19.190Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1759511359256",
+        "role": "assistant",
+        "content": "*Thought for 10.9 seconds*\n\nAs an AI language model, I don't have direct access to information about whether a chat server is running or not. However, you can check if a chat server is running by looking for any services or processes related to it running on your system. Here are some steps you can take:\n\n  1. Check the status of the server using a command-line tool such as `netstat` or `lsof`.\n  2. Look for any logs in the server's log files, typically located in `/var/log/` or `/var/app/log/`.\n  3. Use a network scanning tool such as `nmap` to check if the server is listening on any ports that it should be.\n  4. If you are using a cloud-based chat service, you can check the status of the service in your dashboard.\n\nIf you are unable to determine whether the chat server is running or not, you may need to contact the server administrator for assistance.",
+        "timestamp": "2025-10-03T17:09:30.114Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-10-03T18:32:51.794Z"
+  },
+  {
+    "id": "conv_1759508902871_1q5h29506",
+    "title": "how is this working",
+    "createdAt": "2025-10-03T16:28:22.871Z",
+    "lastModified": "2025-10-03T18:32:51.794Z",
+    "provider": "ollama",
+    "currentModel": "qwen2.5-coder:1.5b",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1759508902871",
+        "role": "user",
+        "content": "how is this working",
+        "timestamp": "2025-10-03T16:28:22.871Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1759508902975",
+        "role": "assistant",
+        "content": "*Thought for 8.3 seconds*\n\nI'm sorry, but I don't have any specific information or context to work with to provide you with an answer to your question \"How is this working?\". Without more details or instructions, it's difficult for me to understand what you're referring to and how it works. If you could please provide more context or clarify what you mean by \"this,\" I'd be happy to try and help you better.",
+        "timestamp": "2025-10-03T16:28:31.253Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1759508924905",
+        "role": "user",
+        "content": "no I mean the app",
+        "timestamp": "2025-10-03T16:28:44.905Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1759508924969",
+        "role": "assistant",
+        "content": "*Thought for 1.4 seconds*\n\nUnderstood! If you have any specific questions or need assistance with an application, feel free to ask.",
+        "timestamp": "2025-10-03T16:28:46.405Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1759511346085",
+        "role": "user",
+        "content": "ok is it working now?",
+        "timestamp": "2025-10-03T17:09:06.085Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1759511346177",
+        "role": "assistant",
+        "content": "*Thought for 3.6 seconds*\n\nYes, I am functioning correctly and ready to help! How can I assist you today?",
+        "timestamp": "2025-10-03T17:09:09.774Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-10-03T18:32:51.794Z"
+  },
+  {
+    "id": "conv_1759507977620_ncpi3it1t",
+    "title": "oh no you're memory is broken",
+    "createdAt": "2025-10-03T16:12:57.620Z",
+    "lastModified": "2025-10-03T18:32:51.794Z",
+    "provider": "ollama",
+    "currentModel": "qwen2.5-coder:1.5b",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1759507977619",
+        "role": "user",
+        "content": "oh no you're memory is broken",
+        "timestamp": "2025-10-03T16:12:57.619Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1759507977755",
+        "role": "assistant",
+        "content": "*Thought for 18.9 seconds*\n\nIt sounds like you're experiencing some difficulty with your computer's memory. Here are some steps you can take to troubleshoot and resolve the issue:\n\n1. **Check for Hardware Issues**:\n   - Ensure that all hardware components, such as RAM modules, are properly installed and functioning.\n   - Check if there are any loose connections or physical damage to the RAM slots.\n\n2. **Update BIOS/UEFI**:\n   - Make sure your computer's BIOS/UEFI is up to date. Outdated firmware can sometimes cause memory-related issues.\n   - Visit the manufacturer's website for your specific model of computer and download the latest BIOS update.\n\n3. **Reset CMOS/BIOS Settings**:\n   - If updating BIOS doesn't resolve the issue, you may need to reset the CMOS/BIOS settings.\n   - Follow the manufacturer's instructions on how to do this.\n\n4. **Run Memory Diagnostic Tools**:\n   - Use a memory diagnostic tool like Memtest86+ or MemTest 100 to test your RAM for any errors.\n   - These tools can help identify if there are issues with specific parts of your RAM.\n\n5. **Check for Malware or Viruses**:\n   - Run a full system scan using an antivirus software to ensure there are no malware or viruses that could be causing the memory problem.\n\n6. **Contact Manufacturer Support**:\n   - If none of the above steps resolve the issue, it may be necessary to contact the manufacturer's support team for further assistance.\n\nIf you're still unable to resolve the issue, please provide more details about your computer's model and any error messages you are seeing. This will help in diagnosing the problem more accurately.",
+        "timestamp": "2025-10-03T16:13:16.649Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-10-03T18:32:51.794Z"
+  },
+  {
+    "id": "conv_1759465418266_8u4enyi6a",
+    "title": "Tell me about Tailwind 3.x vs Tailwind 4.x",
+    "createdAt": "2025-10-03T04:23:38.266Z",
+    "lastModified": "2025-10-03T18:32:51.794Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1759465418266",
+        "role": "user",
+        "content": "Tell me about Tailwind 3.x vs Tailwind 4.x",
+        "timestamp": "2025-10-03T04:23:38.266Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1759465418377",
+        "role": "assistant",
+        "content": "*Thought for 48.6 seconds*\n\nOkay, let's break down the key differences between Tailwind CSS 3.x and Tailwind 4.x. Tailwind 4.x represents a significant evolution, bringing substantial improvements and new features. Here's a detailed comparison:\n\n**1. Key Changes & Improvements in Tailwind 4.x**\n\n* **TypeScript First:** This is the *biggest* change. Tailwind 4 is built from the ground up with TypeScript. This means:\n    * **Improved Developer Experience:**  Much better autocompletion, type checking, and refactoring tools in your IDE.\n    * **Stronger Type Safety:**  You'll get better warnings and errors if you're using Tailwind classes incorrectly, leading to fewer runtime surprises.\n    * **Better Plugin Support:** TypeScript plugins are now much more robust and easier to develop.\n* **New Utilities:** Tailwind 4 introduced several new utility classes, expanding the options available to you:\n    * **`safe-margin`:**  A utility to ensure consistent margin spacing across different screen sizes, addressing a common issue with spacing in previous versions.\n    * **`safe-padding`:** Similar to `safe-margin` but for padding.\n    * **`safe-spacing`:**  Provides consistent spacing between elements.\n    * **`group-toggle`:**  A new class to control the visibility of grouped elements with `safe-margin`.\n    * **`text-glow`:** Adds a subtle glow effect to text.\n    * **`border-overlay`:**  Creates a layered border effect.\n* **Improved Plugin System:** The plugin system has been completely revamped. It's now more modular, easier to use, and supports TypeScript plugins, leading to more powerful and flexible customizations.\n* **Better Color Support:** Enhanced color utilities and better handling of color palettes.\n* **Performance Improvements:** Ongoing optimizations to reduce the size of the generated CSS.\n\n**2. Tailwind 3.x – What's Still Relevant?**\n\n* **Mature and Stable:** Tailwind 3.x is still a very solid and mature version. It's been thoroughly tested and has a large community.\n* **Large Ecosystem:** There’s a massive amount of documentation, tutorials, and community support available for Tailwind 3.x.\n* **Generally Good Performance:** It's known for good performance, although Tailwind 4.x has further optimizations.\n* **Still Widely Used:** Many projects are still actively maintained on Tailwind 3.x, so you won’t encounter immediate compatibility issues if you're already using it.\n\n**3. Comparison Table: Key Differences**\n\n| Feature          | Tailwind 3.x | Tailwind 4.x |\n|------------------|--------------|--------------|\n| **TypeScript**   | No           | Yes          |\n| **Developer Exp.**| Less Robust  | Much Better  |\n| **New Utilities** | Limited      | Significant  |\n| **Plugin System** | Less Flexible| More Modular |\n| **Stability**     | Very Stable  | Stable       |\n| **Community**     | Large        | Growing      |\n| **Performance**   | Good         | Optimized    |\n\n\n\n**4. Migration Considerations**\n\n* **Not a Simple Upgrade:**  Migrating from Tailwind 3.x to 4.x is *not* a simple one-step process.  You'll need to:\n    * **Update Dependencies:**  Change your `tailwind.config.js` file and update your project's dependencies.\n    * **Adjust Your Code:**  You'll likely need to update your CSS classes to use the new utility names.  The documentation provides mapping guides.\n    * **Test Thoroughly:**  It's crucial to test your application thoroughly after the migration.\n\n**5. Recommendations**\n\n* **New Projects:** **Start with Tailwind 4.x.**  The benefits of TypeScript, the new utilities, and the improved plugin system make it the better choice for new projects.\n* **Existing Projects:**  If you're already using Tailwind 3.x and your project isn’t critically dependent on specific features only available in 3.x, you *can* consider migrating. However, carefully evaluate the effort involved.  If you're starting a new feature, it's almost always better to build it with Tailwind 4.x from the beginning.\n\n**Resources:**\n\n* **Official Tailwind CSS 4.x Documentation:** [https://tailwindcss.com/docs/4](https://tailwindcss.com/docs/4)\n* **Migration Guide:** [https://tailwindcss.com/docs/upgrade/3-to-4](https://tailwindcss.com/docs/upgrade/3-to-4)\n\n\nDo you want me to delve deeper into a specific aspect of the comparison, such as:\n\n*   The migration process in more detail?\n*   Specific new utilities in Tailwind 4.x?\n*   How the TypeScript integration works?",
+        "timestamp": "2025-10-03T04:24:26.943Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-10-03T18:32:51.794Z"
+  },
+  {
+    "id": "conv_1759516411552_z0dtsqsq1",
+    "title": "ok looks like we have fixed the problem",
+    "createdAt": "2025-10-03T18:33:31.553Z",
+    "lastModified": "2025-10-03T18:33:37.428Z",
+    "provider": "ollama",
+    "currentModel": "qwen2.5-coder:1.5b",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1759516411552",
+        "role": "user",
+        "content": "ok looks like we have fixed the problem",
+        "timestamp": "2025-10-03T18:33:31.552Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1759516412085",
+        "role": "assistant",
+        "content": "*Thought for 5.3 seconds*\n\nSure! It's great to hear that the issue has been resolved. If you have any other questions or concerns in the future, feel free to ask.",
+        "timestamp": "2025-10-03T18:33:37.426Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-10-03T18:33:37.428Z"
   }
 ]
