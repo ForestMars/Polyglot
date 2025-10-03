@@ -1,6 +1,7 @@
 "use strict";
 
 const { CookieJar } = require("tough-cookie");
+const { DOMSelector } = require("@asamuzakjp/dom-selector");
 
 const NodeImpl = require("./Node-impl").implementation;
 const idlUtils = require("../generated/utils");
@@ -49,16 +50,18 @@ const ShadowRoot = require("../generated/ShadowRoot");
 const Range = require("../generated/Range");
 const documents = require("../documents.js");
 
+const BeforeUnloadEvent = require("../generated/BeforeUnloadEvent");
+const CompositionEvent = require("../generated/CompositionEvent");
 const CustomEvent = require("../generated/CustomEvent");
-const ErrorEvent = require("../generated/ErrorEvent");
+const DeviceMotionEvent = require("../generated/DeviceMotionEvent");
+const DeviceOrientationEvent = require("../generated/DeviceOrientationEvent");
 const Event = require("../generated/Event");
 const FocusEvent = require("../generated/FocusEvent");
 const HashChangeEvent = require("../generated/HashChangeEvent");
 const KeyboardEvent = require("../generated/KeyboardEvent");
 const MessageEvent = require("../generated/MessageEvent");
 const MouseEvent = require("../generated/MouseEvent");
-const PopStateEvent = require("../generated/PopStateEvent");
-const ProgressEvent = require("../generated/ProgressEvent");
+const StorageEvent = require("../generated/StorageEvent");
 const TouchEvent = require("../generated/TouchEvent");
 const UIEvent = require("../generated/UIEvent");
 
@@ -90,8 +93,11 @@ function toLastModifiedString(date) {
 }
 
 const eventInterfaceTable = {
+  beforeunloadevent: BeforeUnloadEvent,
+  compositionevent: CompositionEvent,
   customevent: CustomEvent,
-  errorevent: ErrorEvent,
+  devicemotionevent: DeviceMotionEvent,
+  deviceorientationevent: DeviceOrientationEvent,
   event: Event,
   events: Event,
   focusevent: FocusEvent,
@@ -101,8 +107,7 @@ const eventInterfaceTable = {
   messageevent: MessageEvent,
   mouseevent: MouseEvent,
   mouseevents: MouseEvent,
-  popstateevent: PopStateEvent,
-  progressevent: ProgressEvent,
+  storageevent: StorageEvent,
   svgevents: Event,
   touchevent: TouchEvent,
   uievent: UIEvent,
@@ -195,6 +200,12 @@ class DocumentImpl extends NodeImpl {
 
     // https://html.spec.whatwg.org/multipage/dynamic-markup-insertion.html#throw-on-dynamic-markup-insertion-counter
     this._throwOnDynamicMarkupInsertionCounter = 0;
+
+    // Create DOMSelector instance
+    this._domSelector = new DOMSelector(this._globalObject, this._ownerDocument, {
+      domSymbolTree,
+      idlUtils
+    });
 
     // Cache of computed element styles
     this._styleCache = null;
