@@ -167,11 +167,13 @@ export class IndexedDbStorage {
   }
 
   async setMeta(meta: AppMeta): Promise<void> {
+    if (!meta.id) {
+      throw new Error("Meta object must have an 'id' property");
+    }
     try {
       await this.db.meta.put(meta);
     } catch (error) {
       console.error("Failed to set meta:", error);
-
       // If it's a NotFoundError, try to reinitialize the database
       if (error.name === "NotFoundError") {
         console.log("Meta table not found, reinitializing database...");
