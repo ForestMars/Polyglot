@@ -10,7 +10,7 @@ RAG/*
 .pgpass
 
 # Node.js
-node_modules/
+#node_modules/
 dist/
 build/
 npm-debug.log*
