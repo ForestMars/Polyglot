@@ -89,6 +89,7 @@ cloud:
   providers:
     - openai
     - anthropic
+    - mistral
     - google
   # Remote storage/sync settings
   storage:

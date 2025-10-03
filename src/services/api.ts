@@ -2,6 +2,7 @@ import { OllamaService, type OllamaRequest, type OllamaResponse } from './ollama
 import { OpenRouterService } from './providers/openrouter';
 import { TogetherService } from './providers/together';
 import { GroqService } from './providers/groq';
+import { MistralService } from './providers/mistral';
 
 export interface ChatRequest {
   provider: string;
@@ -24,6 +25,7 @@ export class ApiService {
   private openRouterService: OpenRouterService | null = null;
   private togetherService: TogetherService | null = null;
   private groqService: GroqService | null = null;
+  private mistralService: MistralService | null = null;
 
   constructor() {
     this.ollamaService = new OllamaService();
@@ -50,6 +52,13 @@ export class ApiService {
     return this.groqService;
   }
 
+  private getMistralService(apiKey: string): MistralService {
+    if (!this.mistralService || this.mistralService['apiKey'] !== apiKey) {
+      this.mistralService = new MistralService(apiKey);
+    }
+    return this.mistralService;
+  }
+
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
     const { provider, model, messages, baseUrl } = request;
 
@@ -69,6 +78,8 @@ export class ApiService {
           return await this.handleTogetherRequest(model, messages, request.apiKey);
         case 'groq':
           return await this.handleGroqRequest(model, messages, request.apiKey);
+        case 'mistral':
+          return await this.handleMistralRequest(model, messages, request.apiKey);
         default:
           throw new Error(`Unsupported provider: ${provider}`);
       }
@@ -278,6 +289,32 @@ export class ApiService {
     };
   }
 
+  private async handleMistralRequest(
+    model: string,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
+    apiKey?: string
+  ): Promise<ChatResponse> {
+    if (!apiKey) {
+      throw new Error('Mistral API key is required');
+    }
+
+    const mistralService = this.getMistralService(apiKey);
+    const response = await mistralService.chat({
+      model,
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
+    });
+
+    return {
+      content: response.content,
+      provider: 'mistral',
+      model: response.model,
+      timestamp: new Date(response.created_at * 1000)
+    };
+  }
+
   async checkProviderHealth(provider: string, baseUrl?: string): Promise<boolean> {
     switch (provider) {
       case 'ollama':
@@ -288,6 +325,7 @@ export class ApiService {
       case 'openrouter':
       case 'together':
       case 'groq':
+      case 'mistral':
       case 'google':
         // Basic health check for cloud providers - just check if API key is provided
         return true;
