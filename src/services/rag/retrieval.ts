@@ -1,3 +1,4 @@
+// src/services/retrieval.ts
 import { Pool } from "pg";
 import { getEmbedding } from "@/services/rag/embeddings";
 
