@@ -158,7 +158,8 @@ export class ApiService {
     const content = response.message.content;
     
     // More flexible regex to catch various formats
-    const toolCallMatch = content.match(/send_email\([^)]*(?:to|recipient)="([^"]+)"[^)]*subject="([^"]+)"[^)]*(?:body="([^"]+)")?\)/);
+    const toolCallMatch = content.match(/send_email\([^)]*to="([^"]+)"[^)]*subject="([^"]+)"[^)]*body="([^"]+)"/s);
+
 
 if (toolCallMatch) {
   const [, to, subject, body] = toolCallMatch;
@@ -168,11 +169,11 @@ if (toolCallMatch) {
     const result = await mcpService.callTool('send_email', 'email-tool', {
       to,
       subject,
-      body: body || ''
+      body
     });
     
     return {
-      content: result || `✅ Email sent to ${to}`,
+      content: result || `Email sent to ${to}`,
       provider: 'ollama',
       model: response.model,
       timestamp: new Date(response.created_at),
@@ -181,7 +182,7 @@ if (toolCallMatch) {
   } catch (error) {
     console.error('[handleOllamaRequest] Tool call failed:', error);
     return {
-      content: `❌ Failed to send email: ${error}`,
+      content: `Failed to send email: ${error}`,
       provider: 'ollama',
       model: response.model,
       timestamp: new Date(response.created_at),
@@ -189,7 +190,7 @@ if (toolCallMatch) {
       };
     }
   }
-
+  
     return {
       content: response.message.content,
       provider: 'ollama',
