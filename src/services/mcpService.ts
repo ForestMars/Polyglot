@@ -20,9 +20,20 @@ class McpService {
   async initialize() {
     console.log('🔌 Initializing MCP service...');
     
-    // Test with hardcoded config first
-    const config = { servers: [{ name: "day-server", description: "day-server test", url: "ws://localhost:9001" }] };
-    this.servers = config.servers;
+    // Load servers from /config/mcp.json (served by the app) if available.
+    // Fall back to a small hardcoded config for local dev if fetching fails.
+    try {
+      console.log('🌐 Attempting to fetch /config/mcp.json...');
+      const resp = await fetch('/config/mcp.json');
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const config = await resp.json();
+      this.servers = Array.isArray(config?.servers) ? config.servers : [];
+      console.log(`📥 Loaded MCP config from /config/mcp.json:`, this.servers.map((s: any) => s.name));
+    } catch (err) {
+      console.warn('⚠️ Could not load /config/mcp.json, falling back to hardcoded config.', err);
+      const config = { servers: [{ name: "day-server", description: "day-server test", url: "ws://localhost:9001" }] };
+      this.servers = config.servers;
+    }
     console.log(`📋 Found ${this.servers.length} MCP servers in config:`, this.servers.map(s => s.name));
     
     // Connect to all configured servers
@@ -37,6 +48,17 @@ class McpService {
     }
     
     console.log(`🛠️ MCP initialization complete. Total tools available: ${this.tools.length}`);
+  }
+
+  /**
+   * Return a plain-text summary of available tools suitable for insertion into a system prompt.
+   * Example:
+   * "Available tools:\n- toolA (day-server): description\n- toolB (other-server): description"
+   */
+  getToolsAsSystemPrompt(): string {
+    if (!this.tools || this.tools.length === 0) return '';
+    const lines = this.tools.map(t => `- ${t.name} (server: ${t.server}): ${t.description}`);
+    return `Available tools:\n${lines.join('\n')}\n\nUse these tools when they can help answer the user's question.`;
   }
 
   private async connectToServer(server: McpServer): Promise<void> {
