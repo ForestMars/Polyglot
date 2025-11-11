@@ -243,11 +243,11 @@ const handleKeyPress = (e: React.KeyboardEvent) => {
   }
 };
 
-// Added debugging 
+  // Added debugging 
 const handleSendMessage = async () => {
   console.log('🚨 HANDLESENDMESSAGE CALLED WITH:', input);
   console.log('🚨 Current settings:', settings);
-  console.log('🚨 enableRAG value:', settings?.enableRAG);
+  const enableRAG = settings?.enableRAG ?? false;
   if (!input.trim() || !selectedProvider || !selectedModel) return;
 
         // === MCP integration ===
@@ -344,16 +344,18 @@ const handleSendMessage = async () => {
     setMessages(prev => [...prev, {...assistantMessage, isThinking: true, startTime}]);
 
     // === RAG integration (build messagesToSend) ===
-    console.log('🔍 Starting RAG integration check...');
-    console.log('🔍 settings object:', settings);
-    console.log('🔍 settings?.enableRAG:', settings?.enableRAG);
+  console.log('🔍 Starting RAG integration check...');
+  console.log('🔍 settings object:', settings);
+  console.log('🔍 settings?.enableRAG:', enableRAG);
     
     let messagesToSend: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
       { role: 'user', content: input.trim() }
     ];
 
+    // MCP system-prompt injection is handled centrally by ApiService (cached at initialization).
 
-    if (FORCE_ENABLE_RAG || settings?.enableRAG) {   
+
+  if (FORCE_ENABLE_RAG || enableRAG) {   
       console.log('🔍 RAG is enabled, querying for context...');
       const ragRequest = { question: input.trim(), k: 5 };
       console.log('🚀 RAG Request:', JSON.stringify(ragRequest, null, 2));
@@ -602,7 +604,7 @@ const handleSendMessage = async () => {
               <input
                 id="rag-checkbox"
                 type="checkbox"
-                checked={settings?.enableRAG || false}
+                checked={settings?.enableRAG ?? false}
                 onChange={(e) => updateSetting('enableRAG', e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
               />

@@ -3,6 +3,7 @@ import { OpenRouterService } from './providers/openrouter';
 import { TogetherService } from './providers/together';
 import { GroqService } from './providers/groq';
 import { MistralService } from './providers/mistral';
+import { mcpService } from '@/services/mcpService';
 
 export interface ChatRequest {
   provider: string;
@@ -60,7 +61,29 @@ export class ApiService {
   }
 
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
-    const { provider, model, messages, baseUrl } = request;
+    let { provider, model, messages, baseUrl } = request;
+
+    // If no explicit system message was provided, attempt to inject the cached MCP system prompt.
+    try {
+      const hasSystem = messages.some(m => m.role === 'system');
+      if (!hasSystem) {
+        // Wait briefly for MCP service initialization if it's still in progress.
+        try {
+          await Promise.race([
+            (mcpService as any).ready,
+            new Promise(resolve => setTimeout(resolve, 1500))
+          ]);
+        } catch {}
+
+        const sys = mcpService.getCachedSystemPrompt ? mcpService.getCachedSystemPrompt() : '';
+        if (sys && sys.length > 0) {
+          messages = [{ role: 'system', content: sys }, ...messages];
+        }
+      }
+    } catch (err) {
+      // Fail-safe: don't block message sending if mcpService isn't available or errors
+      console.warn('⚠️ Failed to prepend MCP system prompt:', err);
+    }
 
     try {
       switch (provider) {
