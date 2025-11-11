@@ -2842,5 +2842,114 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-10-03T18:32:51.773Z"
+  },
+  {
+    "id": "conv_1762893233984_kur21c07p",
+    "title": "Ok, I would like to send an email to patrick_a_jon...",
+    "createdAt": "2025-11-11T20:33:53.984Z",
+    "lastModified": "2025-11-11T20:37:44.832Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1762893233983",
+        "role": "user",
+        "content": "Ok, I would like to send an email to patrick_a_jones@hotmail.com",
+        "timestamp": "2025-11-11T20:33:53.983Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1762893234335",
+        "role": "assistant",
+        "content": "*Thought for 14.5 seconds*\n\nOkay, I can do that. Please tell me what you would like to say in the email.",
+        "timestamp": "2025-11-11T20:34:08.866Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1762893316085",
+        "role": "user",
+        "content": "Great hearing from you Patrick and looking forward to a caatch up call! BTW I'm sending you this from my locally running LLM which is actually doing the actual sending lol",
+        "timestamp": "2025-11-11T20:35:16.085Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1762893316397",
+        "role": "assistant",
+        "content": "*Thought for 7.5 seconds*\n\nOkay, thanks for letting me know! Just confirming, you're sending this email from your locally running LLM.",
+        "timestamp": "2025-11-11T20:35:23.855Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1762893338699",
+        "role": "user",
+        "content": "Well yes, that's what you are doing",
+        "timestamp": "2025-11-11T20:35:38.699Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1762893338805",
+        "role": "assistant",
+        "content": "*Thought for 5.0 seconds*\n\nOkay! I understand. I’m here to help you use the `get_day` and `send_email` tools to answer your questions. \n\nWhat would you like me to do?",
+        "timestamp": "2025-11-11T20:35:43.771Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1762893367701",
+        "role": "user",
+        "content": "yes, you should use the 'send_email' tool to send this email.",
+        "timestamp": "2025-11-11T20:36:07.701Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1762893368001",
+        "role": "assistant",
+        "content": "*Thought for 6.7 seconds*\n\nOkay, I understand. Please tell me what you want to send in the email. I need the recipient, subject, and body of the email to use the `send_email` tool.",
+        "timestamp": "2025-11-11T20:36:14.710Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1762893426045",
+        "role": "user",
+        "content": "the recpipient is patrick_a_jones@hotmail.com\nthe subject is \"great to hear from you\" \nand the body is \"Great hearing from you Patrick and looking forward to a caatch up call! BTW I'm sending you this from my locally running LLM which is actually doing the actual sending lol\"",
+        "timestamp": "2025-11-11T20:37:06.045Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1762893426349",
+        "role": "assistant",
+        "content": "*Thought for 11.3 seconds*\n\n```tool_code\nsend_email(server=\"email-tool\", recipient=\"patrick_a_jones@hotmail.com\", subject=\"Great to hear from you\", body=\"Great hearing from you Patrick and looking forward to a caatch up call! BTW I'm sending you this from my locally running LLM which is actually doing the actual sending lol\")\n```",
+        "timestamp": "2025-11-11T20:37:17.632Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1762893459567",
+        "role": "user",
+        "content": "approved. please send.",
+        "timestamp": "2025-11-11T20:37:39.567Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1762893459672",
+        "role": "assistant",
+        "content": "*Thought for 5.2 seconds*\n\nPlease tell me what you would like me to send! I need the content of the email and the recipient's email address.",
+        "timestamp": "2025-11-11T20:37:44.832Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-11T20:37:44.832Z"
   }
 ]
