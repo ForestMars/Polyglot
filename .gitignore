@@ -11,6 +11,7 @@ RAG/*
 
 # Node.js
 node_modules/
+
 dist/
 build/
 npm-debug.log*
