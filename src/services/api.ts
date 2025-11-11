@@ -160,35 +160,35 @@ export class ApiService {
     // More flexible regex to catch various formats
     const toolCallMatch = content.match(/send_email\([^)]*(?:to|recipient)="([^"]+)"[^)]*subject="([^"]+)"[^)]*(?:body="([^"]+)")?\)/);
 
-    if (toolCallMatch) {
-      const [, to, subject, body] = toolCallMatch;
-      console.log('[handleOllamaRequest] Detected tool call: send_email', { to, subject, body });
-      
-      try {
-        const result = await mcpService.callTool('send_email', 'email-tool', {
-          to,
-          subject,
-          body: body || ''
-        });
-        
-        return {
-          content: result || `Email sent to ${to}`,
-          provider: 'ollama',
-          model: response.model,
-          timestamp: new Date(response.created_at),
-          responseTime: endTime - startTime
-        };
-      } catch (error) {
-        console.error('[handleOllamaRequest] Tool call failed:', error);
-        return {
-          content: `Failed to send email: ${error}`,
-          provider: 'ollama',
-          model: response.model,
-          timestamp: new Date(response.created_at),
-          responseTime: endTime - startTime
-        };
-      }
+if (toolCallMatch) {
+  const [, to, subject, body] = toolCallMatch;
+  console.log('[handleOllamaRequest] Detected tool call: send_email', { to, subject, body });
+  
+  try {
+    const result = await mcpService.callTool('send_email', 'email-tool', {
+      to,
+      subject,
+      body: body || ''
+    });
+    
+    return {
+      content: result || `✅ Email sent to ${to}`,
+      provider: 'ollama',
+      model: response.model,
+      timestamp: new Date(response.created_at),
+      responseTime: endTime - startTime
+    };
+  } catch (error) {
+    console.error('[handleOllamaRequest] Tool call failed:', error);
+    return {
+      content: `❌ Failed to send email: ${error}`,
+      provider: 'ollama',
+      model: response.model,
+      timestamp: new Date(response.created_at),
+      responseTime: endTime - startTime
+      };
     }
+  }
 
     return {
       content: response.message.content,
