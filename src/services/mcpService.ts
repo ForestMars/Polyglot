@@ -20,22 +20,27 @@ class McpService {
   async initialize() {
     console.log('🔌 Initializing MCP service...');
     
-    // Load servers from /config/mcp.json (served by the app) if available.
-    // Fall back to a small hardcoded config for local dev if fetching fails.
+    // Load servers from /config/mcp.json (served by the app). Do not hardcode local servers here.
     try {
       console.log('🌐 Attempting to fetch /config/mcp.json...');
       const resp = await fetch('/config/mcp.json');
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const config = await resp.json();
-      this.servers = Array.isArray(config?.servers) ? config.servers : [];
-      console.log(`📥 Loaded MCP config from /config/mcp.json:`, this.servers.map((s: any) => s.name));
+      if (!resp.ok) {
+        console.warn(`⚠️ /config/mcp.json returned HTTP ${resp.status}; no MCP servers will be configured.`);
+        this.servers = [];
+      } else {
+        const config = await resp.json();
+        this.servers = Array.isArray(config?.servers) ? config.servers : [];
+        console.log(`📥 Loaded MCP config from /config/mcp.json:`, this.servers.map((s: any) => s.name));
+      }
     } catch (err) {
-      console.warn('⚠️ Could not load /config/mcp.json, falling back to hardcoded config.', err);
-      const config = { servers: [{ name: "day-server", description: "day-server test", url: "ws://localhost:9001" }] };
-      this.servers = config.servers;
+      console.warn('⚠️ Could not load /config/mcp.json; no MCP servers will be configured.', err);
+      this.servers = [];
     }
     console.log(`📋 Found ${this.servers.length} MCP servers in config:`, this.servers.map(s => s.name));
     
+    // If no servers were provided in config, do not auto-detect or hardcode any local servers.
+    // Operator (or deployment) should provide `/config/mcp.json` listing local tool servers when needed.
+
     // Connect to all configured servers
     for (const server of this.servers) {
       console.log(`🔗 Attempting to connect to ${server.name} at ${server.url}...`);
@@ -49,6 +54,8 @@ class McpService {
     
     console.log(`🛠️ MCP initialization complete. Total tools available: ${this.tools.length}`);
   }
+
+  
 
   /**
    * Return a plain-text summary of available tools suitable for insertion into a system prompt.
