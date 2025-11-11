@@ -5,5 +5,11 @@
       "description": "Provides current day of week",
       "url": "ws://localhost:9001"
     }
+    ,
+    {
+      "name": "email-tool",
+      "description": "Local email tool (Gmail)",
+      "url": "ws://localhost:3000"
+    }
   ]
 }
