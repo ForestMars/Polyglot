@@ -65,6 +65,9 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify({ ok: true }));
     }
 
+    // POST /mcp/inject -> write a file config/inject.txt for testing/dev
+    
+
     // Fallback 404
     res.writeHead(404, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Not found' }));

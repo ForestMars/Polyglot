@@ -25,16 +25,46 @@ class McpService {
       console.log('🌐 Attempting to fetch /config/mcp.json...');
       const resp = await fetch('/config/mcp.json');
       if (!resp.ok) {
-        console.warn(`⚠️ /config/mcp.json returned HTTP ${resp.status}; no MCP servers will be configured.`);
-        this.servers = [];
+        console.warn(`⚠️ /config/mcp.json returned HTTP ${resp.status}; attempting fallback to sync server...`);
+        // Try fallback to sync server which may be serving the config
+  const syncEndpoint = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_SYNC_SERVER_URL) || 'http://localhost:4002';
+        try {
+          const resp2 = await fetch(`${syncEndpoint.replace(/\/$/, '')}/config/mcp.json`);
+          if (resp2.ok) {
+            const cfg2 = await resp2.json();
+            this.servers = Array.isArray(cfg2?.servers) ? cfg2.servers : [];
+            console.log(`📥 Loaded MCP config from sync server:`, this.servers.map((s: any) => s.name));
+          } else {
+            console.warn('⚠️ Sync server did not serve config; no MCP servers will be configured.');
+            this.servers = [];
+          }
+        } catch (err) {
+          console.warn('⚠️ Failed to fetch config from sync server fallback:', err);
+          this.servers = [];
+        }
       } else {
         const config = await resp.json();
         this.servers = Array.isArray(config?.servers) ? config.servers : [];
         console.log(`📥 Loaded MCP config from /config/mcp.json:`, this.servers.map((s: any) => s.name));
       }
     } catch (err) {
-      console.warn('⚠️ Could not load /config/mcp.json; no MCP servers will be configured.', err);
-      this.servers = [];
+      console.warn('⚠️ Could not load /config/mcp.json; attempting fallback to sync server...', err);
+      // Try sync server fallback if initial fetch errored
+  const syncEndpoint = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_SYNC_SERVER_URL) || 'http://localhost:4002';
+      try {
+        const resp2 = await fetch(`${syncEndpoint.replace(/\/$/, '')}/config/mcp.json`);
+        if (resp2.ok) {
+          const cfg2 = await resp2.json();
+          this.servers = Array.isArray(cfg2?.servers) ? cfg2.servers : [];
+          console.log(`📥 Loaded MCP config from sync server:`, this.servers.map((s: any) => s.name));
+        } else {
+          console.warn('⚠️ Sync server did not serve config; no MCP servers will be configured.');
+          this.servers = [];
+        }
+      } catch (err2) {
+        console.warn('⚠️ Sync server fallback failed as well:', err2);
+        this.servers = [];
+      }
     }
     console.log(`📋 Found ${this.servers.length} MCP servers in config:`, this.servers.map(s => s.name));
     
@@ -53,6 +83,24 @@ class McpService {
     }
     
     console.log(`🛠️ MCP initialization complete. Total tools available: ${this.tools.length}`);
+    // For testing/dev: if we discovered tools, send the system-prompt injection text to the local sync server
+    try {
+      const injectText = this.getToolsAsSystemPrompt();
+      if (injectText && injectText.length > 0) {
+        // POST to the local sync server which exposes a write endpoint for dev
+        const syncEndpoint = (typeof window !== 'undefined' && (window as any).VITE_SYNC_SERVER_URL) || 'http://localhost:4001';
+        const url = `${syncEndpoint.replace(/\/$/, '')}/mcp/inject`;
+        console.log('📤 Sending MCP inject text to', url);
+        await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inject: injectText })
+        });
+        console.log('📥 MCP inject written to server');
+      }
+    } catch (err) {
+      console.warn('⚠️ Failed to write MCP inject to server (dev-only):', err);
+    }
   }
 
   
