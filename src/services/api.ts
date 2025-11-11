@@ -156,8 +156,10 @@ export class ApiService {
 
     // Check if the response contains a tool call
     const content = response.message.content;
-    const toolCallMatch = content.match(/send_email\(to="([^"]+)",\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)/);
     
+    // More flexible regex to catch various formats
+    const toolCallMatch = content.match(/send_email\([^)]*(?:to|recipient)="([^"]+)"[^)]*subject="([^"]+)"[^)]*(?:body="([^"]+)")?\)/);
+
     if (toolCallMatch) {
       const [, to, subject, body] = toolCallMatch;
       console.log('[handleOllamaRequest] Detected tool call: send_email', { to, subject, body });
