@@ -6,6 +6,8 @@ export interface AppSettings extends UserSettings {
   sidebarCollapsed: boolean;
   showTimestamps: boolean;
   showModelInfo: boolean;
+  // RAG toggle
+  enableRAG?: boolean;
   
   // Chat Preferences
   defaultProvider: string;
@@ -46,7 +48,9 @@ export class SettingsService {
     enableDebugMode: false,
     enableAnalytics: false,
     backupEnabled: true,
-    backupInterval: 7
+    backupInterval: 7,
+    // RAG default disabled
+    enableRAG: false
   };
 
   /**
@@ -206,7 +210,7 @@ export class SettingsService {
    * Validate settings object
    */
   private validateSettings(settings: any): AppSettings {
-    const validated: AppSettings = { ...this.DEFAULT_SETTINGS };
+  let validated: any = { ...this.DEFAULT_SETTINGS };
     
     // Validate each setting with type checking
     for (const [key, defaultValue] of Object.entries(this.DEFAULT_SETTINGS)) {
@@ -216,13 +220,14 @@ export class SettingsService {
         // Type-specific validation
         if (typeof value === typeof defaultValue) {
           if (this.isValidValue(key, value)) {
-            validated[key as keyof AppSettings] = value;
+            // trust runtime validation above, cast to any to satisfy TS
+            validated[key as keyof AppSettings] = value as any;
           }
         }
       }
     }
     
-    return validated;
+    return validated as AppSettings;
   }
 
   /**

@@ -15,7 +15,15 @@ class McpService {
   private servers: McpServer[] = [];
   private connections: Map<string, WebSocket> = new Map();
   private tools: McpTool[] = [];
+  private cachedSystemPrompt: string = '';
   private pendingToolDiscovery: Map<string, { resolve: () => void; reject: (error: any) => void }> = new Map();
+  // Ready promise resolves when initialize() completes (successful or not)
+  public ready: Promise<void>;
+  private _resolveReady: (() => void) | null = null;
+
+  constructor() {
+    this.ready = new Promise((resolve) => { this._resolveReady = resolve; });
+  }
 
   async initialize() {
     console.log('🔌 Initializing MCP service...');
@@ -83,24 +91,51 @@ class McpService {
     }
     
     console.log(`🛠️ MCP initialization complete. Total tools available: ${this.tools.length}`);
-    // For testing/dev: if we discovered tools, send the system-prompt injection text to the local sync server
+
+    // Cache a plain-text system prompt containing discovered tools for reuse by the app.
     try {
-      const injectText = this.getToolsAsSystemPrompt();
-      if (injectText && injectText.length > 0) {
+      this.cachedSystemPrompt = this.getToolsAsSystemPrompt();
+    } catch (err) {
+      console.warn('⚠️ Failed to build cached system prompt:', err);
+      this.cachedSystemPrompt = '';
+    }
+
+    // For testing/dev: if we discovered tools, optionally send the cached system-prompt injection text to the local sync server.
+    // This behavior is gated by the VITE_ALLOW_MCP_INJECT build-time flag to avoid accidental repo writes in production.
+    try {
+      const injectText = this.cachedSystemPrompt;
+      const allowInject = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_ALLOW_MCP_INJECT === 'true')
+        || (typeof window !== 'undefined' && (window as any).ALLOW_MCP_INJECT === true);
+
+      if (injectText && injectText.length > 0 && allowInject) {
         // POST to the local sync server which exposes a write endpoint for dev
-        const syncEndpoint = (typeof window !== 'undefined' && (window as any).VITE_SYNC_SERVER_URL) || 'http://localhost:4001';
+        const syncEndpoint = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_SYNC_SERVER_URL) || (typeof window !== 'undefined' && (window as any).VITE_SYNC_SERVER_URL) || 'http://localhost:4002';
         const url = `${syncEndpoint.replace(/\/$/, '')}/mcp/inject`;
-        console.log('📤 Sending MCP inject text to', url);
-        await fetch(url, {
+        console.log('📤 (dev-only) Sending MCP inject text to', url);
+        const resp = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ inject: injectText })
         });
-        console.log('📥 MCP inject written to server');
+        if (!resp.ok) {
+          console.warn('⚠️ MCP inject POST returned', resp.status, await resp.text().catch(() => ''));
+        } else {
+          console.log('📥 MCP inject written to server (dev-only)');
+        }
       }
     } catch (err) {
       console.warn('⚠️ Failed to write MCP inject to server (dev-only):', err);
     }
+
+    // Mark ready regardless of success so callers won't wait indefinitely. Resolve AFTER cached prompt (and optional dev write)
+    try { this._resolveReady?.(); } catch {};
+  }
+
+  /**
+   * Return the cached system prompt built at initialization (or empty string).
+   */
+  getCachedSystemPrompt(): string {
+    return this.cachedSystemPrompt || '';
   }
 
   
