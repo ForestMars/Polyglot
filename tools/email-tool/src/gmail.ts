@@ -1,45 +1,27 @@
-import { google } from "googleapis";
-import fs from "fs";
-import path from "path";
+import nodemailer from "nodemailer";
 import { sendEmailSchema, SendEmailInput } from "./schema";
 
-function loadAuth() {
-  const authPath = path.resolve(".auth/credentials.json");
-  if (!fs.existsSync(authPath)) throw new Error(`.auth file not found at ${authPath}`);
-  return JSON.parse(fs.readFileSync(authPath, "utf-8"));
-}
+// Replace these with your actual Gmail credentials
+const EMAIL_ADDRESS = "your_email@gmail.com";
+const EMAIL_PASSWORD = "your_app_password"; // NOT your normal password! Use an App Password
 
 export async function sendEmail(input: SendEmailInput) {
   const message = sendEmailSchema.parse(input); // validate
 
-  const creds = loadAuth();
-  let auth;
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: EMAIL_ADDRESS,
+      pass: EMAIL_PASSWORD,
+    },
+  });
 
-  if (creds.type === "service_account") {
-    auth = new google.auth.JWT({
-      email: creds.client_email,
-      key: creds.private_key,
-      scopes: ["https://www.googleapis.com/auth/gmail.send"],
-      subject: creds.user, // the user to send email as
-    });
-  } else {
-    const { client_id, client_secret, redirect_uris, refresh_token } =
-      creds.installed || creds.web || {};
-    if (!client_id || !client_secret || !refresh_token)
-      throw new Error(".auth file missing client_id, client_secret, or refresh_token");
-
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-    oAuth2Client.setCredentials({ refresh_token });
-    auth = oAuth2Client;
-  }
-
-  const gmail = google.gmail({ version: "v1", auth });
-
-  const raw = Buffer.from(
-    `To: ${message.to}\r\nSubject: ${message.subject}\r\n\r\n${message.body}`
-  ).toString("base64url");
-
-  await gmail.users.messages.send({ userId: "me", requestBody: { raw } });
+  await transporter.sendMail({
+    from: EMAIL_ADDRESS,
+    to: message.to,
+    subject: message.subject,
+    text: message.body,
+  });
 
   console.log(`Email sent to ${message.to}`);
 }
