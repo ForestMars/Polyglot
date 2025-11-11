@@ -2,8 +2,8 @@ import nodemailer from "nodemailer";
 import { sendEmailSchema, SendEmailInput } from "./schema";
 
 // Replace these with your actual Gmail credentials
-const EMAIL_ADDRESS = "your_email@gmail.com";
-const EMAIL_PASSWORD = "your_app_password"; // NOT your normal password! Use an App Password
+const EMAIL_ADDRESS = "compustretch@gmail.com";
+const EMAIL_PASSWORD = "yhhz nxel vcdd fdgg"; // NOT your normal password! Use an App Password
 
 export async function sendEmail(input: SendEmailInput) {
   const message = sendEmailSchema.parse(input); // validate
