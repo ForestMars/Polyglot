@@ -17,14 +17,7 @@ wss.on('connection', (ws) => {
         result: {
           tools: [{
             name: 'send_email',
-            description: `Send an email via Gmail SMTP.
-
-IMPORTANT WORKFLOW:
-1. Before calling this tool, draft the email and show it to the user
-2. Ask "Should I send this email? Reply 'yes' to confirm."
-3. Only call send_email() after the user explicitly confirms with 'yes' or 'send'
-
-Never send emails without user confirmation.`,
+            description: `Send an email via Gmail SMTP.`,
             inputSchema: {
               type: 'object',
               properties: {

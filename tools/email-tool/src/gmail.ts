@@ -20,7 +20,7 @@ export async function sendEmail(input: SendEmailInput) {
     from: EMAIL_ADDRESS,
     to: message.to,
     subject: message.subject,
-    text: message.body,
+    text: message.body.replace(/\\n/g, '\n'), // Convert escaped \n to actual newlines
   });
 
   console.log(`Email sent to ${message.to}`);
