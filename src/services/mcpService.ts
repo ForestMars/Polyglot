@@ -241,3 +241,12 @@ class McpService {
 }
 
 export const mcpService = new McpService();
+
+// Expose for debugging in the browser console in non-production environments
+try {
+  if (typeof window !== 'undefined' && (import.meta as any)?.env?.MODE !== 'production') {
+    (window as any).mcpService = mcpService;
+  }
+} catch (err) {
+  // ignore - defensive for non-browser or weird bundlers
+}
