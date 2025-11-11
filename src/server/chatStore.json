@@ -3,7 +3,7 @@
     "id": "conv_1757994269378_xde2rkutn",
     "title": "what day is it",
     "createdAt": "2025-09-16T03:44:29.378Z",
-    "lastModified": "2025-10-03T18:32:51.773Z",
+    "lastModified": "2025-11-11T07:39:06.864Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -58,13 +58,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.773Z"
+    "updatedAt": "2025-11-11T07:39:06.864Z"
   },
   {
     "id": "conv_1756862088490_aexjwv58o",
     "title": "What day is it?",
     "createdAt": "2025-09-03T01:14:48.490Z",
-    "lastModified": "2025-10-03T18:32:51.774Z",
+    "lastModified": "2025-11-11T07:39:06.866Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -85,13 +85,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.774Z"
+    "updatedAt": "2025-11-11T07:39:06.866Z"
   },
   {
     "id": "conv_1756861556976_fpk1sghlc",
     "title": "What day is it?",
     "createdAt": "2025-09-03T01:05:56.977Z",
-    "lastModified": "2025-10-03T18:32:51.775Z",
+    "lastModified": "2025-11-11T07:39:06.866Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -114,13 +114,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.775Z"
+    "updatedAt": "2025-11-11T07:39:06.866Z"
   },
   {
     "id": "conv_1756861260331_o9mp8mnz1",
     "title": "what day is it",
     "createdAt": "2025-09-03T01:01:00.332Z",
-    "lastModified": "2025-10-03T18:32:51.775Z",
+    "lastModified": "2025-11-11T07:39:06.866Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -143,13 +143,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.775Z"
+    "updatedAt": "2025-11-11T07:39:06.866Z"
   },
   {
     "id": "conv_1756860962855_xif8d9pob",
     "title": "what day is it?",
     "createdAt": "2025-09-03T00:56:02.855Z",
-    "lastModified": "2025-10-03T18:32:51.776Z",
+    "lastModified": "2025-11-11T07:39:06.867Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -172,13 +172,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.776Z"
+    "updatedAt": "2025-11-11T07:39:06.867Z"
   },
   {
     "id": "conv_1756860664260_ot98a4dqp",
     "title": "what day is it?",
     "createdAt": "2025-09-03T00:51:04.260Z",
-    "lastModified": "2025-10-03T18:32:51.776Z",
+    "lastModified": "2025-11-11T07:39:06.867Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -201,13 +201,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.776Z"
+    "updatedAt": "2025-11-11T07:39:06.867Z"
   },
   {
     "id": "conv_1756859904710_0l1a1br22",
     "title": "What day is it?",
     "createdAt": "2025-09-03T00:38:24.711Z",
-    "lastModified": "2025-10-03T18:32:51.777Z",
+    "lastModified": "2025-11-11T07:39:06.867Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -230,13 +230,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.777Z"
+    "updatedAt": "2025-11-11T07:39:06.867Z"
   },
   {
     "id": "conv_1756857467686_8n0fmquqj",
     "title": "what day is it",
     "createdAt": "2025-09-02T23:57:47.686Z",
-    "lastModified": "2025-10-03T18:32:51.777Z",
+    "lastModified": "2025-11-11T07:39:06.867Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -259,13 +259,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.777Z"
+    "updatedAt": "2025-11-11T07:39:06.867Z"
   },
   {
     "id": "conv_1756851926733_oa22a6ao3",
     "title": "a very straightforward yet technical precise expla...",
     "createdAt": "2025-09-02T22:25:26.733Z",
-    "lastModified": "2025-10-03T18:32:51.777Z",
+    "lastModified": "2025-11-11T07:39:06.868Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -304,13 +304,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.777Z"
+    "updatedAt": "2025-11-11T07:39:06.868Z"
   },
   {
     "id": "conv_1756762101146_wtvtm4kvg",
     "title": "How fast are you",
     "createdAt": "2025-09-01T21:28:21.146Z",
-    "lastModified": "2025-10-03T18:32:51.778Z",
+    "lastModified": "2025-11-11T07:39:06.868Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -333,13 +333,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.778Z"
+    "updatedAt": "2025-11-11T07:39:06.868Z"
   },
   {
     "id": "conv_1756184517447_1u422ic61",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T05:01:57.447Z",
-    "lastModified": "2025-10-03T18:32:51.778Z",
+    "lastModified": "2025-11-11T07:39:06.868Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:7b",
     "modelHistory": [],
@@ -362,13 +362,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.778Z"
+    "updatedAt": "2025-11-11T07:39:06.868Z"
   },
   {
     "id": "conv_1756184404707_ulg6eti4l",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T05:00:04.707Z",
-    "lastModified": "2025-10-03T18:32:51.779Z",
+    "lastModified": "2025-11-11T07:39:06.869Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -391,13 +391,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.779Z"
+    "updatedAt": "2025-11-11T07:39:06.869Z"
   },
   {
     "id": "conv_1756184362790_y6osey5ku",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T04:59:22.791Z",
-    "lastModified": "2025-10-03T18:32:51.779Z",
+    "lastModified": "2025-11-11T07:39:06.869Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -420,13 +420,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.779Z"
+    "updatedAt": "2025-11-11T07:39:06.869Z"
   },
   {
     "id": "conv_1756184310157_vb5v2msm0",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T04:58:30.158Z",
-    "lastModified": "2025-10-03T18:32:51.779Z",
+    "lastModified": "2025-11-11T07:39:06.869Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -448,13 +448,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.779Z"
+    "updatedAt": "2025-11-11T07:39:06.869Z"
   },
   {
     "id": "conv_1756184046440_3ztziynza",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T04:54:06.440Z",
-    "lastModified": "2025-10-03T18:32:51.779Z",
+    "lastModified": "2025-11-11T07:39:06.869Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -477,13 +477,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.779Z"
+    "updatedAt": "2025-11-11T07:39:06.869Z"
   },
   {
     "id": "conv_1756182147772_1iruxhi9i",
     "title": "incredible",
     "createdAt": "2025-08-26T04:22:27.772Z",
-    "lastModified": "2025-10-03T18:32:51.780Z",
+    "lastModified": "2025-11-11T07:39:06.870Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -538,13 +538,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.780Z"
+    "updatedAt": "2025-11-11T07:39:06.870Z"
   },
   {
     "id": "conv_1756181312129_s0p46bkkg",
     "title": "Just checking in",
     "createdAt": "2025-08-26T04:08:32.137Z",
-    "lastModified": "2025-10-03T18:32:51.780Z",
+    "lastModified": "2025-11-11T07:39:06.870Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -566,13 +566,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.780Z"
+    "updatedAt": "2025-11-11T07:39:06.870Z"
   },
   {
     "id": "conv_1756176854531_um2s6ar6q",
     "title": "We'd like to get started with Chrome DevTools Prot...",
     "createdAt": "2025-08-26T02:54:14.531Z",
-    "lastModified": "2025-10-03T18:32:51.780Z",
+    "lastModified": "2025-11-11T07:39:06.870Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:7b",
     "modelHistory": [],
@@ -594,13 +594,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.780Z"
+    "updatedAt": "2025-11-11T07:39:06.870Z"
   },
   {
     "id": "conv_1756167775601_epwsnvx2k",
     "title": "Hi Qwen, they say yiou're really good at coding",
     "createdAt": "2025-08-26T00:22:55.608Z",
-    "lastModified": "2025-10-03T18:32:51.781Z",
+    "lastModified": "2025-11-11T07:39:06.870Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:7b",
     "modelHistory": [],
@@ -629,13 +629,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.781Z"
+    "updatedAt": "2025-11-11T07:39:06.870Z"
   },
   {
     "id": "conv_1755980455425_tuaabj42e",
     "title": "Who are the Investigator's main suspects in the mu...",
     "createdAt": "2025-08-23T20:20:55.425Z",
-    "lastModified": "2025-10-03T18:32:51.781Z",
+    "lastModified": "2025-11-11T07:39:06.871Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -702,13 +702,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.781Z"
+    "updatedAt": "2025-11-11T07:39:06.871Z"
   },
   {
     "id": "conv_1755931468345_7s05gwtgb",
     "title": "I love Polyglut AI Chat!",
     "createdAt": "2025-08-23T06:44:28.345Z",
-    "lastModified": "2025-10-03T18:32:51.781Z",
+    "lastModified": "2025-11-11T07:39:06.871Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -730,13 +730,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.781Z"
+    "updatedAt": "2025-11-11T07:39:06.871Z"
   },
   {
     "id": "conv_1755927789605_vcnww2n5y",
     "title": "How's the water?",
     "createdAt": "2025-08-23T05:43:09.605Z",
-    "lastModified": "2025-10-03T18:32:51.782Z",
+    "lastModified": "2025-11-11T07:39:06.871Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -803,13 +803,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.782Z"
+    "updatedAt": "2025-11-11T07:39:06.871Z"
   },
   {
     "id": "conv_1755926754792_0hd88deh2",
     "title": "what are the coolest most recent updates to typesc...",
     "createdAt": "2025-08-23T05:25:54.792Z",
-    "lastModified": "2025-10-03T18:32:51.782Z",
+    "lastModified": "2025-11-11T07:39:06.871Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -831,13 +831,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.782Z"
+    "updatedAt": "2025-11-11T07:39:06.871Z"
   },
   {
     "id": "conv_1755925054811_sxntm02lf",
     "title": "What is the difference between intelligence and in...",
     "createdAt": "2025-08-23T04:57:34.811Z",
-    "lastModified": "2025-10-03T18:32:51.782Z",
+    "lastModified": "2025-11-11T07:39:06.872Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -874,13 +874,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.782Z"
+    "updatedAt": "2025-11-11T07:39:06.872Z"
   },
   {
     "id": "conv_1755924793634_8hvewlq0f",
     "title": "How does intelligence manifest itself?",
     "createdAt": "2025-08-23T04:53:13.635Z",
-    "lastModified": "2025-10-03T18:32:51.783Z",
+    "lastModified": "2025-11-11T07:39:06.872Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -902,13 +902,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.783Z"
+    "updatedAt": "2025-11-11T07:39:06.872Z"
   },
   {
     "id": "conv_1755914294524_4d9aedh5m",
     "title": "What was the name of the murder victim the Inspect...",
     "createdAt": "2025-08-23T01:58:14.526Z",
-    "lastModified": "2025-10-03T18:32:51.783Z",
+    "lastModified": "2025-11-11T07:39:06.872Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -930,13 +930,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.783Z"
+    "updatedAt": "2025-11-11T07:39:06.872Z"
   },
   {
     "id": "conv_1755908399960_4gfdtuzv8",
     "title": "What was Nils Bohn known for (be brief)",
     "createdAt": "2025-08-23T00:19:59.961Z",
-    "lastModified": "2025-10-03T18:32:51.784Z",
+    "lastModified": "2025-11-11T07:39:06.872Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1048,13 +1048,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.784Z"
+    "updatedAt": "2025-11-11T07:39:06.872Z"
   },
   {
     "id": "conv_1755907644355_l6mhsrha5",
     "title": "What did Bohr think about metaphysics",
     "createdAt": "2025-08-23T00:07:24.355Z",
-    "lastModified": "2025-10-03T18:32:51.784Z",
+    "lastModified": "2025-11-11T07:39:06.873Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1076,13 +1076,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.784Z"
+    "updatedAt": "2025-11-11T07:39:06.873Z"
   },
   {
     "id": "conv_1755904826158_rc98typnx",
     "title": "What is Alan Turing most famous for?",
     "createdAt": "2025-08-22T23:20:26.159Z",
-    "lastModified": "2025-10-03T18:32:51.784Z",
+    "lastModified": "2025-11-11T07:39:06.873Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1110,13 +1110,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.784Z"
+    "updatedAt": "2025-11-11T07:39:06.873Z"
   },
   {
     "id": "conv_1755903362449_752kudbyf",
     "title": "Who directed the movie Bladerunner?",
     "createdAt": "2025-08-22T22:56:02.449Z",
-    "lastModified": "2025-10-03T18:32:51.785Z",
+    "lastModified": "2025-11-11T07:39:06.873Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1179,13 +1179,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.785Z"
+    "updatedAt": "2025-11-11T07:39:06.873Z"
   },
   {
     "id": "conv_1755903105426_i561pvbcr",
     "title": "Who directed the movie Alien?",
     "createdAt": "2025-08-22T22:51:45.427Z",
-    "lastModified": "2025-10-03T18:32:51.785Z",
+    "lastModified": "2025-11-11T07:39:06.873Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1206,25 +1206,25 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.785Z"
+    "updatedAt": "2025-11-11T07:39:06.873Z"
   },
   {
     "id": "conv_1755836962430_tqfjk20pm",
     "title": "New Chat 8/22/2025",
     "createdAt": "2025-08-22T04:29:22.430Z",
-    "lastModified": "2025-10-03T18:32:51.785Z",
+    "lastModified": "2025-11-11T07:39:06.874Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
     "messages": [],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.785Z"
+    "updatedAt": "2025-11-11T07:39:06.874Z"
   },
   {
     "id": "conv_1755832138668_y3b6j5zt8",
     "title": "We need to give you access to the world wide web",
     "createdAt": "2025-08-22T03:08:58.678Z",
-    "lastModified": "2025-10-03T18:32:51.786Z",
+    "lastModified": "2025-11-11T07:39:06.874Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1287,13 +1287,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.786Z"
+    "updatedAt": "2025-11-11T07:39:06.874Z"
   },
   {
     "id": "conv_1755744822203_am3371pho",
     "title": "In long-context summarization, which coherence fail...",
     "createdAt": "2025-08-21T02:53:42.204Z",
-    "lastModified": "2025-10-03T18:32:51.786Z",
+    "lastModified": "2025-11-11T07:39:06.874Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -1307,13 +1307,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.786Z"
+    "updatedAt": "2025-11-11T07:39:06.874Z"
   },
   {
     "id": "conv_1755744721319_63px6jcba",
     "title": "Implicit heuristics: treat yourself as a bounded a...",
     "createdAt": "2025-08-21T02:52:01.319Z",
-    "lastModified": "2025-10-03T18:32:51.787Z",
+    "lastModified": "2025-11-11T07:39:06.874Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -1327,7 +1327,7 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.787Z"
+    "updatedAt": "2025-11-11T07:39:06.874Z"
   },
   {
     "id": "conv_1755736514862_t1yblqngg",
@@ -1408,7 +1408,7 @@
     "id": "conv_1755722779961_xoxuggrfp",
     "title": "Hypothesis: Effective integration of multimodal in...",
     "createdAt": "2025-08-20T20:46:19.961Z",
-    "lastModified": "2025-10-03T18:32:51.789Z",
+    "lastModified": "2025-11-11T07:39:06.876Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -1429,7 +1429,7 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.789Z"
+    "updatedAt": "2025-11-11T07:39:06.876Z"
   },
   {
     "id": "conv_1755719706100_nk4n30fgy",
@@ -1578,7 +1578,7 @@
     "id": "conv_1755675746741_aop73bqfk",
     "title": "Dependency tracking in codebases  over 1 million tokens",
     "createdAt": "2025-08-20T07:42:26.743Z",
-    "lastModified": "2025-10-03T18:32:51.790Z",
+    "lastModified": "2025-11-11T07:39:06.877Z",
     "provider": "openrouter",
     "currentModel": "qwen/qwen3-coder:free",
     "modelHistory": [],
@@ -1620,7 +1620,7 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.790Z"
+    "updatedAt": "2025-11-11T07:39:06.877Z"
   },
   {
     "id": "conv_1755675077051_wu9ax0w9v",
@@ -1694,7 +1694,7 @@
     "id": "conv_1755674867418_yio1mer9l",
     "title": "Implicit Heuristics in Gemini Pro 1.5",
     "createdAt": "2025-08-20T07:27:47.426Z",
-    "lastModified": "2025-10-03T18:32:51.791Z",
+    "lastModified": "2025-11-11T07:39:06.878Z",
     "provider": "openrouter",
     "currentModel": "google/gemini-pro-1.5",
     "modelHistory": [],
@@ -1722,7 +1722,7 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.791Z"
+    "updatedAt": "2025-11-11T07:39:06.878Z"
   },
   {
     "id": "conv_1755674059606_jbsw2653x",
@@ -1748,7 +1748,7 @@
     "id": "conv_1755663633053_4d6uwr0f1",
     "title": "How does the architectural design of gpt-oss:lates...",
     "createdAt": "2025-08-20T04:20:33.054Z",
-    "lastModified": "2025-10-03T18:32:51.792Z",
+    "lastModified": "2025-11-11T07:39:06.878Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -1762,13 +1762,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.792Z"
+    "updatedAt": "2025-11-11T07:39:06.878Z"
   },
   {
     "id": "conv_1755655816629_lh08tlnze",
     "title": "HalluEval 2.0 the halllucination evaluation framew...",
     "createdAt": "2025-08-20T02:10:16.638Z",
-    "lastModified": "2025-10-03T18:32:51.792Z",
+    "lastModified": "2025-11-11T07:39:06.878Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1803,13 +1803,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.792Z"
+    "updatedAt": "2025-11-11T07:39:06.878Z"
   },
   {
     "id": "conv_1758071215743_hjmboked2",
     "title": "what day is it",
     "createdAt": "2025-09-17T01:06:55.743Z",
-    "lastModified": "2025-10-03T18:32:51.792Z",
+    "lastModified": "2025-11-11T07:39:06.879Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1858,13 +1858,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.792Z"
+    "updatedAt": "2025-11-11T07:39:06.879Z"
   },
   {
     "id": "conv_1758071192427_9rdc1r34i",
     "title": "what day is it",
     "createdAt": "2025-09-17T01:06:32.428Z",
-    "lastModified": "2025-10-03T23:09:52.426Z",
+    "lastModified": "2025-11-11T07:39:06.879Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1885,13 +1885,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T23:09:52.426Z"
+    "updatedAt": "2025-11-11T07:39:06.879Z"
   },
   {
     "id": "conv_1759514698147_5hzbrpof2",
     "title": "hiya! we are just testing you",
     "createdAt": "2025-10-03T18:04:58.147Z",
-    "lastModified": "2025-10-03T21:31:50.906Z",
+    "lastModified": "2025-11-11T07:39:06.879Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -1914,13 +1914,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T21:31:50.906Z"
+    "updatedAt": "2025-11-11T07:39:06.879Z"
   },
   {
     "id": "conv_1759511727921_z1fwk0vjh",
     "title": "We need to understand what happened to cause the r...",
     "createdAt": "2025-10-03T17:15:27.921Z",
-    "lastModified": "2025-10-03T23:09:52.426Z",
+    "lastModified": "2025-11-11T07:39:06.879Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -1943,13 +1943,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T23:09:52.426Z"
+    "updatedAt": "2025-11-11T07:39:06.879Z"
   },
   {
     "id": "conv_1759511352774_9h0ipzhsp",
     "title": "is the chat server running",
     "createdAt": "2025-10-03T17:09:12.774Z",
-    "lastModified": "2025-10-03T23:09:52.427Z",
+    "lastModified": "2025-11-11T07:39:06.880Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -1972,13 +1972,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T23:09:52.427Z"
+    "updatedAt": "2025-11-11T07:39:06.880Z"
   },
   {
     "id": "conv_1759508902871_1q5h29506",
     "title": "how is this working",
     "createdAt": "2025-10-03T16:28:22.871Z",
-    "lastModified": "2025-10-03T23:09:52.427Z",
+    "lastModified": "2025-11-11T07:39:06.880Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -2033,13 +2033,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T23:09:52.427Z"
+    "updatedAt": "2025-11-11T07:39:06.880Z"
   },
   {
     "id": "conv_1759507977620_ncpi3it1t",
     "title": "oh no you're memory is broken",
     "createdAt": "2025-10-03T16:12:57.620Z",
-    "lastModified": "2025-10-03T23:09:52.427Z",
+    "lastModified": "2025-11-11T07:39:06.880Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -2062,13 +2062,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T23:09:52.427Z"
+    "updatedAt": "2025-11-11T07:39:06.880Z"
   },
   {
     "id": "conv_1759465418266_8u4enyi6a",
     "title": "Tell me about Tailwind 3.x vs Tailwind 4.x",
     "createdAt": "2025-10-03T04:23:38.266Z",
-    "lastModified": "2025-10-03T18:32:51.794Z",
+    "lastModified": "2025-11-11T07:39:06.880Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2091,13 +2091,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:32:51.794Z"
+    "updatedAt": "2025-11-11T07:39:06.880Z"
   },
   {
     "id": "conv_1759516411552_z0dtsqsq1",
     "title": "ok looks like we have fixed the problem",
     "createdAt": "2025-10-03T18:33:31.553Z",
-    "lastModified": "2025-10-03T18:33:37.428Z",
+    "lastModified": "2025-11-11T07:39:06.881Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -2120,13 +2120,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T18:33:37.428Z"
+    "updatedAt": "2025-11-11T07:39:06.881Z"
   },
   {
     "id": "conv_1760071748051_t0mmeu4uv",
     "title": "What did the inspector say to Vic?",
     "createdAt": "2025-10-10T04:49:08.051Z",
-    "lastModified": "2025-10-10T04:49:12.940Z",
+    "lastModified": "2025-11-11T07:39:06.881Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2149,13 +2149,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-10T04:49:12.940Z"
+    "updatedAt": "2025-11-11T07:39:06.881Z"
   },
   {
     "id": "conv_1760071570676_ojm4bbv9q",
     "title": "What did the inspector say to Vic?",
     "createdAt": "2025-10-10T04:46:10.676Z",
-    "lastModified": "2025-10-10T04:46:32.507Z",
+    "lastModified": "2025-11-11T07:39:06.881Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2178,13 +2178,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-10T04:46:32.507Z"
+    "updatedAt": "2025-11-11T07:39:06.881Z"
   },
   {
     "id": "conv_1760071366419_wpde5i2tl",
     "title": "What did the inspector say to vic?",
     "createdAt": "2025-10-10T04:42:46.419Z",
-    "lastModified": "2025-10-10T04:43:40.559Z",
+    "lastModified": "2025-11-11T07:39:06.881Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -2207,13 +2207,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-10T04:43:40.559Z"
+    "updatedAt": "2025-11-11T07:39:06.881Z"
   },
   {
     "id": "conv_1760070944046_jr6umr4zk",
     "title": "so this will now be the 4th time I have asked you ...",
     "createdAt": "2025-10-10T04:35:44.046Z",
-    "lastModified": "2025-10-10T04:36:04.313Z",
+    "lastModified": "2025-11-11T07:39:06.882Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -2236,13 +2236,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-10T04:36:04.313Z"
+    "updatedAt": "2025-11-11T07:39:06.882Z"
   },
   {
     "id": "conv_1760070399317_elal8mqyg",
     "title": "ok this is the 3rd doggone deal",
     "createdAt": "2025-10-10T04:26:39.317Z",
-    "lastModified": "2025-10-10T04:27:15.233Z",
+    "lastModified": "2025-11-11T07:39:06.882Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -2265,13 +2265,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-10T04:27:15.233Z"
+    "updatedAt": "2025-11-11T07:39:06.882Z"
   },
   {
     "id": "conv_1760069191888_dt9kns34v",
     "title": "what is the other doggone deal",
     "createdAt": "2025-10-10T04:06:31.888Z",
-    "lastModified": "2025-10-10T04:26:35.887Z",
+    "lastModified": "2025-11-11T07:39:06.882Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -2294,25 +2294,25 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-10T04:26:35.887Z"
+    "updatedAt": "2025-11-11T07:39:06.882Z"
   },
   {
     "id": "conv_1760070350370_hwqwm9bvv",
     "title": "New Chat 10/10/2025",
     "createdAt": "2025-10-10T04:25:50.370Z",
-    "lastModified": "2025-10-10T04:25:50.370Z",
+    "lastModified": "2025-11-11T07:39:06.882Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
     "messages": [],
     "isArchived": false,
-    "updatedAt": "2025-10-10T04:25:50.370Z"
+    "updatedAt": "2025-11-11T07:39:06.882Z"
   },
   {
     "id": "conv_1760070323369_3vkou607y",
     "title": "what is the dog gone deal",
     "createdAt": "2025-10-10T04:25:23.370Z",
-    "lastModified": "2025-10-10T04:25:44.955Z",
+    "lastModified": "2025-11-11T07:39:06.883Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -2335,13 +2335,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-10T04:25:44.955Z"
+    "updatedAt": "2025-11-11T07:39:06.883Z"
   },
   {
     "id": "conv_1760069144322_7gi55lnsn",
     "title": "10/9: I need to test chat history",
     "createdAt": "2025-10-10T04:05:44.334Z",
-    "lastModified": "2025-10-10T04:06:27.367Z",
+    "lastModified": "2025-11-11T07:39:06.883Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -2364,13 +2364,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-10T04:06:27.367Z"
+    "updatedAt": "2025-11-11T07:39:06.883Z"
   },
   {
     "id": "conv_1760063703140_mqdpfk9oa",
     "title": "memory not working again ?",
     "createdAt": "2025-10-10T02:35:03.140Z",
-    "lastModified": "2025-10-10T02:40:24.212Z",
+    "lastModified": "2025-11-11T07:39:06.883Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -2400,13 +2400,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-10T02:40:24.212Z"
+    "updatedAt": "2025-11-11T07:39:06.883Z"
   },
   {
     "id": "conv_1760063304333_nt3xap1qj",
     "title": "My plan for adding memory is to save chat history ...",
     "createdAt": "2025-10-10T02:28:24.341Z",
-    "lastModified": "2025-10-10T02:34:35.316Z",
+    "lastModified": "2025-11-11T07:39:06.883Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -2445,13 +2445,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-10T02:34:35.316Z"
+    "updatedAt": "2025-11-11T07:39:06.883Z"
   },
   {
     "id": "conv_1759533018004_s6jobrod3",
     "title": "Tell me if I am right or wrong: \n\nOn September 10,...",
     "createdAt": "2025-10-03T23:10:18.016Z",
-    "lastModified": "2025-10-03T23:11:16.544Z",
+    "lastModified": "2025-11-11T07:39:06.883Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -2474,13 +2474,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-10-03T23:11:16.544Z"
+    "updatedAt": "2025-11-11T07:39:06.883Z"
   },
   {
     "id": "conv_1762825259809_z06t80xau",
     "title": "OK then, what did the inspector say to Vic?",
     "createdAt": "2025-11-11T01:40:59.810Z",
-    "lastModified": "2025-11-11T01:44:00.407Z",
+    "lastModified": "2025-11-11T07:39:06.884Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2535,13 +2535,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-11-11T01:44:00.407Z"
+    "updatedAt": "2025-11-11T07:39:06.884Z"
   },
   {
     "id": "conv_1762825244966_nv5wti1ei",
     "title": "Ok, what did the inspector say to Vic?",
     "createdAt": "2025-11-11T01:40:44.966Z",
-    "lastModified": "2025-11-11T01:40:53.397Z",
+    "lastModified": "2025-11-11T07:39:06.884Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2564,13 +2564,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-11-11T01:40:53.397Z"
+    "updatedAt": "2025-11-11T07:39:06.884Z"
   },
   {
     "id": "conv_1762825462405_f4eo527uz",
     "title": "What did the investigator say to Vic? (and who hil...",
     "createdAt": "2025-11-11T01:44:22.406Z",
-    "lastModified": "2025-11-11T02:39:32.474Z",
+    "lastModified": "2025-11-11T07:39:06.884Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2717,13 +2717,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-11-11T02:39:32.474Z"
+    "updatedAt": "2025-11-11T07:39:06.884Z"
   },
   {
     "id": "conv_1762828735747_xiavrosk9",
     "title": "What day is today?",
     "createdAt": "2025-11-11T02:38:55.747Z",
-    "lastModified": "2025-11-11T02:39:00.469Z",
+    "lastModified": "2025-11-11T07:39:06.885Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2790,12 +2790,13 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-11-11T07:13:57.996Z"
+    "updatedAt": "2025-11-11T07:39:06.885Z"
   },
   {
     "id": "conv_1762845085498_jnd4fai5a",
     "title": "Now what day is it?",
     "createdAt": "2025-11-11T07:11:25.498Z",
-    "lastModified": "2025-11-11T07:11:35.030Z",
+    "lastModified": "2025-11-11T07:39:06.885Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2817,12 +2818,13 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-11-11T07:11:35.030Z"
+    "updatedAt": "2025-11-11T07:39:06.885Z"
   },
   {
     "id": "conv_1762845083568_h9q5r9sd5",
     "title": "New Chat 11/11/2025",
     "createdAt": "2025-11-11T07:11:23.568Z",
-    "lastModified": "2025-11-11T07:11:23.568Z",
+    "lastModified": "2025-11-11T07:39:06.885Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2835,6 +2837,13 @@
     "title": "Please send an email to themarsgroup@gmail.com",
     "createdAt": "2025-11-11T08:08:42.662Z",
     "lastModified": "2025-11-11T17:48:09.497Z",
+    "updatedAt": "2025-11-11T07:39:06.885Z"
+  },
+  {
+    "id": "conv_1762846779414_f0va2xbsh",
+    "title": "Ok buddy, what day is it?",
+    "createdAt": "2025-11-11T07:39:39.435Z",
+    "lastModified": "2025-11-11T07:39:39.611Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2858,6 +2867,22 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-11-11T17:48:09.497Z"
+        "id": "msg_1762846779505",
+        "role": "user",
+        "content": "Ok buddy, what day is it?",
+        "timestamp": "2025-11-11T07:39:39.505Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1762846779611",
+        "role": "assistant",
+        "content": "Today is Tuesday",
+        "timestamp": "2025-11-11T07:39:39.610Z",
+        "provider": "MCP"
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-11T07:39:39.611Z"
   },
   {
     "id": "conv_1762847515384_hclg3jwkg",
