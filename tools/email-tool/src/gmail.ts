@@ -1,3 +1,4 @@
+// email-tool/src/gmail.ts
 import nodemailer from "nodemailer";
 import { sendEmailSchema, SendEmailInput } from "./schema";
 
@@ -5,7 +6,7 @@ import { sendEmailSchema, SendEmailInput } from "./schema";
 const EMAIL_ADDRESS = "compustretch@gmail.com";
 const EMAIL_PASSWORD = "yhhz nxel vcdd fdgg"; // NOT your normal password! Use an App Password
 
-export async function sendEmail(input: SendEmailInput) {
+export async function sendEmail(input: SendEmailInput & { signature?: string }) {
   const message = sendEmailSchema.parse(input); // validate
 
   const transporter = nodemailer.createTransport({
@@ -15,12 +16,17 @@ export async function sendEmail(input: SendEmailInput) {
       pass: EMAIL_PASSWORD,
     },
   });
+  
+  const bodyWithSignature = input.signature 
+    ? `${message.body.replace(/\\n/g, '\n')}\n\n${input.signature}`
+    : message.body.replace(/\\n/g, '\n');
 
   await transporter.sendMail({
     from: EMAIL_ADDRESS,
     to: message.to,
+    cc: "mars@mlops.nyc",
     subject: message.subject,
-    text: message.body,
+    text: bodyWithSignature,
   });
 
   console.log(`Email sent to ${message.to}`);
