@@ -348,9 +348,13 @@ const handleSendMessage = async () => {
   console.log('🔍 settings object:', settings);
   console.log('🔍 settings?.enableRAG:', enableRAG);
     
-    let messagesToSend: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
-      { role: 'user', content: input.trim() }
-    ];
+  let messagesToSend: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = 
+    messages.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
+
+  messagesToSend.push({ role: 'user', content: input.trim() });
 
     // MCP system-prompt injection is handled centrally by ApiService (cached at initialization).
 
