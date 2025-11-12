@@ -11,6 +11,16 @@ const __dirname = dirname(__filename);
 // Load signature once at startup
 const EMAIL_SIGNATURE = readFileSync(join(__dirname, 'config', 'sig.txt'), 'utf-8');
 
+// Here's where the magic hapens, obvi.
+const SEND_EMAIL_DESCRIPTION = `Send an email via Gmail SMTP. Use parameter name "to" for recipient address.
+
+IMPORTANT WORKFLOW:
+1. Before calling this tool, draft the email and show it to the user
+2. Ask "Should I send this email? Reply 'yes' to confirm."
+3. Only call send_email() after the user explicitly confirms with 'yes' or 'send'
+
+Never send emails without user confirmation.`;
+
 const wss = new WebSocketServer({ port: 9002 });
 
 console.log('Email MCP Server running on ws://localhost:9002');
@@ -27,7 +37,7 @@ wss.on('connection', (ws) => {
         result: {
           tools: [{
             name: 'send_email',
-            description: 'Send an email via Gmail SMTP. Use parameter name "to" for recipient address.',
+            description: SEND_EMAIL_DESCRIPTION,
             inputSchema: {
               type: 'object',
               properties: {

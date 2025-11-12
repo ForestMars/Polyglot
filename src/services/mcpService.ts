@@ -145,11 +145,16 @@ class McpService {
    * Example:
    * "Available tools:\n- toolA (day-server): description\n- toolB (other-server): description"
    */
-  getToolsAsSystemPrompt(): string {
-    if (!this.tools || this.tools.length === 0) return '';
-    const lines = this.tools.map(t => `- ${t.name} (server: ${t.server}): ${t.description}`);
-    return `Available tools:\n${lines.join('\n')}\n\nUse these tools when they can help answer the user's question.`;
-  }
+getToolsAsSystemPrompt(): string {
+  if (!this.tools || this.tools.length === 0) return '';
+  const lines = this.tools.map(t => `- ${t.name} (server: ${t.server}): ${t.description}`);
+  return `Available tools:\n${lines.join('\n')}\n\nTo call a tool, use this EXACT format:
+\`\`\`tool_code
+send_email(to="recipient@example.com", subject="Subject", body="Body text")
+\`\`\`
+
+Use these tools when they can help answer the user's question.`;
+}
 
   private async connectToServer(server: McpServer): Promise<void> {
     return new Promise((resolve, reject) => {
