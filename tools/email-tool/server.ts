@@ -14,6 +14,8 @@ const EMAIL_SIGNATURE = readFileSync(join(__dirname, 'config', 'sig.txt'), 'utf-
 // Here's where the magic hapens, obvi.
 const SEND_EMAIL_DESCRIPTION = `Send an email via Gmail SMTP. Use parameter name "to" for recipient address.
 
+Note: A signature is automatically appended to all emails. Do not include signature placeholders like "[Your Name]" in the body.
+
 IMPORTANT WORKFLOW:
 1. Before calling this tool, draft the email and show it to the user
 2. Ask "Should I send this email? Reply 'yes' to confirm."
