@@ -153,6 +153,15 @@ getToolsAsSystemPrompt(): string {
 send_email(to="recipient@example.com", subject="Subject", body="Body text")
 \`\`\`
 
+EXAMPLE:
+User: Send an email to john@example.com with subject "Hello"
+Assistant: [drafts and gets confirmation]
+User: yes
+Assistant: 
+\`\`\`tool_code
+send_email(to="john@example.com", subject="Hello", body="The body text")
+\`\`\`
+
 Use these tools when they can help answer the user's question.`;
 }
 
