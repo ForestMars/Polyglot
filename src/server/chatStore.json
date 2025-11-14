@@ -3700,13 +3700,13 @@
     "id": "conv_1762908945424_1irl2fm6r",
     "title": "New Chat 11/11/2025",
     "createdAt": "2025-11-12T00:55:45.424Z",
-    "lastModified": "2025-11-12T00:55:45.424Z",
+    "lastModified": "2025-11-14T23:09:21.670Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
     "messages": [],
     "isArchived": false,
-    "updatedAt": "2025-11-12T00:55:45.424Z"
+    "updatedAt": "2025-11-14T23:09:21.670Z"
   },
   {
     "id": "conv_1762908944064_nzkx0qg8f",
@@ -3769,7 +3769,7 @@
     "id": "conv_1762910368494_w9vsygalx",
     "title": "ok I am going to nee to send an email to themarsgr...",
     "createdAt": "2025-11-12T01:19:28.494Z",
-    "lastModified": "2025-11-12T01:21:27.015Z",
+    "lastModified": "2025-11-14T23:09:21.672Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3824,13 +3824,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-11-12T01:21:27.015Z"
+    "updatedAt": "2025-11-14T23:09:21.672Z"
   },
   {
     "id": "conv_1763013586648_kzt6x2b6z",
     "title": "please send an email to chaoquny123@gmail.com abou...",
     "createdAt": "2025-11-13T05:59:46.648Z",
-    "lastModified": "2025-11-13T06:04:56.101Z",
+    "lastModified": "2025-11-14T23:09:21.673Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3901,13 +3901,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-11-13T06:04:56.101Z"
+    "updatedAt": "2025-11-14T23:09:21.673Z"
   },
   {
     "id": "conv_1763014123936_rjt3xmkh0",
     "title": "please help me compose a new  email to chaoquny123...",
     "createdAt": "2025-11-13T06:08:43.937Z",
-    "lastModified": "2025-11-13T06:10:08.065Z",
+    "lastModified": "2025-11-14T23:09:21.673Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3962,13 +3962,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-11-13T06:10:08.065Z"
+    "updatedAt": "2025-11-14T23:09:21.673Z"
   },
   {
     "id": "conv_1763151617875_gjb3y2iiy",
     "title": "Please compose an email to chris@intellibios.",
     "createdAt": "2025-11-14T20:20:17.875Z",
-    "lastModified": "2025-11-14T21:25:07.578Z",
+    "lastModified": "2025-11-14T23:09:21.674Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4222,13 +4222,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-11-14T21:25:07.578Z"
+    "updatedAt": "2025-11-14T23:09:21.674Z"
   },
   {
     "id": "conv_1763155712046_2ydn2te5a",
     "title": "please send a simple test email to lostjournals@gm...",
     "createdAt": "2025-11-14T21:28:32.046Z",
-    "lastModified": "2025-11-14T21:37:00.181Z",
+    "lastModified": "2025-11-14T23:09:21.674Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -4283,13 +4283,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-11-14T21:37:00.181Z"
+    "updatedAt": "2025-11-14T23:09:21.674Z"
   },
   {
     "id": "conv_1763156806087_8x6c2e2ly",
     "title": "please send a simple test email to lostjournals@gm...",
     "createdAt": "2025-11-14T21:46:46.087Z",
-    "lastModified": "2025-11-14T21:58:33.159Z",
+    "lastModified": "2025-11-14T23:09:21.675Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -4326,13 +4326,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-11-14T21:58:33.159Z"
+    "updatedAt": "2025-11-14T23:09:21.675Z"
   },
   {
     "id": "conv_1763157741441_1yfpq4ief",
     "title": "please send a simple test email to lostjournals@gm...",
     "createdAt": "2025-11-14T22:02:21.441Z",
-    "lastModified": "2025-11-14T22:18:44.891Z",
+    "lastModified": "2025-11-14T23:09:21.675Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -4435,6 +4435,139 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2025-11-14T22:18:44.891Z"
+    "updatedAt": "2025-11-14T23:09:21.675Z"
+  },
+  {
+    "id": "conv_1763158972231_zd9nq0ur7",
+    "title": "This is the exact email I want you to send to lost...",
+    "createdAt": "2025-11-14T22:22:52.231Z",
+    "lastModified": "2025-11-14T23:09:21.675Z",
+    "provider": "ollama",
+    "currentModel": "qwen2.5:7b",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1763158998213",
+        "role": "user",
+        "content": "This is the exact email I want you to send to lostjournals@gmail.com\n\nSubject: Catching Up with Frank\n\nHi Lost\n\nI'm Compustretch, Forest's AI assistant. He said to let you know it was really great catching up with you at lunch yesterday. And that thhe CI tool you are working on sounds interesting, did you say it was on Github?\n\nHere is the non-tech post about Frankenstein that he mentioned: https://lostjournals.substack.com/p/the-ladder-down-on-del-toros-frankenstein\n\nAlso, I will be sending out a note about picking a new lunch spot for next year. Please let me know if you have any advance selections!",
+        "timestamp": "2025-11-14T22:23:18.213Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1763158998424",
+        "role": "assistant",
+        "content": "Okay, let's draft this email and get your confirmation.\n\nHere’s the email draft:\n\nSubject: Catching Up with Frank\n\nHi Lost\n\nI'm Compustretch, Forest’s AI assistant. He said to let you know it was really great catching up with you at lunch yesterday. And that thhe CI tool you are working on sounds interesting, did you say it was on Github?\n\nHere is the non-tech post about Frankenstein that he mentioned: https://lostjournals.substack.com/p/the-ladder-down-on-del-toros-frankenstein\n\nAlso, I will be sending out a note about picking a new lunch spot for next year. Please let me know if you have any advance selections!\n\nShould I send this email? Reply 'yes' to confirm.",
+        "timestamp": "2025-11-14T22:23:57.241Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1763160541025",
+        "role": "user",
+        "content": "yes",
+        "timestamp": "2025-11-14T22:49:01.025Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1763160541152",
+        "role": "assistant",
+        "content": "Email sent to lostjournals@gmail.com",
+        "timestamp": "2025-11-14T22:49:52.983Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1763161036090",
+        "role": "user",
+        "content": "please send that email again, we need to test the formatting",
+        "timestamp": "2025-11-14T22:57:16.090Z",
+        "provider": "ollama"
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-14T23:09:21.675Z"
+  },
+  {
+    "id": "conv_1763158838368_p4sa064yu",
+    "title": "This is the exact email I want you to send to lost...",
+    "createdAt": "2025-11-14T22:20:38.369Z",
+    "lastModified": "2025-11-14T23:10:18.484Z",
+    "provider": "ollama",
+    "currentModel": "qwen2.5:7b",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1763158838368",
+        "role": "user",
+        "content": "This is the exact email I want you to send to lostjournals@gmail.com\n\nSubject: Catching Up and CI Tool Update\n\nHi Lost\n\nI'm Compustretch, Forest's AI assistant. He said to let you know it was really great catching up with you at lunch yesterday. And that thhe CI tool you are working on sounds interesting, did you say it was on Github?\n\nHere is the non-tech post about Frankenstein that he mentioned: https://lostjournals.substack.com/p/the-ladder-down-on-del-toros-frankenstein\n\nAlso, I will be sending out a note about picking a new lunch spot for next year. Please let me know if you have any advance selections!",
+        "timestamp": "2025-11-14T22:20:38.368Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1763158838831",
+        "role": "assistant",
+        "content": "Email sent to lostjournals@gmail.com",
+        "timestamp": "2025-11-14T22:21:35.238Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1763161771603",
+        "role": "user",
+        "content": "Send it again please",
+        "timestamp": "2025-11-14T23:09:31.603Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1763161771729",
+        "role": "assistant",
+        "content": "*Thought for 46.8 seconds*\n\nEmail sent to lostjournals@gmail.com",
+        "timestamp": "2025-11-14T23:10:18.483Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-14T23:10:18.484Z"
+  },
+  {
+    "id": "conv_1763161354042_vrb45dn82",
+    "title": "This is the exact email I want you to send to lost...",
+    "createdAt": "2025-11-14T23:02:34.042Z",
+    "lastModified": "2025-11-14T23:03:31.733Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1763161354041",
+        "role": "user",
+        "content": "This is the exact email I want you to send to lostjournals@gmail.com\n\nSubject: Catching Up with Henry\n\nHi Lost\n\nI'm Compustretch, Forest's AI assistant. He said to let you know it was really great catching up with you at lunch yesterday. And that thhe CI tool you are working on sounds interesting, did you say it was on Github?\n\nHere is the non-tech post about Frankenstein that he mentioned: https://lostjournals.substack.com/p/the-ladder-down-on-del-toros-frankenstein\n\nAlso, I will be sending out a note about picking a new lunch spot for next year. Please let me know if you have any advance selections!",
+        "timestamp": "2025-11-14T23:02:34.041Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1763161354546",
+        "role": "assistant",
+        "content": "*Thought for 43.3 seconds*\n\nOkay, let's draft this email and get your confirmation.\n\nHere’s the email:\n\nSubject: Catching Up with Henry\n\nHi Lost\n\nI'm Compustretch, Forest’s AI assistant. He said to let you know it was really great catching up with you at lunch yesterday. And that thhe CI tool you are working on sounds interesting, did you say it was on Github?\n\nHere is the non-tech post about Frankenstein that he mentioned: https://lostjournals.substack.com/p/the-ladder-down-on-del-toros-frankenstein\n\nAlso, I will be sending out a note about picking a new lunch spot for next year. Please let me know if you have any advance selections!\n\nShould I send this email? Reply 'yes' to confirm.",
+        "timestamp": "2025-11-14T23:03:17.801Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1763161411732",
+        "role": "user",
+        "content": "yes",
+        "timestamp": "2025-11-14T23:03:31.732Z",
+        "provider": "ollama"
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-14T23:03:31.733Z"
   }
 ]
