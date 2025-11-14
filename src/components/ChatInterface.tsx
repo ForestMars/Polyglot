@@ -342,6 +342,7 @@ const handleSendMessage = async () => {
       timestamp: new Date(),
       provider: selectedProvider,
       usedRAG: false
+      isPrivate: currentIsPrivate,
     };
 
     // Add the assistant message to the UI immediately with loading state
