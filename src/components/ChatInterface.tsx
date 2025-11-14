@@ -246,10 +246,12 @@ const handleKeyPress = (e: React.KeyboardEvent) => {
 
   // Added debugging 
 const handleSendMessage = async () => {
-  console.log('🚨 HANDLESENDMESSAGE CALLED WITH:', input);
-  console.log('🚨 Current settings:', settings);
+  console.log('HANDLESENDMESSAGE CALLED WITH:', input);
+  console.log('Current settings:', settings);
   const enableRAG = settings?.enableRAG ?? false;
   if (!input.trim() || !selectedProvider || !selectedModel) return;
+
+    const currentIsPrivate = isPrivate; // Capture the state before potential early exit
 
         // === MCP integration ===
         // MCP (Model Context Protocol) routing decision logic:
