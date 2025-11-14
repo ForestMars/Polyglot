@@ -42,5 +42,12 @@ export function addOrUpdateChats(newChats) {
   for (const chat of newChats) {
     byId[chat.id] = chat;
   }
+  
+  for (const chat of newChats) {
+    // 🔑 IMPORTANT: Filter private messages from the chat before saving/updating
+    const filteredChat = filterPrivateMessages(chat);
+    byId[filteredChat.id] = filteredChat;
+  }
+
   writeChats(Object.values(byId));
 }
