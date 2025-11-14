@@ -454,8 +454,8 @@ const handleSendMessage = async () => {
     // Update the assistant message with the response and thinking time
     const updatedAssistantMessage = {
       ...assistantMessage,
-      // content: `*Thought for ${thinkingTimeSeconds} seconds*\n\n${response.content}`,
-      content: response.content,
+      content: `*Thought for ${thinkingTimeSeconds} seconds*\n\n${response.content}`,
+      // content: response.content,
       timestamp: new Date(),
       usedRAG: ragUsed,
       isThinking: false
