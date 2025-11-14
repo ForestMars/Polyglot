@@ -17,8 +17,11 @@ export async function sendEmail(input: SendEmailInput & { signature?: string }) 
     },
   });
   
-  // Convert newlines to <br> tags for HTML email
-  const bodyWithBreaks = message.body.replace(/\n/g, '<br>');
+// Convert both literal \n and escaped \\n to <br> tags for HTML email
+const bodyWithBreaks = message.body
+  .replace(/\\n/g, '\n')  // First convert escaped \\n to actual newlines
+  .replace(/\n/g, '<br>'); // Then convert all newlines to <br>
+
   const signatureWithBreaks = input.signature 
     ? input.signature.replace(/\n/g, '<br>')
     : '';
