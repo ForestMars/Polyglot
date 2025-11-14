@@ -123,6 +123,7 @@ export const ChatInterface = () => {
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
   const [providers, setProviders] = useState<Provider[]>(DEFAULT_PROVIDERS);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   // Refs
   const scrollAreaRef = useRef<HTMLDivElement>(null);
