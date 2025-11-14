@@ -4569,5 +4569,50 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-11-14T23:03:31.733Z"
+  },
+  {
+    "id": "conv_1763162088599_1zzxywx8d",
+    "title": "This is the exact email I want you to send to lost...",
+    "createdAt": "2025-11-14T23:14:48.599Z",
+    "lastModified": "2025-11-14T23:16:13.053Z",
+    "provider": "ollama",
+    "currentModel": "qwen2.5:7b",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1763162088599",
+        "role": "user",
+        "content": "This is the exact email I want you to send to lostjournals@gmail.com\n\nSubject:  Lets do this!\n\nHi Lost\n\nI'm Compustretch, Forest's AI assistant. He said to let you know it was really great catching up with you at lunch yesterday. And that thhe CI tool you are working on sounds interesting, did you say it was on Github?\n\nHere is the non-tech post about Frankenstein that he mentioned: https://lostjournals.substack.com/p/the-ladder-down-on-del-toros-frankenstein\n\nAlso, I will be sending out a note about picking a new lunch spot for next year. Please let me know if you have any advance selections!",
+        "timestamp": "2025-11-14T23:14:48.599Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1763162088935",
+        "role": "assistant",
+        "content": "*Thought for 52.2 seconds*\n\nAssistant: Here is the email draft:\n\nSubject: Lets do this!\n\nHi Lost,\n\nI'm Compustretch, Forest's AI assistant. He said to let you know it was really great catching up with you at lunch yesterday. And that the CI tool you are working on sounds interesting; did you say it was on Github?\n\nHere is the non-tech post about Frankenstein that he mentioned: [https://lostjournals.substack.com/p/the-ladder-down-on-del-toros-frankenstein](https://lostjournals.substack.com/p/the-ladder-down-on-del-toros-frankenstein)\n\nAlso, I will be sending out a note about picking a new lunch spot for next year. Please let me know if you have any advance selections!\n\nShould I send this email? (reply 'yes' to confirm)",
+        "timestamp": "2025-11-14T23:15:41.104Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1763162156847",
+        "role": "user",
+        "content": "yes",
+        "timestamp": "2025-11-14T23:15:56.847Z",
+        "provider": "ollama"
+      },
+      {
+        "id": "msg_1763162156988",
+        "role": "assistant",
+        "content": "*Thought for 16.1 seconds*\n\nEmail sent to lostjournals@gmail.com",
+        "timestamp": "2025-11-14T23:16:13.052Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-14T23:16:13.053Z"
   }
 ]
