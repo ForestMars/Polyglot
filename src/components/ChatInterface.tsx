@@ -603,6 +603,19 @@ const handleSendMessage = async () => {
 
 
           <div className="flex items-center space-x-4">
+            {/* NEW PRIVATE CHECKBOX */}
+            <div className="flex items-center space-x-2">
+              <label htmlFor="private-checkbox" className="text-sm font-medium">
+                Private
+              </label>
+              <input
+                id="private-checkbox"
+                type="checkbox"
+                checked={isPrivate}
+                onChange={(e) => setIsPrivate(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+            </div>
             <div className="flex items-center space-x-2">
               <label htmlFor="rag-checkbox" className="text-sm font-medium">
                 RAG
