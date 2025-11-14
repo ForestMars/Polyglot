@@ -23,6 +23,15 @@ function writeChats(chats) {
   fs.writeFileSync(STORE_PATH, JSON.stringify(chats, null, 2));
 }
 
+// Helper function to remove private messages from a chat object
+function filterPrivateMessages(chat) {
+    if (chat && chat.messages) {
+        // Filter out any message where isPrivate is true.
+        chat.messages = chat.messages.filter(msg => !msg.isPrivate);
+    }
+    return chat;
+}
+
 export function getAllChats() {
   return readChats();
 }
