@@ -6,7 +6,7 @@ import { sendEmailSchema, SendEmailInput } from "./schema";
 const EMAIL_ADDRESS = "compustretch@gmail.com";
 const EMAIL_PASSWORD = "yhhz nxel vcdd fdgg"; // NOT your normal password! Use an App Password
 
-export async function sendEmail(input: SendEmailInput & { signature?: string }) {
+eexport async function sendEmail(input: SendEmailInput & { signature?: string }) {
   const message = sendEmailSchema.parse(input); // validate
 
   const transporter = nodemailer.createTransport({
@@ -17,16 +17,18 @@ export async function sendEmail(input: SendEmailInput & { signature?: string }) 
     },
   });
   
-  const bodyWithSignature = input.signature 
-    ? `${message.body.replace(/\\n/g, '\n')}\n\n${input.signature}`
-    : message.body.replace(/\\n/g, '\n');
+  // NOTE: For HTML email, carriage returns (\n) will be ignored by email clients.
+  // The content here should be the raw HTML string provided by the LLM.
+  const htmlBodyWithSignature = input.signature 
+    ? `${message.body}\n\n${input.signature}` 
+    : message.body;
 
   await transporter.sendMail({
     from: EMAIL_ADDRESS,
     to: message.to,
     cc: "mars@mlops.nyc",
     subject: message.subject,
-    text: bodyWithSignature,
+    html: htmlBodyWithSignature, 
   });
 
   console.log(`Email sent to ${message.to}`);
