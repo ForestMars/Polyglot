@@ -341,7 +341,7 @@ const handleSendMessage = async () => {
       content: '',
       timestamp: new Date(),
       provider: selectedProvider,
-      usedRAG: false
+      usedRAG: false,
       isPrivate: currentIsPrivate,
     };
 
