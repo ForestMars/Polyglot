@@ -277,7 +277,8 @@ const handleSendMessage = async () => {
           role: 'user', 
           content: input.trim(),
           timestamp: new Date(),
-          provider: selectedProvider
+          provider: selectedProvider,
+          isPrivate: currentIsPrivate,
         };
 
         setMessages(prev => [...prev, userMessage]);
