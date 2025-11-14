@@ -312,7 +312,8 @@ const handleSendMessage = async () => {
     role: 'user',
     content: input.trim(),
     timestamp: new Date(),
-    provider: selectedProvider
+    provider: selectedProvider, 
+    isPrivate: currentIsPrivate,
   };
 
   // Add user message to local state
