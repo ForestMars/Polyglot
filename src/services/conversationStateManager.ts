@@ -201,6 +201,17 @@ export class ConversationStateManager {
       throw new Error('No active conversation');
     }
 
+    // Check for isPrivate flag and exit immediately if true.
+    // The message will not be added to the in-memory state or persisted,
+    // which prevents it from appearing in the UI sidebar.
+    if (message.isPrivate) {
+        console.log(`[StateManager] 🚨 Private message detected. Not adding to conversation state: ${this.state.currentConversation.id}`);
+        // We still need to call setState to ensure the UI updates/unloads loading state
+        // even though the message list won't change.
+        this.setState({ lastUpdated: new Date() });
+        return; 
+    }
+
     try {
       // Create a deep copy of the current conversation
       const currentConv = JSON.parse(JSON.stringify(this.state.currentConversation));
