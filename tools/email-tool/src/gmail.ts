@@ -17,11 +17,15 @@ export async function sendEmail(input: SendEmailInput & { signature?: string }) 
     },
   });
   
-  // NOTE: For HTML email, carriage returns (\n) will be ignored by email clients.
-  // The content here should be the raw HTML string provided by the LLM.
+  // Convert newlines to <br> tags for HTML email
+  const bodyWithBreaks = message.body.replace(/\n/g, '<br>');
+  const signatureWithBreaks = input.signature 
+    ? input.signature.replace(/\n/g, '<br>')
+    : '';
+  
   const htmlBodyWithSignature = input.signature 
-    ? `${message.body}\n\n${input.signature}` 
-    : message.body;
+    ? `${bodyWithBreaks}<br><br>${signatureWithBreaks}` 
+    : bodyWithBreaks;
 
   await transporter.sendMail({
     from: EMAIL_ADDRESS,
@@ -33,4 +37,3 @@ export async function sendEmail(input: SendEmailInput & { signature?: string }) 
 
   console.log(`Email sent to ${message.to}`);
 }
-
