@@ -6,7 +6,7 @@ import { sendEmailSchema, SendEmailInput } from "./schema";
 const EMAIL_ADDRESS = "compustretch@gmail.com";
 const EMAIL_PASSWORD = "yhhz nxel vcdd fdgg"; // NOT your normal password! Use an App Password
 
-eexport async function sendEmail(input: SendEmailInput & { signature?: string }) {
+export async function sendEmail(input: SendEmailInput & { signature?: string }) {
   const message = sendEmailSchema.parse(input); // validate
 
   const transporter = nodemailer.createTransport({
