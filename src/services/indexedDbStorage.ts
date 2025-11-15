@@ -91,8 +91,8 @@ export class IndexedDbStorage {
   private prepareChatForStorage(chat: Chat): Chat {
     const now = new Date();
 
-    // Filter out private messages before preparing for storage
-    const filteredMessages = (chat.messages || []).filter(msg => !msg.isPrivate);
+    // Don't Filter out private messages because this is how they persist in main UI 
+    // const filteredMessages = (chat.messages || []).filter(msg => !msg.isPrivate);
 
     return {
       ...chat,

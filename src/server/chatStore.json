@@ -4800,5 +4800,17 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-11-14T23:57:31.990Z"
+  },
+  {
+    "id": "conv_1763165237843_dewn2omd5",
+    "title": "New Chat 11/14/2025",
+    "createdAt": "2025-11-15T00:07:17.843Z",
+    "lastModified": "2025-11-15T00:07:17.843Z",
+    "provider": "ollama",
+    "currentModel": "qwen2.5:7b",
+    "modelHistory": [],
+    "messages": [],
+    "isArchived": false,
+    "updatedAt": "2025-11-15T00:07:17.843Z"
   }
 ]
