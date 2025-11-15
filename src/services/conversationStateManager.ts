@@ -205,7 +205,7 @@ export class ConversationStateManager {
     // Check for isPrivate flag and exit immediately if true.
     // The message will not be added to the in-memory state or persisted,
     // which prevents it from appearing in the UI sidebar.
-if (message.isPrivate) {
+    if (message.isPrivate) {
         // --- LOGIC FOR PRIVATE MESSAGE ---
         let currentPrivateMsgs = this.sessionMessages.get(convId) || [];
         
