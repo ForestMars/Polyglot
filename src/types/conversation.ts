@@ -5,6 +5,7 @@ export interface Message {
   timestamp: Date;
   provider?: string;
   usedRAG?: boolean;
+  isPrivate?: boolean;
   responseTime?: number; // Total time in milliseconds from request to response
 }
 

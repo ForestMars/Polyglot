@@ -205,12 +205,28 @@ export class ConversationStateManager {
     // Check for isPrivate flag and exit immediately if true.
     // The message will not be added to the in-memory state or persisted,
     // which prevents it from appearing in the UI sidebar.
-    if (message.isPrivate) {
-        console.log(`[StateManager] 🚨 Private message detected. Not adding to conversation state: ${this.state.currentConversation.id}`);
-        // We still need to call setState to ensure the UI updates/unloads loading state
-        // even though the message list won't change.
-        this.setState({ lastUpdated: new Date() });
-        return; 
+if (message.isPrivate) {
+        // --- LOGIC FOR PRIVATE MESSAGE ---
+        let currentPrivateMsgs = this.sessionMessages.get(convId) || [];
+        
+        // Add the new private message
+        currentPrivateMsgs.push(message);
+        this.sessionMessages.set(convId, currentPrivateMsgs);
+
+        // Update the current conversation in state by merging public and private messages
+        const updatedConversation = {
+            ...this.state.currentConversation,
+            messages: [...this.state.currentConversation.messages, message]
+        };
+
+        // Do NOT save to IndexedDB. Just update in-memory state.
+        this.setState({
+            currentConversation: updatedConversation,
+            lastUpdated: new Date()
+        });
+        
+        console.log(`[StateManager] 🔒 Private message added to session state for ${convId}. Not persisted.`);
+        return; // EXIT HERE
     }
 
     try {
