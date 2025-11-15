@@ -32,6 +32,7 @@ export class ConversationStateManager {
   private conversationCache: Map<string, Conversation> = new Map();
   private loadingConversations: Set<string> = new Set();
   private cacheEnabled: boolean = true;
+  private sessionMessages: Map<string, Message[]> = new Map(); // NEW: Store private messages by conversation ID
 
   constructor() {
     // Fixed: assign to storageService, not storage
