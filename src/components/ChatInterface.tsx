@@ -1,3 +1,4 @@
+// /src/components/ChatInterface.tsx
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Send, Settings, Bot, User, Loader2, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
