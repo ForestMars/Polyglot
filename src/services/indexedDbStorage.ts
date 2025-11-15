@@ -22,6 +22,7 @@ export interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  isPrivate?: boolean;
 }
 
 export interface AppMeta {
@@ -89,6 +90,10 @@ export class IndexedDbStorage {
   // Helper method to prepare chat for storage (ensure dates are properly set)
   private prepareChatForStorage(chat: Chat): Chat {
     const now = new Date();
+
+    // Filter out private messages before preparing for storage
+    const filteredMessages = (chat.messages || []).filter(msg => !msg.isPrivate);
+
     return {
       ...chat,
       id: chat.id || crypto.randomUUID(),
