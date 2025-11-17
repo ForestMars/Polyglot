@@ -355,14 +355,23 @@ export const ChatInterface = () => {
       setIsLoading(true);
 
       // Create new conversation if needed
-      if (
-        !conversationState.currentConversation?.id &&
-        conversationState.createConversation
-      ) {
-        await conversationState.createConversation(
-          selectedProvider,
-          selectedModel,
-        );
+      // ONLY execute persistence logic if NOT private
+      if (!currentIsPrivate) {
+        // Create new conversation if needed
+        if (
+          !conversationState.currentConversation?.id &&
+          conversationState.createConversation
+        ) {
+          await conversationState.createConversation(
+            selectedProvider,
+            selectedModel,
+          );
+        }
+
+        // Add user message to the conversation
+        if (conversationState.addMessage) {
+          await conversationState.addMessage(userMessage);
+        }
       }
 
       // Add user message to the conversation
@@ -649,17 +658,14 @@ export const ChatInterface = () => {
     ],
   );
 
-  // Load current conversation messages (but don't override during active chat)
+  // Load current conversation messages when conversation changes
   useEffect(() => {
-    // Don't override messages if we're currently loading (sending a message)
-    if (isLoading) return;
-
     if (conversationState.currentConversation) {
       setMessages(conversationState.currentConversation.messages || []);
     } else {
       setMessages([]);
     }
-  }, [conversationState.currentConversation, isLoading]);
+  }, [conversationState.currentConversation?.id]); // Only trigger on conversation ID change
 
   return (
     <div className="flex h-screen bg-gray-50">
