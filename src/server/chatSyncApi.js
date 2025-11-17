@@ -2,7 +2,7 @@
 // Minimal REST API for chat sync, no Express required.
 
 import http from 'http';
-import { getAllChats, addOrUpdateChats } from './chatStore.js';
+import { getAllChats, addOrUpdateChats, deleteChat, deleteChats } from './chatStore.js';
 
 // Utility: parse JSON body
 function parseBody(req) {
@@ -23,7 +23,7 @@ function parseBody(req) {
 const server = http.createServer(async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -65,8 +65,33 @@ const server = http.createServer(async (req, res) => {
       return res.end(JSON.stringify({ ok: true }));
     }
 
-    // POST /mcp/inject -> write a file config/inject.txt for testing/dev
-    
+    // DELETE /deleteChat/:id → delete a single chat
+    if (req.method === 'DELETE' && req.url?.startsWith('/deleteChat/')) {
+      const chatId = req.url.split('/deleteChat/')[1];
+      if (!chatId) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Chat ID required' }));
+      }
+
+      const deleted = deleteChat(chatId);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: true, deleted }));
+    }
+
+    // POST /deleteChats → delete multiple chats
+    if (req.method === 'POST' && req.url === '/deleteChats') {
+      const body = await parseBody(req);
+      const { chatIds } = body;
+
+      if (!Array.isArray(chatIds)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'chatIds must be array' }));
+      }
+
+      const deletedCount = deleteChats(chatIds);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: true, deletedCount }));
+    }
 
     // Fallback 404
     res.writeHead(404, { 'Content-Type': 'application/json' });
