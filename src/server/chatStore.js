@@ -39,9 +39,6 @@ export function getAllChats() {
 export function addOrUpdateChats(newChats) {
   const chats = readChats();
   const byId = Object.fromEntries(chats.map(c => [c.id, c]));
-  for (const chat of newChats) {
-    byId[chat.id] = chat;
-  }
   
   for (const chat of newChats) {
     // 🔑 IMPORTANT: Filter private messages from the chat before saving/updating
@@ -50,4 +47,21 @@ export function addOrUpdateChats(newChats) {
   }
 
   writeChats(Object.values(byId));
+}
+
+// NEW: Delete a chat by ID
+export function deleteChat(chatId) {
+  const chats = readChats();
+  const filtered = chats.filter(c => c.id !== chatId);
+  writeChats(filtered);
+  return filtered.length < chats.length; // Return true if something was deleted
+}
+
+// NEW: Delete multiple chats by ID
+export function deleteChats(chatIds) {
+  const chats = readChats();
+  const idsSet = new Set(chatIds);
+  const filtered = chats.filter(c => !idsSet.has(c.id));
+  writeChats(filtered);
+  return chats.length - filtered.length; // Return count of deleted chats
 }
