@@ -5259,5 +5259,17 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-11-15T06:17:03.656Z"
+  },
+  {
+    "id": "conv_1763398316768_v90sldu3b",
+    "title": "New Chat 11/17/2025",
+    "createdAt": "2025-11-17T16:51:56.768Z",
+    "lastModified": "2025-11-17T16:51:56.768Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [],
+    "isArchived": false,
+    "updatedAt": "2025-11-17T16:51:56.768Z"
   }
 ]
