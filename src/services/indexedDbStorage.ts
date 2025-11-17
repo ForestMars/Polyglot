@@ -269,24 +269,61 @@ export class IndexedDbStorage {
     }
   }
 
-  async saveConversation(conversation: Chat): Promise<void> {
+async saveConversation(conversation: Chat): Promise<void> {
+  try {
+    const preparedConversation = this.prepareChatForStorage(conversation);
+    
+    // Save to IndexedDB
+    await this.db.chats.put(preparedConversation);
+    
+    // CRITICAL: Also push to server to sync archive status and other metadata
     try {
-      const preparedConversation = this.prepareChatForStorage(conversation);
-      await this.db.chats.put(preparedConversation);
-    } catch (error) {
-      console.error("Failed to save conversation:", error);
-      throw error;
+      const response = await fetch('http://localhost:4001/pushChats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ chats: [preparedConversation] }),
+      });
+      
+      if (!response.ok) {
+        console.warn('Failed to sync chat to server, but local save succeeded');
+      }
+    } catch (serverError) {
+      console.warn('Server sync failed, but local save succeeded:', serverError);
     }
+  } catch (error) {
+    console.error('Failed to save conversation:', error);
+    throw error;
   }
+}
 
-  async deleteConversation(id: string): Promise<void> {
+async deleteConversation(id: string): Promise<void> {
+  try {
+    // Delete from IndexedDB first
+    await this.db.chats.delete(id);
+    
+    // CRITICAL: Also delete from server to prevent restoration on sync
     try {
-      await this.db.chats.delete(id);
-    } catch (error) {
-      console.error("Failed to delete conversation:", error);
-      throw error;
+      const response = await fetch(`http://localhost:4001/deleteChat/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        console.warn('Failed to delete chat from server, but local delete succeeded');
+      }
+    } catch (serverError) {
+      console.warn('Server delete failed, but local delete succeeded:', serverError);
+      // Don't throw here - local delete succeeded, which is most important
     }
+  } catch (error) {
+    console.error('Failed to delete conversation:', error);
+    throw error;
   }
+}
 
   // Add migration method
   async migrateFromLocalStorage(): Promise<void> {
