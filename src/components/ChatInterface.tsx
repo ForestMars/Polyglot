@@ -358,15 +358,14 @@ export const ChatInterface = () => {
       // ONLY execute persistence logic if NOT private
       if (!currentIsPrivate) {
         // Create new conversation if needed
-        if (
-          !conversationState.currentConversation?.id &&
-          conversationState.createConversation
-        ) {
-          await conversationState.createConversation(
-            selectedProvider,
-            selectedModel,
-          );
+        if (!conversationState.currentConversation?.id && conversationState.createConversation) {
+          await conversationState.createConversation(selectedProvider, selectedModel);
         }
+        // Add user message to the conversation
+        if (conversationState.addMessage) {
+          await conversationState.addMessage(userMessage);
+        }
+      }
 
         // Add user message to the conversation
         if (conversationState.addMessage) {
