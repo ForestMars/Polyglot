@@ -292,13 +292,15 @@ export const ChatInterface = () => {
     const mcpResult = await messageRouter.handleMessage(input.trim());
     console.log("🔍 messageRouter returned:", mcpResult);
     if (mcpResult) {
-      // Ensure we have an active conversation
-      if (!conversationState.currentConversation) {
-        if (conversationState.createConversation) {
-          await conversationState.createConversation(
-            selectedProvider,
-            selectedModel,
-          );
+      // Ensure we have an active conversation (if NOT private)
+      if (!currentIsPrivate) {
+        if (!conversationState.currentConversation) {
+          if (conversationState.createConversation) {
+            await conversationState.createConversation(
+              selectedProvider,
+              selectedModel,
+            );
+          }
         }
       }
       // First add the user message
