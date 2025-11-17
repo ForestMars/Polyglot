@@ -366,7 +366,7 @@ export const ChatInterface = () => {
       }
 
       // Add user message to the conversation
-      if (conversationState.addMessage) {
+      if (conversationState.addMessage && !currentIsPrivate) {
         await conversationState.addMessage(userMessage);
       }
 
