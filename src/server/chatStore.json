@@ -5212,6 +5212,42 @@
     "updatedAt": "2025-11-15T00:46:42.629Z"
   },
   {
+    "id": "conv_1763398316768_v90sldu3b",
+    "title": "New Chat 11/17/2025",
+    "createdAt": "2025-11-17T16:51:56.768Z",
+    "lastModified": "2025-11-17T16:51:56.768Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [],
+    "isArchived": false,
+    "updatedAt": "2025-11-17T16:51:56.768Z"
+  },
+  {
+    "id": "conv_1763402668513_hmwo77ai5",
+    "title": "New Chat 11/17/2025",
+    "createdAt": "2025-11-17T18:04:28.514Z",
+    "lastModified": "2025-11-17T18:04:28.514Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [],
+    "isArchived": false,
+    "updatedAt": "2025-11-17T18:04:28.514Z"
+  },
+  {
+    "id": "conv_1763402880256_u2osmwvpp",
+    "title": "New Chat 11/17/2025",
+    "createdAt": "2025-11-17T18:08:00.256Z",
+    "lastModified": "2025-11-17T18:08:00.256Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [],
+    "isArchived": false,
+    "updatedAt": "2025-11-17T18:08:00.256Z"
+  },
+  {
     "id": "conv_1763164614557_wuc79df1n",
     "title": "Private message 2\n\nThis is the exact email I want ...",
     "createdAt": "2025-11-14T23:56:54.557Z",
@@ -5259,17 +5295,5 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-11-15T06:17:03.656Z"
-  },
-  {
-    "id": "conv_1763398316768_v90sldu3b",
-    "title": "New Chat 11/17/2025",
-    "createdAt": "2025-11-17T16:51:56.768Z",
-    "lastModified": "2025-11-17T16:51:56.768Z",
-    "provider": "ollama",
-    "currentModel": "gemma3:latest",
-    "modelHistory": [],
-    "messages": [],
-    "isArchived": false,
-    "updatedAt": "2025-11-17T16:51:56.768Z"
   }
 ]
