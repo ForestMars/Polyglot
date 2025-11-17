@@ -355,22 +355,25 @@ export const ChatInterface = () => {
     let ragUsed = false;
     try {
       setIsLoading(true);
-
       // Create new conversation if needed
       // ONLY execute persistence logic if NOT private
       if (!currentIsPrivate) {
-        // Create new conversation if needed
+        // If NO current conversation ID exists, we are creating one and adding the message.
         if (
           !conversationState.currentConversation?.id &&
-          conversationState.createConversation
+          conversationState.createConversation &&
+          conversationState.addMessage // Ensure addMessage is available for the atomic save
         ) {
+          // CRITICAL: Await the creation. This changes the global ID.
           await conversationState.createConversation(
             selectedProvider,
             selectedModel,
           );
-        }
-        // Add user message to the conversation (should have been moved here)
-        if (conversationState.addMessage) {
+
+          // IMMEDIATELY ADD THE MESSAGE TO THE NEWLY CREATED CONVERSATION
+          await conversationState.addMessage(userMessage);
+        } else if (conversationState.addMessage) {
+          // If the conversation ID already exists, just add the message.
           await conversationState.addMessage(userMessage);
         }
       }
@@ -656,12 +659,19 @@ export const ChatInterface = () => {
 
   // Load current conversation messages when conversation changes
   useEffect(() => {
+    // Skip sync if loading (prevents public chat overwrite during save).
+    if (isLoading) {
+      return;
+    }
+    if (isPrivate) {
+      return;
+    }
     if (conversationState.currentConversation) {
       setMessages(conversationState.currentConversation.messages || []);
     } else {
       setMessages([]);
     }
-  }, [conversationState.currentConversation?.id]); // Only trigger on conversation ID change
+  }, [conversationState.currentConversation?.id, isLoading]); // Only trigger on conversation ID change
 
   return (
     <div className="flex h-screen bg-gray-50">
