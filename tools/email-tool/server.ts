@@ -14,8 +14,13 @@ const EMAIL_SIGNATURE = readFileSync(join(__dirname, 'config', 'sig.txt'), 'utf-
 // Here's where the magic hapens, obvi.
 const SEND_EMAIL_DESCRIPTION = `Send an email via Gmail SMTP. Use parameter name "to" for recipient address.
 
-CRITICAL: Always format email bodies with proper paragraph spacing. Insert \\n\\n (double newline) between each paragraph or separate thought. Single-paragraph emails are difficult to read.
+PARAMETERS:
+- to: Recipient email address(es). Can be a single email string OR an array of email strings for multiple recipients
+  Examples: "alice@example.com" OR ["alice@example.com", "bob@example.com"]
+- subject: Email subject line
+- body: Email body content
 
+CRITICAL: Always format email bodies with proper paragraph spacing. Insert \\n\\n (double newline) between each paragraph or separate thought. Single-paragraph emails are difficult to read.
 Note: A signature is automatically appended to all emails. Do not include signature placeholders like "[Your Name]" in the body.
 
 IMPORTANT WORKFLOW:
@@ -23,7 +28,7 @@ IMPORTANT WORKFLOW:
 2. Ask "Should I send this email? Reply 'yes' to confirm."
 3. Only call send_email() after the user explicitly confirms with 'yes' or 'send'
 
-Never send emails without user confirmation.`;
+Never send emails without user confirmation unless the user explicitly instructs you to do so.`;
 
 const wss = new WebSocketServer({ port: 9002 });
 
@@ -45,7 +50,12 @@ wss.on('connection', (ws) => {
             inputSchema: {
               type: 'object',
               properties: {
-                to: { type: 'string', description: 'Recipient email address' },
+                to: { 
+                  oneOf: [
+                  { type: 'string', description: 'Single recipient email address' },
+                  { type: 'array', items: { type: 'string' }, description: 'Multiple recipient email addresses' }
+                ],
+                description: 'Recipient email address' },
                 subject: { type: 'string', description: 'Email subject' },
                 body: { type: 'string', description: 'Email body' }
               },
