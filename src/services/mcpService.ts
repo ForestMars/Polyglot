@@ -131,12 +131,59 @@ class McpService {
     try { this._resolveReady?.(); } catch {};
   }
 
+  // Add this method to your MCPService class
+async detectAndExecuteTool(content: string): Promise<{ executed: boolean; result?: string; originalContent: string }> {
+  // Try to match array format first
+  let toolCallMatch = content.match(/```tool_code\s*\n\s*send_email\(to=\[(.*?)\],\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)\s*\n\s*```/s);
+  let to, subject, body;
+
+  if (toolCallMatch) {
+    to = toolCallMatch[1].split(',').map(email => email.trim().replace(/['"]/g, ''));
+    subject = toolCallMatch[2];
+    body = toolCallMatch[3];
+  } else {
+    // Try string format
+    toolCallMatch = content.match(/```tool_code\s*\n\s*send_email\(to="([^"]+)",\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)\s*\n\s*```/s);
+    if (toolCallMatch) {
+      [, to, subject, body] = toolCallMatch;
+    }
+  }
+
+  if (to && subject) {
+    console.log('[mcpService] Detected tool call: send_email', { to, subject, body });
+    
+    try {
+      const result = await this.callTool('send_email', 'email-tool', {
+        to,
+        subject,
+        body: body || '(No message body)'
+      });
+      
+      return {
+        executed: true,
+        result: result || 'Email sent successfully',
+        originalContent: content
+      };
+    } catch (error) {
+      console.error('[mcpService] Tool execution failed:', error);
+      return {
+        executed: true,
+        result: `Failed to send email: ${error}`,
+        originalContent: content
+      };
+    }
+  }
+
+  return { executed: false, originalContent: content };
+  } 
+
   /**
    * Return the cached system prompt built at initialization (or empty string).
    */
   getCachedSystemPrompt(): string {
     return this.cachedSystemPrompt || '';
   }
+
 
   
 
