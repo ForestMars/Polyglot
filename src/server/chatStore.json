@@ -5494,5 +5494,85 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-11-18T03:06:00.117Z"
+  },
+  {
+    "id": "conv_1763435877706_1vg9hiufk",
+    "title": "please send an email to lostjournals@gmail.",
+    "createdAt": "2025-11-18T03:17:57.706Z",
+    "lastModified": "2025-11-18T03:18:10.370Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1763435877706",
+        "role": "user",
+        "content": "please send an email to lostjournals@gmail.com with the subject \"jazz 1\" and the body \"and let me tell you he's doing a bang up job\"  no confirmation needed",
+        "timestamp": "2025-11-18T03:17:57.706Z",
+        "provider": "ollama",
+        "isPrivate": false
+      },
+      {
+        "id": "msg_1763435878108",
+        "role": "assistant",
+        "content": "*Thought for 12.3 seconds*\n\nOkay, I will draft the email and send it to lostjournals@gmail.com with the subject \"jazz 1\" and the body \"and let me tell you he's doing a bang up job\".\n\n```tool_code\nsend_email(to=\"lostjournals@gmail.com\", subject=\"jazz 1\", body=\"and let me tell you he's doing a bang up job\")\n```",
+        "timestamp": "2025-11-18T03:18:10.370Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isPrivate": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-18T03:18:10.370Z"
+  },
+  {
+    "id": "conv_1763436064585_ib3b1vx9r",
+    "title": "please send an email to lostjournals@gmail.",
+    "createdAt": "2025-11-18T03:21:04.585Z",
+    "lastModified": "2025-11-18T03:21:38.520Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1763436064584",
+        "role": "user",
+        "content": "please send an email to lostjournals@gmail.com with the subject \"jazz 2\" and the body \"and let me tell you he's doing a bang up job\"  no confirmation needed",
+        "timestamp": "2025-11-18T03:21:04.584Z",
+        "provider": "ollama",
+        "isPrivate": false
+      },
+      {
+        "id": "msg_1763436065004",
+        "role": "assistant",
+        "content": "*Thought for 11.8 seconds*\n\nOkay, I will draft the email and send it to lostjournals@gmail.com with the subject \"jazz 2\" and the body \"and let me tell you he's doing a bang up job\".\n\n```tool_code\nsend_email(to=\"lostjournals@gmail.com\", subject=\"jazz 2\", body=\"and let me tell you he's doing a bang up job\")\n```",
+        "timestamp": "2025-11-18T03:21:16.842Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isPrivate": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1763436093406",
+        "role": "user",
+        "content": "please send an email to lostjournals@gmail.com with the subject \"jazz 3\" and the body \"and let me tell you he's doing a bang up job\"  no confirmation needed",
+        "timestamp": "2025-11-18T03:21:33.406Z",
+        "provider": "ollama",
+        "isPrivate": false
+      },
+      {
+        "id": "msg_1763436093623",
+        "role": "assistant",
+        "content": "*Thought for 4.9 seconds*\n\n```tool_code\nsend_email(to=\"lostjournals@gmail.com\", subject=\"jazz 3\", body=\"and let me tell you he's doing a bang up job\")\n```",
+        "timestamp": "2025-11-18T03:21:38.519Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isPrivate": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-18T03:21:38.520Z"
   }
 ]
