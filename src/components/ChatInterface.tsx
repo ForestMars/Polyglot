@@ -315,9 +315,10 @@ export const ChatInterface = () => {
 
       setMessages((prev) => [...prev, userMessage]);
 
-      if (conversationState.addMessage) {
+      if (!currentIsPrivate && conversationState.addMessage) {
         await conversationState.addMessage(userMessage);
       }
+
       // MCP tool successfully handled the request and returned a direct answer
       // (e.g., day-server returned "Friday, November 22, 2024")
       // Display this result immediately without involving any AI processing
