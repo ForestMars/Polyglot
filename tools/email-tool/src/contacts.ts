@@ -53,61 +53,77 @@ export class ContactsService {
    * - "Zeta Jones <lostjournals@gmail.com>" (already formatted)
    * - "Zeta Jones lostjournals@gmail.com" (name + email without brackets)
    */
-  resolve(input: string): string {
-    const trimmed = input.trim();
-    const contacts = this.loadContacts();
+resolve(input: string): string {
+  const trimmed = input.trim();
+  const contacts = this.loadContacts();
+  
+  // If already in RFC 5322 format with angle brackets, check and add if needed
+  const rfc5322Match = trimmed.match(/^(.+?)\s*<([^>]+@[^>]+)>$/);
+  if (rfc5322Match) {
+    const name = rfc5322Match[1].trim();
+    const email = rfc5322Match[2].trim();
     
-    // If already in RFC 5322 format with angle brackets, return as-is
-    const rfc5322Match = trimmed.match(/^(.+?)\s*<([^>]+@[^>]+)>$/);
-    if (rfc5322Match) {
-      return trimmed;
+    const contact = contacts.find(c => c.email.toLowerCase() === email.toLowerCase());
+    if (!contact) {
+      this.addContact(name, email);
     }
     
-    // If format is "Name email@example.com" (without angle brackets), normalize it
-    const nameEmailMatch = trimmed.match(/^(.+?)\s+([^\s]+@[^\s]+)$/);
-    if (nameEmailMatch) {
-      return `${nameEmailMatch[1].trim()} <${nameEmailMatch[2].trim()}>`;
-    }
-    
-    // If it's just an email address
-    if (trimmed.includes('@')) {
-      const email = trimmed;
-      // Check if we have a contact with this email
-      const contact = contacts.find(c => c.email.toLowerCase() === email.toLowerCase());
-      if (contact) {
-        return `${contact.name} <${contact.email}>`;
-      }
-      // Return just the email
-      return email;
-    }
-    
-    // Try to find by first name
-    const byFirstName = contacts.find(c => 
-      c.name.split(' ')[0].toLowerCase() === trimmed.toLowerCase()
-    );
-    if (byFirstName) {
-      return `${byFirstName.name} <${byFirstName.email}>`;
-    }
-    
-    // Try to find by full name
-    const byFullName = contacts.find(c => 
-      c.name.toLowerCase() === trimmed.toLowerCase()
-    );
-    if (byFullName) {
-      return `${byFullName.name} <${byFullName.email}>`;
-    }
-    
-    // Try to find by email username (part before @)
-    const byUsername = contacts.find(c => 
-      c.email.split('@')[0].toLowerCase() === trimmed.toLowerCase()
-    );
-    if (byUsername) {
-      return `${byUsername.name} <${byUsername.email}>`;
-    }
-    
-    // Not found - throw error
-    throw new Error(`Contact not found: "${input}"`);
+    return trimmed;
   }
+  
+  // If format is "Name email@example.com" (without angle brackets), normalize and add if needed
+  const nameEmailMatch = trimmed.match(/^(.+?)\s+([^\s]+@[^\s]+)$/);
+  if (nameEmailMatch) {
+    const name = nameEmailMatch[1].trim();
+    const email = nameEmailMatch[2].trim();
+    
+    const contact = contacts.find(c => c.email.toLowerCase() === email.toLowerCase());
+    if (!contact) {
+      this.addContact(name, email);
+    }
+    
+    return `${name} <${email}>`;
+  }
+  
+  // If it's just an email address, check and add if needed
+  if (trimmed.includes('@')) {
+    const email = trimmed;
+    const contact = contacts.find(c => c.email.toLowerCase() === email.toLowerCase());
+    if (contact) {
+      return `${contact.name} <${contact.email}>`;
+    }
+    // Email not in contacts - add it with email as the name
+    this.addContact(email, email);
+    return email;
+  }
+  
+  // Try to find by first name
+  const byFirstName = contacts.find(c => 
+    c.name.split(' ')[0].toLowerCase() === trimmed.toLowerCase()
+  );
+  if (byFirstName) {
+    return `${byFirstName.name} <${byFirstName.email}>`;
+  }
+  
+  // Try to find by full name
+  const byFullName = contacts.find(c => 
+    c.name.toLowerCase() === trimmed.toLowerCase()
+  );
+  if (byFullName) {
+    return `${byFullName.name} <${byFullName.email}>`;
+  }
+  
+  // Try to find by email username (part before @)
+  const byUsername = contacts.find(c => 
+    c.email.split('@')[0].toLowerCase() === trimmed.toLowerCase()
+  );
+  if (byUsername) {
+    return `${byUsername.name} <${byUsername.email}>`;
+  }
+  
+  // Not found - throw error
+  throw new Error(`Contact not found: "${input}"`);
+}
   
   /**
    * Add a new contact to the contacts file
