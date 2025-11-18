@@ -37,7 +37,7 @@ export async function sendEmail(
   const aiDisclosure = '<em>This email was sent by Compustretch, Forest\'s AI assistant.</em><br><br>';
 
   const htmlBodyWithSignature = input.signature
-    ? `${aiDisclosure}${bodyWithBreaks}${signatureWithBreaks}`
+    ? `${aiDisclosure}${bodyWithBreaks}<br><br>${signatureWithBreaks}`
     : bodyWithBreaks;
 
   await transporter.sendMail({
