@@ -130,8 +130,7 @@ export const ChatInterface = () => {
   const [showSidebar, setShowSidebar] = useState(true);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
-  const [providers, setProviders] = useState<Provider[]>(DEFAULT_PROVIDERS);
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [providers, setProviders] = useState<Provider[]>(DEFAULT_PROVIDERS);  
 
   // Refs
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -144,6 +143,7 @@ export const ChatInterface = () => {
     updateSetting,
     isLoading: isSettingsLoading,
   } = useSettings();
+  const isPrivate = settings?.isPrivate ?? false;
   const { toast } = useToast();
   const conversationState = useConversationState();
 
@@ -720,7 +720,7 @@ export const ChatInterface = () => {
                 id="private-checkbox"
                 type="checkbox"
                 checked={isPrivate}
-                onChange={(e) => setIsPrivate(e.target.checked)}
+                onChange={(e) => updateSetting('isPrivate', e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
               />
             </div>
