@@ -185,7 +185,7 @@ export class ApiService {
       });
       
       return {
-        content: result || `Email sent successfully`,
+        content: response.message.content, // not pretty but works
         provider: 'ollama',
         model: response.model,
         timestamp: new Date(response.created_at),
@@ -203,8 +203,9 @@ export class ApiService {
     }
   }
 
-  return {
+  return { // Only executes when no tool is called
     content: response.message.content,
+    //content: `${response.message.content}\n\nResult: ${result || 'Email sent successfully'}`,
     provider: 'ollama',
     model: response.model,
     timestamp: new Date(response.created_at),
