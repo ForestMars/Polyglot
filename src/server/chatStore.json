@@ -5605,5 +5605,54 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-11-18T04:23:26.504Z"
+  },
+  {
+    "id": "conv_1763440047354_4yjkf2pyl",
+    "title": "please send an email to \"Zeta Jones <lostjournals@...",
+    "createdAt": "2025-11-18T04:27:27.354Z",
+    "lastModified": "2025-11-18T04:27:46.729Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1763440047353",
+        "role": "user",
+        "content": "please send an email to \"Zeta Jones <lostjournals@gmail.com>\" with the subject \"hi zeta\" and body \"let's catch up soon!\"",
+        "timestamp": "2025-11-18T04:27:27.353Z",
+        "provider": "ollama",
+        "isPrivate": false
+      },
+      {
+        "id": "msg_1763440047770",
+        "role": "assistant",
+        "content": "*Thought for 3.3 seconds*\n\nOkay, let's draft the email and get your confirmation.\n\nHere's the draft:\n\nlet’s catch up soon!\n\nShould I send this email? Reply 'yes' to confirm.",
+        "timestamp": "2025-11-18T04:27:31.106Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isPrivate": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1763440062569",
+        "role": "user",
+        "content": "yes",
+        "timestamp": "2025-11-18T04:27:42.569Z",
+        "provider": "ollama",
+        "isPrivate": false
+      },
+      {
+        "id": "msg_1763440062691",
+        "role": "assistant",
+        "content": "*Thought for 4.0 seconds*\n\n*Thought for 1.2 seconds*\n\nOkay, sending the email now.\n\n```tool_code\nsend_email(to=\"Zeta Jones <lostjournals@gmail.com>\", subject=\"hi zeta\", body=\"let’s catch up soon!\\n\\n\")\n```",
+        "timestamp": "2025-11-18T04:27:46.729Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isPrivate": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-18T04:27:46.729Z"
   }
 ]
