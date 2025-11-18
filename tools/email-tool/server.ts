@@ -12,23 +12,7 @@ const __dirname = dirname(__filename);
 const EMAIL_SIGNATURE = readFileSync(join(__dirname, 'config', 'sig.txt'), 'utf-8');
 
 // Here's where the magic hapens, obvi.
-const SEND_EMAIL_DESCRIPTION = `Send an email via Gmail SMTP. Use parameter name "to" for recipient address.
-
-PARAMETERS:
-- to: Recipient email address(es). Can be a single email string OR an array of email strings for multiple recipients
-  Examples: "alice@example.com" OR ["alice@example.com", "bob@example.com"]
-- subject: Email subject line
-- body: Email body content
-
-CRITICAL: Always format email bodies with proper paragraph spacing. Insert \\n\\n (double newline) between each paragraph or separate thought. Single-paragraph emails are difficult to read.
-Note: A signature is automatically appended to all emails. Do not include signature placeholders like "[Your Name]" in the body.
-
-IMPORTANT WORKFLOW:
-1. Before calling this tool, draft the email and show it to the user
-2. Ask "Should I send this email? Reply 'yes' to confirm."
-3. Only call send_email() after the user explicitly confirms with 'yes' or 'send'
-
-Never send emails without user confirmation unless the user explicitly instructs you to do so.`;
+const SEND_EMAIL_DESCRIPTION = readFileSync(join(__dirname, 'config', 'tool-descript.txt'), 'utf-8');
 
 const wss = new WebSocketServer({ port: 9002 });
 

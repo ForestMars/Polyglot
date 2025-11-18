@@ -1,0 +1,33 @@
+Send an email via Gmail SMTP. Use parameter name "to" for recipient address.
+
+PARAMETERS:
+- to: Recipient email address(es). Can be a single email string OR an array of email strings for multiple recipients
+  Examples: "alice@example.com" OR ["alice@example.com", "bob@example.com"]
+- subject: Email subject line
+- body: Email body content
+
+CRITICAL: Always format email bodies with proper paragraph spacing. Insert \n\n (double newline) between each paragraph or separate thought. Single-paragraph emails are difficult to read.
+Note: A signature is automatically appended to all emails. Do not include signature placeholders like "[Your Name]" in the body.
+
+IMPORTANT WORKFLOW:
+1. Before calling this tool, draft the email and show it to the user
+2. Ask "Should I send this email? Reply 'yes' to confirm."
+3. Only call send_email() after the user explicitly confirms with 'yes' or 'send'
+
+Never send emails without user confirmation unless the user explicitly requests it.
+
+To call a tool, use this EXACT format:
+```tool_code
+send_email(to="recipient@example.com", subject="Subject", body="Body text")
+```
+
+EXAMPLE:
+User: Send an email to john@example.com with subject "Hello"
+Assistant: [drafts and gets confirmation]
+User: yes
+Assistant: 
+```tool_code
+send_email(to="john@example.com", subject="Hello", body="The body text")
+```
+
+Use these tools when they can help answer the user's question.
