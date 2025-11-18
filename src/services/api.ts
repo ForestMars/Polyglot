@@ -154,56 +154,67 @@ export class ApiService {
     console.log(`[handleOllamaRequest] Received response in ${endTime - startTime}ms`);
     console.log('[handleOllamaRequest] Response:', JSON.stringify(response, null, 2));
 
-    // Check if the response contains a tool call
-    const content = response.message.content;
+  // Check if the response contains a tool call
+  const content = response.message.content;
+
+  // Try to match array format first
+  let toolCallMatch = content.match(/send_email\(to=\[(.*?)\],\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)/);
+  let to, subject, body;
+
+  if (toolCallMatch) {
+    // Split the comma-separated emails and clean up quotes
+    to = toolCallMatch[1].split(',').map(email => email.trim().replace(/['"]/g, ''));
+    subject = toolCallMatch[2];
+    body = toolCallMatch[3];
+  } else {
+    // Try string format
+    toolCallMatch = content.match(/send_email\(to="([^"]+)",\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)/);
+    if (toolCallMatch) {
+      [, to, subject, body] = toolCallMatch;
+    }
+  }
+
+  if (to && subject) {
+    console.log('[handleOllamaRequest] Detected tool call: send_email', { to, subject, body });
     
-    // More flexible regex to catch various formats
-    const toolCodeMatch = content.match(/```tool_code\s*\n\s*send_email\((.*?)\)\s*\n\s*```/s);
-
-
-
-if (toolCallMatch) {
-  const [, to, subject, body] = toolCallMatch;
-  console.log('[handleOllamaRequest] Detected tool call: send_email', { to, subject, body });
-  
-  try {
-    const result = await mcpService.callTool('send_email', 'email-tool', {
-      to,
-      subject,
-      body
-    });
-    
-    return {
-      content: result || `Email sent to ${to}`,
-      provider: 'ollama',
-      model: response.model,
-      timestamp: new Date(response.created_at),
-      responseTime: endTime - startTime
-    };
-  } catch (error) {
-    console.error('[handleOllamaRequest] Tool call failed:', error);
-    return {
-      content: `Failed to send email: ${error}`,
-      provider: 'ollama',
-      model: response.model,
-      timestamp: new Date(response.created_at),
-      responseTime: endTime - startTime
+    try {
+      const result = await mcpService.callTool('send_email', 'email-tool', {
+        to,
+        subject,
+        body: body || '(No message body)'
+      });
+      
+      return {
+        content: result || `Email sent successfully`,
+        provider: 'ollama',
+        model: response.model,
+        timestamp: new Date(response.created_at),
+        responseTime: endTime - startTime
+      };
+    } catch (error) {
+      console.error('[handleOllamaRequest] Tool call failed:', error);
+      return {
+        content: `Failed to send email: ${error}`,
+        provider: 'ollama',
+        model: response.model,
+        timestamp: new Date(response.created_at),
+        responseTime: endTime - startTime
       };
     }
   }
-  
-    return {
-      content: response.message.content,
-      provider: 'ollama',
-      model: response.model,
-      timestamp: new Date(response.created_at),
-      responseTime: endTime - startTime
-    };
+
+  return {
+    content: response.message.content,
+    provider: 'ollama',
+    model: response.model,
+    timestamp: new Date(response.created_at),
+    responseTime: endTime - startTime
+  };
   } catch (error) {
     console.error('[handleOllamaRequest] Request failed:', error);
     throw error;
   }
-}
+  }
 
   private async handleOpenAIRequest(
     model: string,

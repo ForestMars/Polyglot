@@ -5638,5 +5638,85 @@
     ],
     "isArchived": false,
     "updatedAt": "2025-11-18T02:12:03.871Z"
+  },
+  {
+    "id": "conv_1763433514224_g6yatnt2q",
+    "title": "please send an email to lostjournals@gmail.",
+    "createdAt": "2025-11-18T02:38:34.224Z",
+    "lastModified": "2025-11-18T02:39:52.314Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1763433514224",
+        "role": "user",
+        "content": "please send an email to lostjournals@gmail.com and themarsgroup@gmail.com with the subject \"multiple recipient test\" and the body: \"this is a test\"",
+        "timestamp": "2025-11-18T02:38:34.224Z",
+        "provider": "ollama",
+        "isPrivate": false
+      },
+      {
+        "id": "msg_1763433514571",
+        "role": "assistant",
+        "content": "*Thought for 11.1 seconds*\n\nOkay, I will draft the email and ask for your confirmation before sending.\n\nHere is the email draft:\n\nthis is a test\n\nthis is another paragraph.\n\nthis is a test\n\nthis is another paragraph.\n\nShould I send this email? Reply 'yes' to confirm.\n",
+        "timestamp": "2025-11-18T02:38:45.663Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isPrivate": false,
+        "isThinking": false
+      },
+      {
+        "id": "msg_1763433585924",
+        "role": "user",
+        "content": "yes",
+        "timestamp": "2025-11-18T02:39:45.924Z",
+        "provider": "ollama",
+        "isPrivate": false
+      },
+      {
+        "id": "msg_1763433586075",
+        "role": "assistant",
+        "content": "*Thought for 6.2 seconds*\n\nEmail sent to lostjournals@gmail.com,themarsgroup@gmail.com",
+        "timestamp": "2025-11-18T02:39:52.314Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isPrivate": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-18T02:39:52.314Z"
+  },
+  {
+    "id": "conv_1763433779229_96cj1uha3",
+    "title": "Please send an email to keelyseals@gmail.",
+    "createdAt": "2025-11-18T02:42:59.229Z",
+    "lastModified": "2025-11-18T02:43:13.268Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [
+      {
+        "id": "msg_1763433779229",
+        "role": "user",
+        "content": "Please send an email to keelyseals@gmail.com and chaoquny0@gmail.com with the subject: \"Maintenance 10:00 AM tomorrow (Tuesday)\" and the body: \n\n\"Hi both, \n\nThis is Compustretch, Forest's AI assistant, just to let you know that the maintenance team will be here tomorrow morning at 10:00 AM to snake the tub.\" \n\nDo not make any changes to the body text. Send exactly like that.",
+        "timestamp": "2025-11-18T02:42:59.229Z",
+        "provider": "ollama",
+        "isPrivate": false
+      },
+      {
+        "id": "msg_1763433779617",
+        "role": "assistant",
+        "content": "*Thought for 13.7 seconds*\n\nEmail sent to keelyseals@gmail.com,chaoquny0@gmail.com",
+        "timestamp": "2025-11-18T02:43:13.267Z",
+        "provider": "ollama",
+        "usedRAG": false,
+        "isPrivate": false,
+        "isThinking": false
+      }
+    ],
+    "isArchived": false,
+    "updatedAt": "2025-11-18T02:43:13.268Z"
   }
 ]
