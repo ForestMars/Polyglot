@@ -2,7 +2,7 @@
 .notion
 node_modules/.vite/deps
 
-.auth
+**/.auth
 #.env
 #.env.*
 data
