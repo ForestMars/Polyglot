@@ -158,7 +158,8 @@ export class ApiService {
     const content = response.message.content;
     
     // More flexible regex to catch various formats
-    const toolCallMatch = content.match(/send_email\([^)]*to="([^"]+)"[^)]*subject="([^"]+)"[^)]*body="([^"]+)"/s);
+    const toolCodeMatch = content.match(/```tool_code\s*\n\s*send_email\((.*?)\)\s*\n\s*```/s);
+
 
 
 if (toolCallMatch) {
