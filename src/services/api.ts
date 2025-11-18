@@ -113,108 +113,61 @@ export class ApiService {
   }
 
   private async handleOllamaRequest(
-  model: string,
-  messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
-  baseUrl?: string
-): Promise<ChatResponse> {
-  console.log('[handleOllamaRequest] Starting request with model:', model);
-  console.log('[handleOllamaRequest] Base URL:', baseUrl || 'default');
-  
-  // Always create a new instance with the provided base URL or use the default
-  const ollamaService = new OllamaService(baseUrl);
-
-  try {
-    console.log('[handleOllamaRequest] Checking Ollama health...');
-    const isHealthy = await ollamaService.healthCheck();
-    console.log('[handleOllamaRequest] Health check result:', isHealthy);
+    model: string,
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
+    baseUrl?: string
+  ): Promise<ChatResponse> {
+    console.log('[handleOllamaRequest] Starting request with model:', model);
+    console.log('[handleOllamaRequest] Base URL:', baseUrl || 'default');
     
-    if (!isHealthy) {
-      throw new Error('Ollama is not running. Please start Ollama and ensure it\'s accessible at the configured URL.');
-    }
+    // Always create a new instance with the provided base URL or use the default
+    const ollamaService = new OllamaService(baseUrl);
 
-    const ollamaRequest: OllamaRequest = {
-      model,
-      messages: messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      })),
-      stream: false,
-      options: {
-        temperature: 0.7,
-        top_p: 0.9,
-      }
-    };
-
-    console.log('[handleOllamaRequest] Sending request to Ollama:', JSON.stringify(ollamaRequest, null, 2));
-    
-    const startTime = Date.now();
-    const response = await ollamaService.chat(ollamaRequest);
-    const endTime = Date.now();
-    
-    console.log(`[handleOllamaRequest] Received response in ${endTime - startTime}ms`);
-    console.log('[handleOllamaRequest] Response:', JSON.stringify(response, null, 2));
-
-  // Check if the response contains a tool call
-  const content = response.message.content;
-
-  // Try to match array format first
-  let toolCallMatch = content.match(/send_email\(to=\[(.*?)\],\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)/);
-  let to, subject, body;
-
-  if (toolCallMatch) {
-    // Split the comma-separated emails and clean up quotes
-    to = toolCallMatch[1].split(',').map(email => email.trim().replace(/['"]/g, ''));
-    subject = toolCallMatch[2];
-    body = toolCallMatch[3];
-  } else {
-    // Try string format
-    toolCallMatch = content.match(/send_email\(to="([^"]+)",\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)/);
-    if (toolCallMatch) {
-      [, to, subject, body] = toolCallMatch;
-    }
-  }
-
-  if (to && subject) {
-    console.log('[handleOllamaRequest] Detected tool call: send_email', { to, subject, body });
-    
     try {
-      const result = await mcpService.callTool('send_email', 'email-tool', {
-        to,
-        subject,
-        body: body || '(No message body)'
-      });
+      console.log('[handleOllamaRequest] Checking Ollama health...');
+      const isHealthy = await ollamaService.healthCheck();
+      console.log('[handleOllamaRequest] Health check result:', isHealthy);
       
+      if (!isHealthy) {
+        throw new Error('Ollama is not running. Please start Ollama and ensure it\'s accessible at the configured URL.');
+      }
+
+      const ollamaRequest: OllamaRequest = {
+        model,
+        messages: messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        })),
+        stream: false,
+        options: {
+          temperature: 0.7,
+          top_p: 0.9,
+        }
+      };
+
+      console.log('[handleOllamaRequest] Sending request to Ollama:', JSON.stringify(ollamaRequest, null, 2));
+      
+      const startTime = Date.now();
+      const response = await ollamaService.chat(ollamaRequest);
+      const endTime = Date.now();
+      
+      console.log(`[handleOllamaRequest] Received response in ${endTime - startTime}ms`);
+      console.log('[handleOllamaRequest] Response:', JSON.stringify(response, null, 2));
+
+      // Check for tool calls via mcpService
+      const toolResult = await mcpService.detectAndExecuteTool(response.message.content);
+
       return {
-        content: response.message.content, // not pretty but works
+        content: toolResult.originalContent,
         provider: 'ollama',
         model: response.model,
         timestamp: new Date(response.created_at),
         responseTime: endTime - startTime
       };
     } catch (error) {
-      console.error('[handleOllamaRequest] Tool call failed:', error);
-      return {
-        content: `Failed to send email: ${error}`,
-        provider: 'ollama',
-        model: response.model,
-        timestamp: new Date(response.created_at),
-        responseTime: endTime - startTime
-      };
+      console.error('[handleOllamaRequest] Request failed:', error);
+      throw error;
     }
-  }
-
-  return { // Only executes when no tool is called
-    content: response.message.content,
-    //content: `${response.message.content}\n\nResult: ${result || 'Email sent successfully'}`,
-    provider: 'ollama',
-    model: response.model,
-    timestamp: new Date(response.created_at),
-    responseTime: endTime - startTime
-  };
-  } catch (error) {
-    console.error('[handleOllamaRequest] Request failed:', error);
-    throw error;
-  }
   }
 
   private async handleOpenAIRequest(
