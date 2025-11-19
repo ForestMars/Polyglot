@@ -16,7 +16,7 @@ describe('MCP Day Tool Integration', () => {
     const serverPath = path.join(process.cwd(), 'day-server.mjs');
     mcpServer = spawn('node', [serverPath]);
     
-    // Give the WebSocket server time to initialize
+    // Wait for server process to start
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Mock the config fetch to provide our test server
@@ -36,17 +36,19 @@ describe('MCP Day Tool Integration', () => {
       return Promise.reject(new Error('Not found'));
     });
     
-    // Initialize mcpService with our mocked config
+    // Initialize mcpService and wait for it to be ready
     console.log('🧪 Initializing mcpService...');
     await mcpService.initialize();
-    console.log('🧪 mcpService initialized');
+    await mcpService.ready;
+    console.log('🧪 mcpService ready');
     
-    // Wait for connection to fully establish and tools to be discovered
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Debug: Check what tools were discovered
+    // Verify tools were discovered
     const tools = mcpService.getAvailableTools();
-    console.log('🧪 Available tools:', tools);
+    console.log('🧪 Available tools:', tools.map(t => `${t.name} (${t.server})`));
+    
+    if (tools.length === 0) {
+      throw new Error('No MCP tools discovered - connection may have failed');
+    }
   });
   
   afterAll(() => {
@@ -54,22 +56,28 @@ describe('MCP Day Tool Integration', () => {
     if (mcpServer) {
       mcpServer.kill();
     }
+    // Restore fetch
+    vi.restoreAllMocks();
   });
   
   it('should know what day of the week it is via MCP tool', async () => {
-    // Ask what day it is - this should route to MCP instead of the LLM
     const response = await messageRouter.handleMessage('What day is it?');
-    
-    // Get the actual current day
     const expectedDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
     
-    // Verify MCP returned a response
     expect(response).toBeTruthy();
     expect(response).toContain(expectedDay);
   });
   
   it('should handle "what day of the week" phrasing', async () => {
     const response = await messageRouter.handleMessage('What day of the week is it?');
+    const expectedDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    
+    expect(response).toBeTruthy();
+    expect(response).toContain(expectedDay);
+  });
+  
+  it('should handle "today" keyword', async () => {
+    const response = await messageRouter.handleMessage('What is today?');
     const expectedDay = new Date().toLocaleDateString('en-US', { weekday: 'long' });
     
     expect(response).toBeTruthy();
