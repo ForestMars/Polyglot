@@ -19,4 +19,9 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  test: { // i dont think this is actually needed or being used, why did u add it? 
+    resolve: {
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '.mjs']
+    }
+  }
 }));
