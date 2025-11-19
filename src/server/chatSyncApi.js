@@ -4,6 +4,8 @@
 import http from 'http';
 import { getAllChats, addOrUpdateChats, deleteChat, deleteChats } from './chatStore.js';
 
+const PORT = process.env.CHAT_SYNC_PORT || 4001;
+
 // Utility: parse JSON body
 function parseBody(req) {
   return new Promise((resolve, reject) => {
@@ -102,8 +104,12 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-// Start server
-const PORT = process.env.CHAT_SYNC_PORT || 4001;
-server.listen(PORT, () => {
-  console.log(`Chat sync API running on http://localhost:${PORT}`);
-});
+// Only start the server if this file is run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  server.listen(PORT, () => {
+    console.log(`Chat sync API running on http://localhost:${PORT}`);
+  });
+}
+
+// Export for testing
+export { server };
