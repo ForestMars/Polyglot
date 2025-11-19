@@ -13,7 +13,7 @@ describe('MCP Day Tool Integration', () => {
   
   beforeAll(async () => {
     // Start the MCP day-server on WebSocket port 9001
-    const serverPath = path.join(process.cwd(), 'day-server.mjs');
+    const serverPath = path.join(process.cwd(), 'tools/day-tool/day-server.js');
     mcpServer = spawn('node', [serverPath]);
     
     // Wait for server process to start
@@ -87,18 +87,8 @@ describe('MCP Day Tool Integration', () => {
   it('should correctly answer what day tomorrow is', async () => {
     const response = await messageRouter.handleMessage('What day is tomorrow?');
     
-    // Calculate tomorrow's day
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const expectedDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
-    
-    expect(response).toBeTruthy();
-    expect(response).toContain(expectedDay);
-    
-    // Make sure it's NOT today
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-    if (today !== expectedDay) {
-      expect(response).not.toContain(`Today is ${today}`);
-    }
+    // "Tomorrow" should NOT be routed to MCP - it should return null
+    // and let the LLM handle the reasoning
+    expect(response).toBeNull();
   });
 });
