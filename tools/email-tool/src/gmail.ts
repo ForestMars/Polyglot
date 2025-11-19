@@ -52,8 +52,8 @@ export async function sendEmail(input: SendEmailInput & { signature?: string }) 
   const aiDisclosure = "<br><br><em>I'm Compustretch, Forest's AI assistant.</em><br><br>";
   
   const htmlBodyWithSignature = input.signature 
-    ? `${bodyWithBreaks}${aiDisclosure}${signatureWithBreaks}` 
-    : `${bodyWithBreaks}${aiDisclosure}`;
+    ? `${aiDisclosure}${bodyWithBreaks}${signatureWithBreaks}` 
+    : `${aiDisclosure}${bodyWithBreaks}`;
     
   await transporter.sendMail({
     from: EMAIL_ADDRESS,
