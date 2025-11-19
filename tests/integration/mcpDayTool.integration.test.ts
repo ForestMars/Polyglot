@@ -83,4 +83,22 @@ describe('MCP Day Tool Integration', () => {
     expect(response).toBeTruthy();
     expect(response).toContain(expectedDay);
   });
+  
+  it('should correctly answer what day tomorrow is', async () => {
+    const response = await messageRouter.handleMessage('What day is tomorrow?');
+    
+    // Calculate tomorrow's day
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const expectedDay = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+    
+    expect(response).toBeTruthy();
+    expect(response).toContain(expectedDay);
+    
+    // Make sure it's NOT today
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    if (today !== expectedDay) {
+      expect(response).not.toContain(`Today is ${today}`);
+    }
+  });
 });
