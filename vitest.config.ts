@@ -6,14 +6,14 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'bun',
-    pool: 'forks',
-    poolOptions: {
-      forks: {
+    environment: 'jsdom',
+    //pool: 'forks',
+    //poolOptions: {
+    //  forks: {
         // Force tests to run in single, persistent process so we don't grow old.
-        singleFork: true, 
-      },
-    },
+    //    singleFork: true, 
+    //  },
+    //},
     setupFiles: ['./src/tests/setup.ts'],
     globals: true,
     css: true,
