@@ -210,7 +210,7 @@ export class SettingsService {
    * Validate settings object
    */
   private validateSettings(settings: any): AppSettings {
-  let validated: any = { ...this.DEFAULT_SETTINGS };
+  const validated: any = { ...this.DEFAULT_SETTINGS };
     
     // Validate each setting with type checking
     for (const [key, defaultValue] of Object.entries(this.DEFAULT_SETTINGS)) {
