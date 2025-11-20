@@ -6,7 +6,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
+    environment: 'bun',
     setupFiles: ['./src/tests/setup.ts'],
     globals: true,
     css: true,
