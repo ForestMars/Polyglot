@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
+import 'fake-indexeddb/auto'
 
 // Mock window.matchMedia for use-mobile hook
 Object.defineProperty(window, 'matchMedia', {
@@ -32,6 +33,11 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 
 // Mock scrollIntoView
 Element.prototype.scrollIntoView = vi.fn()
+
+// Mock scrollTo (jsdom doesn't implement it)
+if (typeof window !== 'undefined' && !(window as any).scrollTo) {
+  ;(window as any).scrollTo = () => {}
+}
 
 // Mock getComputedStyle
 Object.defineProperty(window, 'getComputedStyle', {
