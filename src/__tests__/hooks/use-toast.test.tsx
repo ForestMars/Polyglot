@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useToast, toast } from '@/hooks/use-toast'
 
-describe('useToast hook', () => {
+describe('useToast hook', { tags: ['db'] }, () => {
   beforeEach(() => {
     // Clear any existing toasts
     vi.clearAllMocks()

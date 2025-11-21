@@ -54,7 +54,7 @@ vi.mock('@/hooks/use-settings', () => ({
   })
 }));
 
-describe('ChatInterface', () => {
+describe('ChatInterface', { tags: ['db'] }, () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

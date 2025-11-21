@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 // Small helper to delay
 const tick = (ms = 10) => new Promise(resolve => setTimeout(resolve, ms))
 
-describe('mcpService discovery and prompt generation', () => {
+describe('mcpService discovery and prompt generation', { tags: ['db'] }, () => {
   beforeEach(() => {
     // Reset module cache so each test gets a fresh mcpService instance
     vi.resetModules()

@@ -8,7 +8,7 @@ import { mcpService } from '../../src/services/mcpService';
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 
-describe('MCP Day Tool Integration', () => {
+describe('MCP Day Tool Integration', { tags: ['db'] }, () => {
   let mcpServer: ChildProcess;
   
   beforeAll(async () => {

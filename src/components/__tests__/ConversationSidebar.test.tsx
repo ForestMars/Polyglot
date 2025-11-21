@@ -27,7 +27,7 @@ vi.mock('@/hooks/use-toast', () => ({
   }),
 }));
 
-describe('ConversationSidebar', () => {
+describe('ConversationSidebar', { tags: ['db'] }, () => {
   const mockConversation: Conversation = {
     id: 'conv-1',
     title: 'Test Conversation',
