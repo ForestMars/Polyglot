@@ -91,8 +91,9 @@ export class IndexedDbStorage {
   private prepareChatForStorage(chat: Chat): Chat {
     const now = new Date();
 
-    // Don't Filter out private messages because this is how they persist in main UI 
-    // const filteredMessages = (chat.messages || []).filter(msg => !msg.isPrivate);
+    // Filter out private messages before persisting to IndexedDB/localStorage.
+    // Private messages (msg.isPrivate === true) must never be saved client-side.
+    const filteredMessages = (chat.messages || []).filter((msg) => !msg.isPrivate);
 
     return {
       ...chat,
@@ -102,7 +103,7 @@ export class IndexedDbStorage {
       lastModified: now,
       isArchived: chat.isArchived || false,
       currentModel: chat.currentModel || chat.model || "unknown",
-      messages: (chat.messages || []).map((msg) => ({
+      messages: filteredMessages.map((msg) => ({
         ...msg,
         id: msg.id || crypto.randomUUID(),
         timestamp: msg.timestamp || now,
@@ -272,7 +273,28 @@ export class IndexedDbStorage {
 async saveConversation(conversation: Chat): Promise<void> {
   try {
     const preparedConversation = this.prepareChatForStorage(conversation);
-    
+
+    // If after filtering private messages there are no messages left, do not persist.
+    // If this conversation previously existed in the DB, remove it so it doesn't show in the sidebar.
+    if (!preparedConversation.messages || preparedConversation.messages.length === 0) {
+      if (conversation.id) {
+        try {
+          await this.db.chats.delete(conversation.id);
+        } catch (delErr) {
+          console.warn('Failed to delete empty/private-only conversation locally:', delErr);
+        }
+        // Also attempt to delete remotely to keep server in sync
+        try {
+          await fetch(`http://localhost:4001/deleteChat/${conversation.id}`, { method: 'DELETE' });
+        } catch (e) {
+          // ignore remote delete failures
+        }
+      }
+
+      // Nothing to persist locally
+      return;
+    }
+
     // Save to IndexedDB
     await this.db.chats.put(preparedConversation);
     

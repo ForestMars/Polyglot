@@ -49,29 +49,22 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '22'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Run security audit
-        run: npm audit --audit-level=moderate
-
-      - name: Check for known vulnerabilities
-        run: npx audit-ci --moderate
+        run: bun audit
 
   # Code quality checks
   code-quality:
     name: Code Quality & Standards
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      matrix:
-        node-version: [20, 22]
     
     steps:
       - name: Checkout code
@@ -81,42 +74,25 @@ jobs:
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
 
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: oven-sh/setup-bun@v1
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-${{ matrix.node-version }}-
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Assert package-lock.json is correct
-        run: |
-          if ! git diff --quiet; then
-            echo 'Package-lock.json file needs to be updated'
-            git diff
-            exit 1
-          fi
+        run: bun install
 
       - name: Run TypeScript type checking
-        run: npm run type-check
+        run: bun run type-check
 
       - name: Run ESLint
-        run: npm run lint
+        run: bun run lint
 
       - name: Check code formatting with Prettier
-        run: npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"
+        run: bunx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"
 
       - name: Run complexity analysis
         run: |
-          npx typescript-complexity-analyzer src/
+          bunx typescript-complexity-analyzer src/
         continue-on-error: true
 
   # Build verification across environments
@@ -135,21 +111,20 @@ jobs:
         with:
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '22'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Build application (${{ matrix.build-mode }})
         run: |
           if [ "${{ matrix.build-mode }}" = "development" ]; then
-            npm run build:dev
+            bun run build:dev
           else
-            npm run build
+            bun run build
           fi
 
       - name: Verify build artifacts
@@ -213,29 +188,19 @@ jobs:
         with:
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '22'
-          cache: 'npm'
-
+          bun-version: latest
+      
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Run unit tests
-        run: npm run test:run -- --coverage --reporter=verbose
+        run: bun run test:run --coverage --reporter=verbose
 
       - name: Run component tests
-        run: npm run test:run -- --run --coverage
-
-      - name: Generate detailed coverage report
-        run: npm run coverage
-
-      - name: Check coverage thresholds
-        run: |
-          # Set minimum coverage thresholds
-          npx nyc check-coverage --lines 80 --functions 80 --branches 75 --statements 80
-        continue-on-error: true
+        run: bun run test:run --coverage
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -243,7 +208,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ./coverage/lcov.info
           flags: unittests
-          name: codecov-polyglut
+          name: codecov-polyglot
           fail_ci_if_error: false
 
       - name: Upload coverage to Coveralls
@@ -268,30 +233,29 @@ jobs:
         with:
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '22'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: bunx playwright install --with-deps
 
       - name: Build application
-        run: npm run build
+        run: bun run build
 
       - name: Start preview server
-        run: npm run preview &
+        run: bun run preview &
 
       - name: Wait for server
         run: |
           timeout 60 bash -c 'until curl -f http://localhost:4173; do sleep 2; done'
 
       - name: Run E2E tests
-        run: npx playwright test
+        run: bunx playwright test
 
       - name: Upload E2E test results
         uses: actions/upload-artifact@v4
@@ -314,27 +278,26 @@ jobs:
         with:
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '22'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Build application
-        run: npm run build
+        run: bun run build
 
       - name: Serve application
-        run: npm run preview &
+        run: bun run preview &
 
       - name: Wait for server
         run: sleep 10
 
       - name: Run Lighthouse CI
         run: |
-          npm install -g @lhci/cli@0.13.x
+          bun add -g @lhci/cli@0.13.x
           lhci autorun
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
@@ -359,21 +322,20 @@ jobs:
         with:
           ref: ${{ github.event.inputs.pr_number && format('refs/pull/{0}/head', github.event.inputs.pr_number) || github.ref }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '22'
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Build with bundle analysis
-        run: npm run build
+        run: bun run build
 
       - name: Analyze bundle size
         run: |
-          npx vite-bundle-analyzer dist/assets/*.js --mode=static --report-filename=bundle-report.html
+          bunx vite-bundle-analyzer dist/assets/*.js --mode=static --report-filename=bundle-report.html
         continue-on-error: true
 
       - name: Upload bundle analysis
