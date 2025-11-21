@@ -1,0 +1,35 @@
+ChatInterface renders chat messages
+ChatInterface allows sending a new message
+ChatInterface shows loading state when sending a message
+ChatInterface displays error message when there is an error
+ChatInterface allows switching models
+ConversationSidebar displays list of conversations
+ConversationSidebar calls onConversationSelect when a conversation is clicked
+SettingsPanel renders provider selection
+SettingsPanel allows switching providers
+useIsMobile hook should handle window resize events
+useToast hook useToast hook should dismiss toast when dismiss is called
+useToast hook useToast hook should dismiss all toasts when no id is provided
+useToast hook useToast hook should handle multiple toasts
+useToast hook useToast hook should generate unique ids for each toast
+useToast hook useToast hook should maintain toast order
+mcpService discovery and prompt generation discovers both configured servers and builds a structured cached prompt
+cn utility function should handle Tailwind class conflicts
+ConversationSidebar shows loading state initially
+ConversationSidebar shows empty state when no conversations exist
+ConversationSidebar renders with correct width and styling
+MCP Day Tool Integration should correctly answer what day tomorrow is
+SettingsService loadSettings should load default settings when none exist
+SettingsService loadSettings should handle invalid JSON gracefully
+ConversationStateManager initialization should initialize successfully
+ConversationStateManager initialization should handle initialization errors gracefully
+ConversationStateManager state management should notify listeners of state changes
+ConversationStateManager state management should provide readonly state access
+ConversationStateManager conversation operations should create new conversations
+ConversationStateManager conversation operations should load conversations by ID
+ConversationStateManager conversation operations should archive and unarchive conversations
+ConversationStateManager conversation operations should delete conversations
+ConversationStateManager search and filtering should search conversations
+ConversationUtils title generation should truncate long messages
+StorageService conversation operations should truncate long titles appropriately
+StorageService sanitization should remove API keys from messages

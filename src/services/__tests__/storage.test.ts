@@ -13,7 +13,7 @@ vi.mock('fs', () => ({
   }
 }));
 
-describe('StorageService', () => {
+describe('StorageService', { tags: ['db'] }, () => {
   let storageService: StorageService;
   let mockConversation: Conversation;
 

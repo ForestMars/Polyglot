@@ -29,7 +29,7 @@ const mockConversations = [
   }
 ];
 
-describe('ConversationSidebar', () => {
+describe('ConversationSidebar', { tags: ['db'] }, () => {
   const onSelect = vi.fn();
   const onNewConversation = vi.fn();
   const onToggleArchive = vi.fn();

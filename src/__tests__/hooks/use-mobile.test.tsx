@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useIsMobile } from '@/hooks/use-mobile'
 
-describe('useIsMobile hook', () => {
+describe('useIsMobile hook', { tags: ['db'] }, () => {
   let originalInnerWidth: number
   let matchMediaSpy: any
 

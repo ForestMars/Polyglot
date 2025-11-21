@@ -43,7 +43,7 @@ vi.mock('../storage', () => ({
   }))
 }));
 
-describe('SettingsService', () => {
+describe('SettingsService', { tags: ['db'] }, () => {
   let settingsService: SettingsService;
 
   beforeEach(() => {
@@ -156,7 +156,7 @@ describe('SettingsService', () => {
   });
 });
 
-describe('ConversationStateManager', () => {
+describe('ConversationStateManager', { tags: ['db'] }, () => {
   let stateManager: ConversationStateManager;
   let mockStorageService: any;
 
@@ -326,7 +326,7 @@ describe('ConversationStateManager', () => {
   });
 });
 
-describe('ConversationUtils', () => {
+describe('ConversationUtils', { tags: ['db'] }, () => {
   describe('ID generation', () => {
     it('should generate unique IDs', () => {
       const id1 = ConversationUtils.generateId();

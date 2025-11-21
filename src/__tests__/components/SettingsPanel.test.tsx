@@ -20,7 +20,7 @@ const mockProviders = [
   }
 ];
 
-describe('SettingsPanel', () => {
+describe('SettingsPanel', { tags: ['db'] }, () => {
   const defaultProps = {
     providers: mockProviders,
     setProviders: vi.fn(),

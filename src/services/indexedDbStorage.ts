@@ -239,7 +239,7 @@ export class IndexedDbStorage {
   // Methods that your conversation state manager expects
   async listConversations(showArchived: boolean = false): Promise<Chat[]> {
     try {
-      let query = this.db.chats.orderBy("lastModified").reverse();
+      const query = this.db.chats.orderBy("lastModified").reverse();
       const chats = await query.toArray();
 
       const convertedChats = chats.map((chat) =>
