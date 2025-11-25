@@ -53,7 +53,7 @@ export async function sendEmail(input: SendEmailInput & { signature?: string }) 
   
   const htmlBodyWithSignature = input.signature 
     ? `${aiDisclosure}${bodyWithBreaks}${signatureWithBreaks}` 
-    : `${aiDisclosure}${bodyWithBreaks}`;
+    : `${aiDisclosure}${bodyWithBreaks}`; 
     
   await transporter.sendMail({
     from: EMAIL_ADDRESS,

@@ -1,4 +1,4 @@
-// day-server.mjs - The MCP server (run separately)
+// day-server.mjs
 import { WebSocket, WebSocketServer } from 'ws';
 
 const wss = new WebSocketServer({ port: 9001 });

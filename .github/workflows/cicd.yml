@@ -7,7 +7,7 @@ env:
   NODE_ENV: 'test'
   TEST_WITHOUT_LOGS: 'true'
   PORT: 8080
-  VITE_APP_TITLE: 'Polyglut'
+  VITE_APP_TITLE: 'Polyglot'
   VITE_APP_DESCRIPTION: 'Enterprise AI Chat Interface'
 
 on:
