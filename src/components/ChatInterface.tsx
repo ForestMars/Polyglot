@@ -1,6 +1,7 @@
 // /src/components/ChatInterface.tsx
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Send, Settings, Bot, User, Loader2, Menu } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -10,10 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useConversationState } from "@/hooks/useConversationState";
 import { useSettings } from "@/hooks/useSettings";
 import { ApiService } from "@/services/api";
-import { Badge } from "@/components/ui/badge";
 import { Conversation, Message } from "@/types/conversation";
 import { messageRouter } from "@/services/messageRouter";
-
 import { runRAGPipeline } from "@/services/rag/ragPipeline";
 
 const FORCE_ENABLE_RAG = false;
@@ -130,7 +129,7 @@ export const ChatInterface = () => {
   const [showSidebar, setShowSidebar] = useState(true);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [isSwitchingConversation, setIsSwitchingConversation] = useState(false);
-  const [providers, setProviders] = useState<Provider[]>(DEFAULT_PROVIDERS);  
+  const [providers, setProviders] = useState<Provider[]>(DEFAULT_PROVIDERS);
 
   // Refs
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -720,7 +719,7 @@ export const ChatInterface = () => {
                 id="private-checkbox"
                 type="checkbox"
                 checked={isPrivate}
-                onChange={(e) => updateSetting('isPrivate', e.target.checked)}
+                onChange={(e) => updateSetting("isPrivate", e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
               />
             </div>
