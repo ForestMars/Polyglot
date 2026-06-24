@@ -3,7 +3,7 @@
     "id": "conv_1762846779414_f0va2xbsh",
     "title": "Ok buddy, what day is it?",
     "createdAt": "2025-11-11T07:39:39.435Z",
-    "lastModified": "2026-01-30T19:44:37.013Z",
+    "lastModified": "2026-06-04T00:38:10.767Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -24,13 +24,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.013Z"
+    "updatedAt": "2026-06-04T00:38:10.767Z"
   },
   {
     "id": "conv_1762825462405_f4eo527uz",
     "title": "What did the investigator say to Vic? (and who hil...",
     "createdAt": "2025-11-11T01:44:22.406Z",
-    "lastModified": "2026-01-30T19:44:37.023Z",
+    "lastModified": "2026-06-04T00:38:10.773Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -177,13 +177,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.023Z"
+    "updatedAt": "2026-06-04T00:38:10.773Z"
   },
   {
     "id": "conv_1760070323369_3vkou607y",
     "title": "what is the dog gone deal",
     "createdAt": "2025-10-10T04:25:23.370Z",
-    "lastModified": "2026-01-30T19:44:37.037Z",
+    "lastModified": "2026-06-04T00:38:10.778Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -206,13 +206,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.037Z"
+    "updatedAt": "2026-06-04T00:38:10.778Z"
   },
   {
     "id": "conv_1760069144322_7gi55lnsn",
     "title": "10/9: I need to test chat history",
     "createdAt": "2025-10-10T04:05:44.334Z",
-    "lastModified": "2026-01-30T19:44:37.043Z",
+    "lastModified": "2026-06-04T00:38:10.782Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -235,13 +235,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.043Z"
+    "updatedAt": "2026-06-04T00:38:10.782Z"
   },
   {
     "id": "conv_1760063703140_mqdpfk9oa",
     "title": "memory not working again ?",
     "createdAt": "2025-10-10T02:35:03.140Z",
-    "lastModified": "2026-01-30T19:44:37.051Z",
+    "lastModified": "2026-06-04T00:38:10.787Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -271,13 +271,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.051Z"
+    "updatedAt": "2026-06-04T00:38:10.787Z"
   },
   {
     "id": "conv_1760063304333_nt3xap1qj",
     "title": "My plan for adding memory is to save chat history ...",
     "createdAt": "2025-10-10T02:28:24.341Z",
-    "lastModified": "2026-01-30T19:44:37.056Z",
+    "lastModified": "2026-06-04T00:38:10.792Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -316,13 +316,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.056Z"
+    "updatedAt": "2026-06-04T00:38:10.792Z"
   },
   {
     "id": "conv_1759533018004_s6jobrod3",
     "title": "Tell me if I am right or wrong: \n\nOn September 10,...",
     "createdAt": "2025-10-03T23:10:18.016Z",
-    "lastModified": "2026-01-30T19:44:37.063Z",
+    "lastModified": "2026-06-04T00:38:10.796Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -345,13 +345,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.063Z"
+    "updatedAt": "2026-06-04T00:38:10.796Z"
   },
   {
     "id": "conv_1759516411552_z0dtsqsq1",
     "title": "ok looks like we have fixed the problem",
     "createdAt": "2025-10-03T18:33:31.553Z",
-    "lastModified": "2026-01-30T19:44:37.069Z",
+    "lastModified": "2026-06-04T00:38:10.801Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -374,13 +374,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.069Z"
+    "updatedAt": "2026-06-04T00:38:10.801Z"
   },
   {
     "id": "conv_1759465418266_8u4enyi6a",
     "title": "Tell me about Tailwind 3.x vs Tailwind 4.x",
     "createdAt": "2025-10-03T04:23:38.266Z",
-    "lastModified": "2026-01-30T19:44:37.074Z",
+    "lastModified": "2026-06-04T00:38:10.805Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -403,13 +403,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.074Z"
+    "updatedAt": "2026-06-04T00:38:10.805Z"
   },
   {
     "id": "conv_1758071215743_hjmboked2",
     "title": "what day is it",
     "createdAt": "2025-09-17T01:06:55.743Z",
-    "lastModified": "2026-01-30T19:44:37.080Z",
+    "lastModified": "2026-06-04T00:38:10.809Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -458,13 +458,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.080Z"
+    "updatedAt": "2026-06-04T00:38:10.809Z"
   },
   {
     "id": "conv_1755663633053_4d6uwr0f1",
     "title": "How does the architectural design of gpt-oss:lates...",
     "createdAt": "2025-08-20T04:20:33.054Z",
-    "lastModified": "2026-01-30T19:44:37.085Z",
+    "lastModified": "2026-06-03T23:48:43.317Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -478,13 +478,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.085Z"
+    "updatedAt": "2026-06-03T23:48:43.317Z"
   },
   {
     "id": "conv_1755655816629_lh08tlnze",
     "title": "HalluEval 2.0 the halllucination evaluation framew...",
     "createdAt": "2025-08-20T02:10:16.638Z",
-    "lastModified": "2026-01-30T19:44:37.090Z",
+    "lastModified": "2026-06-03T23:48:43.316Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -519,13 +519,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.090Z"
+    "updatedAt": "2026-06-03T23:48:43.316Z"
   },
   {
     "id": "conv_1755674867418_yio1mer9l",
     "title": "Implicit Heuristics in Gemini Pro 1.5",
     "createdAt": "2025-08-20T07:27:47.426Z",
-    "lastModified": "2026-01-30T19:44:37.095Z",
+    "lastModified": "2026-06-03T23:48:43.320Z",
     "provider": "openrouter",
     "currentModel": "google/gemini-pro-1.5",
     "modelHistory": [],
@@ -553,13 +553,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.095Z"
+    "updatedAt": "2026-06-03T23:48:43.320Z"
   },
   {
     "id": "conv_1755675746741_aop73bqfk",
     "title": "Dependency tracking in codebases  over 1 million tokens",
     "createdAt": "2025-08-20T07:42:26.743Z",
-    "lastModified": "2026-01-30T19:44:37.101Z",
+    "lastModified": "2026-06-03T23:48:43.321Z",
     "provider": "openrouter",
     "currentModel": "qwen/qwen3-coder:free",
     "modelHistory": [],
@@ -601,13 +601,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.101Z"
+    "updatedAt": "2026-06-03T23:48:43.321Z"
   },
   {
     "id": "conv_1755722779961_xoxuggrfp",
     "title": "Hypothesis: Effective integration of multimodal in...",
     "createdAt": "2025-08-20T20:46:19.961Z",
-    "lastModified": "2026-01-30T19:44:37.107Z",
+    "lastModified": "2026-06-03T23:48:43.321Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -628,13 +628,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.107Z"
+    "updatedAt": "2026-06-03T23:48:43.321Z"
   },
   {
     "id": "conv_1755744721319_63px6jcba",
     "title": "Implicit heuristics: treat yourself as a bounded a...",
     "createdAt": "2025-08-21T02:52:01.319Z",
-    "lastModified": "2026-01-30T19:44:37.113Z",
+    "lastModified": "2026-06-03T23:48:43.320Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -648,13 +648,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.113Z"
+    "updatedAt": "2026-06-03T23:48:43.320Z"
   },
   {
     "id": "conv_1755832138668_y3b6j5zt8",
     "title": "We need to give you access to the world wide web",
     "createdAt": "2025-08-22T03:08:58.678Z",
-    "lastModified": "2026-01-30T19:44:37.118Z",
+    "lastModified": "2026-06-03T23:48:43.321Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -717,13 +717,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.118Z"
+    "updatedAt": "2026-06-03T23:48:43.321Z"
   },
   {
     "id": "conv_1755744822203_am3371pho",
     "title": "In long-context summarization, which coherence fail...",
     "createdAt": "2025-08-21T02:53:42.204Z",
-    "lastModified": "2026-01-30T19:44:37.124Z",
+    "lastModified": "2026-06-03T23:48:43.321Z",
     "provider": "ollama",
     "currentModel": "gpt-oss:latest",
     "modelHistory": [],
@@ -737,13 +737,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.124Z"
+    "updatedAt": "2026-06-03T23:48:43.321Z"
   },
   {
     "id": "conv_1755903105426_i561pvbcr",
     "title": "Who directed the movie Alien?",
     "createdAt": "2025-08-22T22:51:45.427Z",
-    "lastModified": "2026-01-30T19:44:37.130Z",
+    "lastModified": "2026-06-03T23:48:43.322Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -764,13 +764,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.130Z"
+    "updatedAt": "2026-06-03T23:48:43.322Z"
   },
   {
     "id": "conv_1755908399960_4gfdtuzv8",
     "title": "What was Nils Bohn known for (be brief)",
     "createdAt": "2025-08-23T00:19:59.961Z",
-    "lastModified": "2026-01-30T19:44:37.142Z",
+    "lastModified": "2026-06-03T23:48:43.323Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -882,13 +882,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.142Z"
+    "updatedAt": "2026-06-03T23:48:43.323Z"
   },
   {
     "id": "conv_1755907644355_l6mhsrha5",
     "title": "What did Bohr think about metaphysics",
     "createdAt": "2025-08-23T00:07:24.355Z",
-    "lastModified": "2026-01-30T19:44:37.147Z",
+    "lastModified": "2026-06-03T23:48:43.322Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -910,13 +910,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.147Z"
+    "updatedAt": "2026-06-03T23:48:43.322Z"
   },
   {
     "id": "conv_1755904826158_rc98typnx",
     "title": "What is Alan Turing most famous for?",
     "createdAt": "2025-08-22T23:20:26.159Z",
-    "lastModified": "2026-01-30T19:44:37.153Z",
+    "lastModified": "2026-06-03T23:48:43.322Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -944,13 +944,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.153Z"
+    "updatedAt": "2026-06-03T23:48:43.322Z"
   },
   {
     "id": "conv_1755924793634_8hvewlq0f",
     "title": "How does intelligence manifest itself?",
     "createdAt": "2025-08-23T04:53:13.635Z",
-    "lastModified": "2026-01-30T19:44:37.159Z",
+    "lastModified": "2026-06-03T23:48:43.323Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -972,13 +972,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.159Z"
+    "updatedAt": "2026-06-03T23:48:43.323Z"
   },
   {
     "id": "conv_1755914294524_4d9aedh5m",
     "title": "What was the name of the murder victim the Inspect...",
     "createdAt": "2025-08-23T01:58:14.526Z",
-    "lastModified": "2026-01-30T19:44:37.165Z",
+    "lastModified": "2026-06-03T23:48:43.323Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1000,13 +1000,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.165Z"
+    "updatedAt": "2026-06-03T23:48:43.323Z"
   },
   {
     "id": "conv_1755927789605_vcnww2n5y",
     "title": "How's the water?",
     "createdAt": "2025-08-23T05:43:09.605Z",
-    "lastModified": "2026-01-30T19:44:37.170Z",
+    "lastModified": "2026-06-03T23:48:43.323Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1073,13 +1073,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.170Z"
+    "updatedAt": "2026-06-03T23:48:43.323Z"
   },
   {
     "id": "conv_1755926754792_0hd88deh2",
     "title": "what are the coolest most recent updates to typesc...",
     "createdAt": "2025-08-23T05:25:54.792Z",
-    "lastModified": "2026-01-30T19:44:37.177Z",
+    "lastModified": "2026-06-03T23:48:43.323Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1101,13 +1101,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.177Z"
+    "updatedAt": "2026-06-03T23:48:43.323Z"
   },
   {
     "id": "conv_1755925054811_sxntm02lf",
     "title": "What is the difference between intelligence and in...",
     "createdAt": "2025-08-23T04:57:34.811Z",
-    "lastModified": "2026-01-30T19:44:37.183Z",
+    "lastModified": "2026-06-03T23:48:43.323Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1144,13 +1144,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.183Z"
+    "updatedAt": "2026-06-03T23:48:43.323Z"
   },
   {
     "id": "conv_1756167775601_epwsnvx2k",
     "title": "Hi Qwen, they say yiou're really good at coding",
     "createdAt": "2025-08-26T00:22:55.608Z",
-    "lastModified": "2026-01-30T19:44:37.193Z",
+    "lastModified": "2026-06-03T23:48:43.324Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:7b",
     "modelHistory": [],
@@ -1179,13 +1179,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.193Z"
+    "updatedAt": "2026-06-03T23:48:43.324Z"
   },
   {
     "id": "conv_1755980455425_tuaabj42e",
     "title": "Who are the Investigator's main suspects in the mu...",
     "createdAt": "2025-08-23T20:20:55.425Z",
-    "lastModified": "2026-01-30T19:44:37.200Z",
+    "lastModified": "2026-06-03T23:48:43.324Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1252,13 +1252,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.200Z"
+    "updatedAt": "2026-06-03T23:48:43.324Z"
   },
   {
     "id": "conv_1755931468345_7s05gwtgb",
     "title": "I love Polyglut AI Chat!",
     "createdAt": "2025-08-23T06:44:28.345Z",
-    "lastModified": "2026-01-30T19:44:37.205Z",
+    "lastModified": "2026-06-03T23:48:43.324Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1280,13 +1280,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.205Z"
+    "updatedAt": "2026-06-03T23:48:43.324Z"
   },
   {
     "id": "conv_1756182147772_1iruxhi9i",
     "title": "incredible",
     "createdAt": "2025-08-26T04:22:27.772Z",
-    "lastModified": "2026-01-30T19:44:37.211Z",
+    "lastModified": "2026-06-03T23:48:43.325Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1341,13 +1341,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.211Z"
+    "updatedAt": "2026-06-03T23:48:43.325Z"
   },
   {
     "id": "conv_1756181312129_s0p46bkkg",
     "title": "Just checking in",
     "createdAt": "2025-08-26T04:08:32.137Z",
-    "lastModified": "2026-01-30T19:44:37.216Z",
+    "lastModified": "2026-06-03T23:48:43.324Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1369,13 +1369,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.216Z"
+    "updatedAt": "2026-06-03T23:48:43.324Z"
   },
   {
     "id": "conv_1756176854531_um2s6ar6q",
     "title": "We'd like to get started with Chrome DevTools Prot...",
     "createdAt": "2025-08-26T02:54:14.531Z",
-    "lastModified": "2026-01-30T19:44:37.222Z",
+    "lastModified": "2026-06-03T23:48:43.324Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:7b",
     "modelHistory": [],
@@ -1397,13 +1397,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.222Z"
+    "updatedAt": "2026-06-03T23:48:43.324Z"
   },
   {
     "id": "conv_1756184404707_ulg6eti4l",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T05:00:04.707Z",
-    "lastModified": "2026-01-30T19:44:37.227Z",
+    "lastModified": "2026-06-03T23:48:43.325Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -1426,13 +1426,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.227Z"
+    "updatedAt": "2026-06-03T23:48:43.325Z"
   },
   {
     "id": "conv_1756184362790_y6osey5ku",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T04:59:22.791Z",
-    "lastModified": "2026-01-30T19:44:37.233Z",
+    "lastModified": "2026-06-03T23:48:43.325Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1455,13 +1455,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.233Z"
+    "updatedAt": "2026-06-03T23:48:43.325Z"
   },
   {
     "id": "conv_1756184310157_vb5v2msm0",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T04:58:30.158Z",
-    "lastModified": "2026-01-30T19:44:37.238Z",
+    "lastModified": "2026-06-03T23:48:43.325Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1483,13 +1483,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.238Z"
+    "updatedAt": "2026-06-03T23:48:43.325Z"
   },
   {
     "id": "conv_1756184046440_3ztziynza",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T04:54:06.440Z",
-    "lastModified": "2026-01-30T19:44:37.244Z",
+    "lastModified": "2026-06-03T23:48:43.325Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1512,13 +1512,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.244Z"
+    "updatedAt": "2026-06-03T23:48:43.325Z"
   },
   {
     "id": "conv_1756762101146_wtvtm4kvg",
     "title": "How fast are you",
     "createdAt": "2025-09-01T21:28:21.146Z",
-    "lastModified": "2026-01-30T19:44:37.249Z",
+    "lastModified": "2026-06-03T23:48:43.326Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1541,13 +1541,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.249Z"
+    "updatedAt": "2026-06-03T23:48:43.326Z"
   },
   {
     "id": "conv_1756184517447_1u422ic61",
     "title": "What did Vic say to the Inspector?",
     "createdAt": "2025-08-26T05:01:57.447Z",
-    "lastModified": "2026-01-30T19:44:37.255Z",
+    "lastModified": "2026-06-03T23:48:43.326Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:7b",
     "modelHistory": [],
@@ -1570,13 +1570,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.255Z"
+    "updatedAt": "2026-06-03T23:48:43.326Z"
   },
   {
     "id": "conv_1756859904710_0l1a1br22",
     "title": "What day is it?",
     "createdAt": "2025-09-03T00:38:24.711Z",
-    "lastModified": "2026-01-30T19:44:37.260Z",
+    "lastModified": "2026-06-03T23:48:43.326Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -1599,13 +1599,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.260Z"
+    "updatedAt": "2026-06-03T23:48:43.326Z"
   },
   {
     "id": "conv_1756857467686_8n0fmquqj",
     "title": "what day is it",
     "createdAt": "2025-09-02T23:57:47.686Z",
-    "lastModified": "2026-01-30T19:44:37.267Z",
+    "lastModified": "2026-06-03T23:48:43.326Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -1628,13 +1628,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.267Z"
+    "updatedAt": "2026-06-03T23:48:43.326Z"
   },
   {
     "id": "conv_1756851926733_oa22a6ao3",
     "title": "a very straightforward yet technical precise expla...",
     "createdAt": "2025-09-02T22:25:26.733Z",
-    "lastModified": "2026-01-30T19:44:37.273Z",
+    "lastModified": "2026-06-03T23:48:43.326Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1673,13 +1673,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.273Z"
+    "updatedAt": "2026-06-03T23:48:43.326Z"
   },
   {
     "id": "conv_1756860962855_xif8d9pob",
     "title": "what day is it?",
     "createdAt": "2025-09-03T00:56:02.855Z",
-    "lastModified": "2026-01-30T19:44:37.278Z",
+    "lastModified": "2026-06-03T23:48:43.327Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1702,13 +1702,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.278Z"
+    "updatedAt": "2026-06-03T23:48:43.327Z"
   },
   {
     "id": "conv_1756860664260_ot98a4dqp",
     "title": "what day is it?",
     "createdAt": "2025-09-03T00:51:04.260Z",
-    "lastModified": "2026-01-30T19:44:37.284Z",
+    "lastModified": "2026-06-03T23:48:43.327Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -1731,13 +1731,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.284Z"
+    "updatedAt": "2026-06-03T23:48:43.327Z"
   },
   {
     "id": "conv_1756861556976_fpk1sghlc",
     "title": "What day is it?",
     "createdAt": "2025-09-03T01:05:56.977Z",
-    "lastModified": "2026-01-30T19:44:37.291Z",
+    "lastModified": "2026-06-03T23:48:43.327Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1760,13 +1760,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.291Z"
+    "updatedAt": "2026-06-03T23:48:43.327Z"
   },
   {
     "id": "conv_1756861260331_o9mp8mnz1",
     "title": "what day is it",
     "createdAt": "2025-09-03T01:01:00.332Z",
-    "lastModified": "2026-01-30T19:44:37.299Z",
+    "lastModified": "2026-06-03T23:48:43.327Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1789,13 +1789,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.299Z"
+    "updatedAt": "2026-06-03T23:48:43.327Z"
   },
   {
     "id": "conv_1756862088490_aexjwv58o",
     "title": "What day is it?",
     "createdAt": "2025-09-03T01:14:48.490Z",
-    "lastModified": "2026-01-30T19:44:37.306Z",
+    "lastModified": "2026-06-03T23:48:43.327Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1816,13 +1816,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.306Z"
+    "updatedAt": "2026-06-03T23:48:43.327Z"
   },
   {
     "id": "conv_1757994269378_xde2rkutn",
     "title": "what day is it",
     "createdAt": "2025-09-16T03:44:29.378Z",
-    "lastModified": "2026-01-30T19:44:37.312Z",
+    "lastModified": "2026-06-03T23:48:43.328Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1877,13 +1877,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.312Z"
+    "updatedAt": "2026-06-03T23:48:43.328Z"
   },
   {
     "id": "conv_1763156806087_8x6c2e2ly",
     "title": "please send a simple test email to lostjournals@gm...",
     "createdAt": "2025-11-14T21:46:46.087Z",
-    "lastModified": "2026-01-30T19:44:37.327Z",
+    "lastModified": "2026-06-04T00:38:10.813Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -1920,13 +1920,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.327Z"
+    "updatedAt": "2026-06-04T00:38:10.813Z"
   },
   {
     "id": "conv_1763181162951_jtlyqnfcf",
     "title": "conversation #137",
     "createdAt": "2025-11-15T04:32:42.951Z",
-    "lastModified": "2026-01-30T19:44:37.342Z",
+    "lastModified": "2026-06-04T00:38:10.817Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1950,13 +1950,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.342Z"
+    "updatedAt": "2026-06-04T00:38:10.817Z"
   },
   {
     "id": "conv_1763181075279_m21foglf9",
     "title": "conversation #136",
     "createdAt": "2025-11-15T04:31:15.280Z",
-    "lastModified": "2026-01-30T19:44:37.350Z",
+    "lastModified": "2026-06-04T00:38:10.821Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -1997,13 +1997,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.350Z"
+    "updatedAt": "2026-06-04T00:38:10.821Z"
   },
   {
     "id": "conv_1763447669168_pddajf7ie",
     "title": "please send an email to zeta jones with the subjec...",
     "createdAt": "2025-11-18T06:34:29.174Z",
-    "lastModified": "2026-01-30T19:44:37.358Z",
+    "lastModified": "2026-06-04T00:38:10.825Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2028,13 +2028,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.358Z"
+    "updatedAt": "2026-06-04T00:38:10.825Z"
   },
   {
     "id": "conv_1763447385625_6lj2lyftl",
     "title": "please send an email to zeta jones with the subjec...",
     "createdAt": "2025-11-18T06:29:45.631Z",
-    "lastModified": "2026-01-30T19:44:37.366Z",
+    "lastModified": "2026-06-04T00:38:10.829Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2059,13 +2059,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.366Z"
+    "updatedAt": "2026-06-04T00:38:10.829Z"
   },
   {
     "id": "conv_1763446546939_zvwp2w17e",
     "title": "please send an email to zeta jones with the subjec...",
     "createdAt": "2025-11-18T06:15:46.951Z",
-    "lastModified": "2026-01-30T19:44:37.374Z",
+    "lastModified": "2026-06-04T00:38:10.833Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2090,13 +2090,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.374Z"
+    "updatedAt": "2026-06-04T00:38:10.833Z"
   },
   {
     "id": "conv_1763445828308_48252bcsd",
     "title": "please send an email to zeta jones with the subjec...",
     "createdAt": "2025-11-18T06:03:48.331Z",
-    "lastModified": "2026-01-30T19:44:37.382Z",
+    "lastModified": "2026-06-04T00:38:10.837Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2121,13 +2121,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.382Z"
+    "updatedAt": "2026-06-04T00:38:10.837Z"
   },
   {
     "id": "conv_1763445717758_xo3pcch2o",
     "title": "please send an email to zeta jones with the subjec...",
     "createdAt": "2025-11-18T06:01:57.774Z",
-    "lastModified": "2026-01-30T19:44:37.389Z",
+    "lastModified": "2026-06-04T00:38:10.843Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2170,13 +2170,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.389Z"
+    "updatedAt": "2026-06-04T00:38:10.843Z"
   },
   {
     "id": "conv_1763445370332_rd69bfqu2",
     "title": "please send an email to zeta jones with the subjec...",
     "createdAt": "2025-11-18T05:56:10.349Z",
-    "lastModified": "2026-01-30T19:44:37.397Z",
+    "lastModified": "2026-06-04T00:38:10.848Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2219,13 +2219,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.397Z"
+    "updatedAt": "2026-06-04T00:38:10.848Z"
   },
   {
     "id": "conv_1763444223565_ufn3d0398",
     "title": "please send an email to zeta jones with the subjec...",
     "createdAt": "2025-11-18T05:37:03.582Z",
-    "lastModified": "2026-01-30T19:44:37.404Z",
+    "lastModified": "2026-06-04T00:38:10.853Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2268,13 +2268,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.404Z"
+    "updatedAt": "2026-06-04T00:38:10.853Z"
   },
   {
     "id": "conv_1763443571847_3tyrzkxlz",
     "title": "please send an email to zeta jones with the subjec...",
     "createdAt": "2025-11-18T05:26:11.847Z",
-    "lastModified": "2026-01-30T19:44:37.410Z",
+    "lastModified": "2026-06-04T00:38:10.857Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2317,13 +2317,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.410Z"
+    "updatedAt": "2026-06-04T00:38:10.857Z"
   },
   {
     "id": "conv_1763443380664_866l4v83c",
     "title": "please send an email to zeta jones with the subjec...",
     "createdAt": "2025-11-18T05:23:00.664Z",
-    "lastModified": "2026-01-30T19:44:37.418Z",
+    "lastModified": "2026-06-04T00:38:10.862Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2348,13 +2348,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.418Z"
+    "updatedAt": "2026-06-04T00:38:10.862Z"
   },
   {
     "id": "conv_1763441510579_c8il9uk7s",
     "title": "please send an email to zeta jones with the subjec...",
     "createdAt": "2025-11-18T04:51:50.579Z",
-    "lastModified": "2026-01-30T19:44:37.424Z",
+    "lastModified": "2026-06-04T00:38:10.867Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2397,13 +2397,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.424Z"
+    "updatedAt": "2026-06-04T00:38:10.867Z"
   },
   {
     "id": "conv_1763440047354_4yjkf2pyl",
     "title": "please send an email to \"Zeta Jones <lostjournals@...",
     "createdAt": "2025-11-18T04:27:27.354Z",
-    "lastModified": "2026-01-30T19:44:37.432Z",
+    "lastModified": "2026-06-04T00:38:10.874Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2446,13 +2446,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.432Z"
+    "updatedAt": "2026-06-04T00:38:10.874Z"
   },
   {
     "id": "conv_1763439790210_swylapx7i",
     "title": "please send an email to lostjournals@gmail.",
     "createdAt": "2025-11-18T04:23:10.211Z",
-    "lastModified": "2026-01-30T19:44:37.439Z",
+    "lastModified": "2026-06-04T00:38:10.879Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2477,13 +2477,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.439Z"
+    "updatedAt": "2026-06-04T00:38:10.879Z"
   },
   {
     "id": "conv_1763436064585_ib3b1vx9r",
     "title": "please send an email to lostjournals@gmail.",
     "createdAt": "2025-11-18T03:21:04.585Z",
-    "lastModified": "2026-01-30T19:44:37.446Z",
+    "lastModified": "2026-06-04T00:38:10.884Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2526,13 +2526,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.446Z"
+    "updatedAt": "2026-06-04T00:38:10.884Z"
   },
   {
     "id": "conv_1763435877706_1vg9hiufk",
     "title": "please send an email to lostjournals@gmail.",
     "createdAt": "2025-11-18T03:17:57.706Z",
-    "lastModified": "2026-01-30T19:44:37.452Z",
+    "lastModified": "2026-06-04T00:38:10.890Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2557,13 +2557,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.452Z"
+    "updatedAt": "2026-06-04T00:38:10.890Z"
   },
   {
     "id": "conv_1763435083381_s8sxklcjh",
     "title": "please send an email to lostjournals@gmail.",
     "createdAt": "2025-11-18T03:04:43.382Z",
-    "lastModified": "2026-01-30T19:44:37.458Z",
+    "lastModified": "2026-06-04T00:38:10.895Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2596,13 +2596,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.458Z"
+    "updatedAt": "2026-06-04T00:38:10.895Z"
   },
   {
     "id": "conv_1763434761274_pv8doyg6k",
     "title": "please send an email to lostjournals@gmail.",
     "createdAt": "2025-11-18T02:59:21.274Z",
-    "lastModified": "2026-01-30T19:44:37.469Z",
+    "lastModified": "2026-06-04T00:38:10.900Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2645,13 +2645,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.469Z"
+    "updatedAt": "2026-06-04T00:38:10.900Z"
   },
   {
     "id": "conv_1763434697452_yre9bcnzh",
     "title": "please send an email to lostjournals@gmail.",
     "createdAt": "2025-11-18T02:58:17.452Z",
-    "lastModified": "2026-01-30T19:44:37.477Z",
+    "lastModified": "2026-06-04T00:38:10.905Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2694,13 +2694,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.477Z"
+    "updatedAt": "2026-06-04T00:38:10.905Z"
   },
   {
     "id": "conv_1763434361649_rne7lf0xy",
     "title": "please send an email to lostjournals@gmail.",
     "createdAt": "2025-11-18T02:52:41.649Z",
-    "lastModified": "2026-01-30T19:44:37.496Z",
+    "lastModified": "2026-06-04T00:38:10.910Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2715,13 +2715,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.496Z"
+    "updatedAt": "2026-06-04T00:38:10.910Z"
   },
   {
     "id": "conv_1763434346365_hoe0ej5tp",
     "title": "please send an email to lostjournals@gmail.",
     "createdAt": "2025-11-18T02:52:26.365Z",
-    "lastModified": "2026-01-30T19:44:37.501Z",
+    "lastModified": "2026-06-04T00:38:10.915Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2746,13 +2746,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.501Z"
+    "updatedAt": "2026-06-04T00:38:10.915Z"
   },
   {
     "id": "conv_1763164614557_wuc79df1n",
     "title": "Private message 2\n\nThis is the exact email I want ...",
     "createdAt": "2025-11-14T23:56:54.557Z",
-    "lastModified": "2026-01-30T19:44:37.506Z",
+    "lastModified": "2026-06-04T00:38:10.920Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -2795,13 +2795,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.506Z"
+    "updatedAt": "2026-06-04T00:38:10.920Z"
   },
   {
     "id": "conv_1763173648716_0gdjoezij",
     "title": "zed",
     "createdAt": "2025-11-15T02:27:28.716Z",
-    "lastModified": "2026-01-30T19:44:37.533Z",
+    "lastModified": "2026-06-04T00:38:10.925Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -2834,13 +2834,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.533Z"
+    "updatedAt": "2026-06-04T00:38:10.925Z"
   },
   {
     "id": "conv_1763176430393_9m7m8x7h3",
     "title": "a non-private conversation",
     "createdAt": "2025-11-15T03:13:50.393Z",
-    "lastModified": "2026-01-30T19:44:37.608Z",
+    "lastModified": "2026-06-04T00:38:10.930Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -2865,13 +2865,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.608Z"
+    "updatedAt": "2026-06-04T00:38:10.930Z"
   },
   {
     "id": "conv_1763178123763_up7ygbjw0",
     "title": "New Chat 11/14/2025",
     "createdAt": "2025-11-15T03:42:03.763Z",
-    "lastModified": "2026-01-30T19:44:37.616Z",
+    "lastModified": "2026-06-04T00:38:10.935Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -2887,13 +2887,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.616Z"
+    "updatedAt": "2026-06-04T00:38:10.935Z"
   },
   {
     "id": "conv_1763178152090_3bzd2ogkf",
     "title": "history",
     "createdAt": "2025-11-15T03:42:32.090Z",
-    "lastModified": "2026-01-30T19:44:37.625Z",
+    "lastModified": "2026-06-04T00:38:10.940Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -2926,13 +2926,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.625Z"
+    "updatedAt": "2026-06-04T00:38:10.940Z"
   },
   {
     "id": "conv_1763180803671_xie00hf1i",
     "title": "save this",
     "createdAt": "2025-11-15T04:26:43.671Z",
-    "lastModified": "2026-01-30T19:44:37.634Z",
+    "lastModified": "2026-06-04T00:38:10.946Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2956,13 +2956,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.634Z"
+    "updatedAt": "2026-06-04T00:38:10.946Z"
   },
   {
     "id": "conv_1763180792508_1jg5dgwtg",
     "title": "NOT incognito",
     "createdAt": "2025-11-15T04:26:32.508Z",
-    "lastModified": "2026-01-30T19:44:37.642Z",
+    "lastModified": "2026-06-04T00:38:10.954Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -2986,13 +2986,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.642Z"
+    "updatedAt": "2026-06-04T00:38:10.954Z"
   },
   {
     "id": "conv_1763180766552_q3mza3pdr",
     "title": "New Chat 11/14/2025",
     "createdAt": "2025-11-15T04:26:06.552Z",
-    "lastModified": "2026-01-30T19:44:37.651Z",
+    "lastModified": "2026-06-04T00:38:10.961Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3008,13 +3008,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.651Z"
+    "updatedAt": "2026-06-04T00:38:10.961Z"
   },
   {
     "id": "conv_1763180828612_aej1qylnc",
     "title": "we're back",
     "createdAt": "2025-11-15T04:27:08.612Z",
-    "lastModified": "2026-01-30T19:44:37.659Z",
+    "lastModified": "2026-06-04T00:38:10.968Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3039,13 +3039,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.659Z"
+    "updatedAt": "2026-06-04T00:38:10.968Z"
   },
   {
     "id": "conv_1763180958570_cdlcbio3c",
     "title": "conversation #135",
     "createdAt": "2025-11-15T04:29:18.570Z",
-    "lastModified": "2026-01-30T19:44:37.666Z",
+    "lastModified": "2026-06-04T00:38:10.972Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3070,13 +3070,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.666Z"
+    "updatedAt": "2026-06-04T00:38:10.972Z"
   },
   {
     "id": "conv_1763164459399_fwakjfn04",
     "title": "Conversation state\n\nThis is the exact email I want...",
     "createdAt": "2025-11-14T23:54:19.399Z",
-    "lastModified": "2026-01-30T19:44:37.692Z",
+    "lastModified": "2026-06-04T00:38:10.978Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -3101,13 +3101,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.692Z"
+    "updatedAt": "2026-06-04T00:38:10.978Z"
   },
   {
     "id": "conv_1763162659805_mx2elm06m",
     "title": "This is the exact email I want you to send to lost...",
     "createdAt": "2025-11-14T23:24:19.805Z",
-    "lastModified": "2026-01-30T19:44:37.701Z",
+    "lastModified": "2026-06-04T00:38:10.983Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -3146,13 +3146,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.701Z"
+    "updatedAt": "2026-06-04T00:38:10.983Z"
   },
   {
     "id": "conv_1763162088599_1zzxywx8d",
     "title": "This is the exact email I want you to send to lost...",
     "createdAt": "2025-11-14T23:14:48.599Z",
-    "lastModified": "2026-01-30T19:44:37.709Z",
+    "lastModified": "2026-06-04T00:38:10.989Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -3191,13 +3191,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.709Z"
+    "updatedAt": "2026-06-04T00:38:10.989Z"
   },
   {
     "id": "conv_1763161354042_vrb45dn82",
     "title": "This is the exact email I want you to send to lost...",
     "createdAt": "2025-11-14T23:02:34.042Z",
-    "lastModified": "2026-01-30T19:44:37.716Z",
+    "lastModified": "2026-06-04T00:38:10.994Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3227,13 +3227,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.716Z"
+    "updatedAt": "2026-06-04T00:38:10.994Z"
   },
   {
     "id": "conv_1763158838368_p4sa064yu",
     "title": "This is the exact email I want you to send to lost...",
     "createdAt": "2025-11-14T22:20:38.369Z",
-    "lastModified": "2026-01-30T19:44:37.724Z",
+    "lastModified": "2026-06-04T00:38:10.999Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -3272,13 +3272,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.724Z"
+    "updatedAt": "2026-06-04T00:38:10.999Z"
   },
   {
     "id": "conv_1763158972231_zd9nq0ur7",
     "title": "This is the exact email I want you to send to lost...",
     "createdAt": "2025-11-14T22:22:52.231Z",
-    "lastModified": "2026-01-30T19:44:37.733Z",
+    "lastModified": "2026-06-04T00:38:11.004Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -3324,13 +3324,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.733Z"
+    "updatedAt": "2026-06-04T00:38:11.004Z"
   },
   {
     "id": "conv_1763157741441_1yfpq4ief",
     "title": "please send a simple test email to lostjournals@gm...",
     "createdAt": "2025-11-14T22:02:21.441Z",
-    "lastModified": "2026-01-30T19:44:37.742Z",
+    "lastModified": "2026-06-04T00:38:11.009Z",
     "provider": "ollama",
     "currentModel": "qwen2.5:7b",
     "modelHistory": [],
@@ -3433,13 +3433,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.742Z"
+    "updatedAt": "2026-06-04T00:38:11.009Z"
   },
   {
     "id": "conv_1763155712046_2ydn2te5a",
     "title": "please send a simple test email to lostjournals@gm...",
     "createdAt": "2025-11-14T21:28:32.046Z",
-    "lastModified": "2026-01-30T19:44:37.750Z",
+    "lastModified": "2026-06-04T00:38:11.014Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -3494,13 +3494,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.750Z"
+    "updatedAt": "2026-06-04T00:38:11.014Z"
   },
   {
     "id": "conv_1763151617875_gjb3y2iiy",
     "title": "Please compose an email to chris@intellibios.",
     "createdAt": "2025-11-14T20:20:17.875Z",
-    "lastModified": "2026-01-30T19:44:37.759Z",
+    "lastModified": "2026-06-04T00:38:11.020Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3754,13 +3754,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.759Z"
+    "updatedAt": "2026-06-04T00:38:11.020Z"
   },
   {
     "id": "conv_1763014123936_rjt3xmkh0",
     "title": "please help me compose a new  email to chaoquny123...",
     "createdAt": "2025-11-13T06:08:43.937Z",
-    "lastModified": "2026-01-30T19:44:37.768Z",
+    "lastModified": "2026-06-04T00:38:11.025Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3815,13 +3815,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.768Z"
+    "updatedAt": "2026-06-04T00:38:11.025Z"
   },
   {
     "id": "conv_1763013586648_kzt6x2b6z",
     "title": "please send an email to chaoquny123@gmail.com abou...",
     "createdAt": "2025-11-13T05:59:46.648Z",
-    "lastModified": "2026-01-30T19:44:37.777Z",
+    "lastModified": "2026-06-04T00:38:11.031Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3892,13 +3892,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.777Z"
+    "updatedAt": "2026-06-04T00:38:11.031Z"
   },
   {
     "id": "conv_1762910368494_w9vsygalx",
     "title": "ok I am going to nee to send an email to themarsgr...",
     "createdAt": "2025-11-12T01:19:28.494Z",
-    "lastModified": "2026-01-30T19:44:37.784Z",
+    "lastModified": "2026-06-04T00:38:11.036Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3953,13 +3953,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.784Z"
+    "updatedAt": "2026-06-04T00:38:11.036Z"
   },
   {
     "id": "conv_1762908682242_p3g5g5i0d",
     "title": "I would like to send an email to themarsgroup@gmai...",
     "createdAt": "2025-11-12T00:51:22.242Z",
-    "lastModified": "2026-01-30T19:44:37.791Z",
+    "lastModified": "2026-06-04T00:38:11.041Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -3998,13 +3998,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.791Z"
+    "updatedAt": "2026-06-04T00:38:11.041Z"
   },
   {
     "id": "conv_1762907500976_kcbquqp22",
     "title": "I would like to send an email to themarsgroup@gmai...",
     "createdAt": "2025-11-12T00:31:40.977Z",
-    "lastModified": "2026-01-30T19:44:37.812Z",
+    "lastModified": "2026-06-04T00:38:11.047Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4027,13 +4027,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.812Z"
+    "updatedAt": "2026-06-04T00:38:11.047Z"
   },
   {
     "id": "conv_1762908035886_qk3ypo63d",
     "title": "I would like to send an email to themarsgroup@gmai...",
     "createdAt": "2025-11-12T00:40:35.886Z",
-    "lastModified": "2026-01-30T19:44:37.819Z",
+    "lastModified": "2026-06-04T00:38:11.052Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4072,13 +4072,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.819Z"
+    "updatedAt": "2026-06-04T00:38:11.052Z"
   },
   {
     "id": "conv_1762907968970_2giybu05o",
     "title": "I would like to send an email to themarsgroup@gmai...",
     "createdAt": "2025-11-12T00:39:28.970Z",
-    "lastModified": "2026-01-30T19:44:37.826Z",
+    "lastModified": "2026-06-04T00:38:11.059Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4117,13 +4117,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.826Z"
+    "updatedAt": "2026-06-04T00:38:11.059Z"
   },
   {
     "id": "conv_1762907743312_u4q69slk2",
     "title": "I would like to send an email to themarsgroup@gmai...",
     "createdAt": "2025-11-12T00:35:43.312Z",
-    "lastModified": "2026-01-30T19:44:37.834Z",
+    "lastModified": "2026-06-04T00:38:11.065Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4146,13 +4146,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.834Z"
+    "updatedAt": "2026-06-04T00:38:11.065Z"
   },
   {
     "id": "conv_1762907865248_qvih1hri9",
     "title": "I would like to send an email to themarsgroup@gmai...",
     "createdAt": "2025-11-12T00:37:45.272Z",
-    "lastModified": "2026-01-30T19:44:37.842Z",
+    "lastModified": "2026-06-04T00:38:11.071Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4175,13 +4175,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.842Z"
+    "updatedAt": "2026-06-04T00:38:11.071Z"
   },
   {
     "id": "conv_1762907808200_syxnnb8pp",
     "title": "I would like to send an email to themarsgroup@gmai...",
     "createdAt": "2025-11-12T00:36:48.215Z",
-    "lastModified": "2026-01-30T19:44:37.851Z",
+    "lastModified": "2026-06-04T00:38:11.076Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4204,13 +4204,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.851Z"
+    "updatedAt": "2026-06-04T00:38:11.076Z"
   },
   {
     "id": "conv_1762899000179_j5ogluygw",
     "title": "Please send an email to zakhap@gmail.",
     "createdAt": "2025-11-11T22:10:00.179Z",
-    "lastModified": "2026-01-30T19:44:37.859Z",
+    "lastModified": "2026-06-04T00:38:11.082Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4249,13 +4249,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.859Z"
+    "updatedAt": "2026-06-04T00:38:11.082Z"
   },
   {
     "id": "conv_1762899195892_lj1gynr4s",
     "title": "Please send an email to zakhap@gmail.",
     "createdAt": "2025-11-11T22:13:15.892Z",
-    "lastModified": "2026-01-30T19:44:37.867Z",
+    "lastModified": "2026-06-04T00:38:11.088Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -4294,13 +4294,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.867Z"
+    "updatedAt": "2026-06-04T00:38:11.088Z"
   },
   {
     "id": "conv_1762899149554_j2dgocqoi",
     "title": "Please send an email to zakhap@gmail.",
     "createdAt": "2025-11-11T22:12:29.554Z",
-    "lastModified": "2026-01-30T19:44:37.876Z",
+    "lastModified": "2026-06-04T00:38:11.093Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4323,13 +4323,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.876Z"
+    "updatedAt": "2026-06-04T00:38:11.093Z"
   },
   {
     "id": "conv_1762899260359_tzq7ered5",
     "title": "Please send an email to zakhap@gmail.",
     "createdAt": "2025-11-11T22:14:20.359Z",
-    "lastModified": "2026-01-30T19:44:37.885Z",
+    "lastModified": "2026-06-04T00:38:11.099Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4375,13 +4375,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.885Z"
+    "updatedAt": "2026-06-04T00:38:11.099Z"
   },
   {
     "id": "conv_1762900162176_sfskn8q4v",
     "title": "please send an email to lostjournals@gmail.",
     "createdAt": "2025-11-11T22:29:22.190Z",
-    "lastModified": "2026-01-30T19:44:37.911Z",
+    "lastModified": "2026-06-04T00:38:11.105Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4404,13 +4404,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.911Z"
+    "updatedAt": "2026-06-04T00:38:11.105Z"
   },
   {
     "id": "conv_1762900658363_iabqbr8ls",
     "title": "please send an email to lostjournals@gmail.",
     "createdAt": "2025-11-11T22:37:38.386Z",
-    "lastModified": "2026-01-30T19:44:37.919Z",
+    "lastModified": "2026-06-04T00:38:11.111Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4433,13 +4433,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.919Z"
+    "updatedAt": "2026-06-04T00:38:11.111Z"
   },
   {
     "id": "conv_1762898454207_eq08yv0z1",
     "title": "Please send an email to zakhap@gmail.",
     "createdAt": "2025-11-11T22:00:54.226Z",
-    "lastModified": "2026-01-30T19:44:37.928Z",
+    "lastModified": "2026-06-04T00:38:11.117Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4478,13 +4478,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.928Z"
+    "updatedAt": "2026-06-04T00:38:11.117Z"
   },
   {
     "id": "conv_1762898277323_uyohxlmpm",
     "title": "Please send an email to zakhap@gmail.",
     "createdAt": "2025-11-11T21:57:57.323Z",
-    "lastModified": "2026-01-30T19:44:37.936Z",
+    "lastModified": "2026-06-04T00:38:11.124Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4587,13 +4587,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.936Z"
+    "updatedAt": "2026-06-04T00:38:11.124Z"
   },
   {
     "id": "conv_1762896723376_ebl37ndny",
     "title": "Please send an email to average.",
     "createdAt": "2025-11-11T21:32:03.400Z",
-    "lastModified": "2026-01-30T19:44:37.943Z",
+    "lastModified": "2026-06-04T00:38:11.132Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4648,13 +4648,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.943Z"
+    "updatedAt": "2026-06-04T00:38:11.132Z"
   },
   {
     "id": "conv_1762896366312_y55enbvvz",
     "title": "Please send an email to average.",
     "createdAt": "2025-11-11T21:26:06.336Z",
-    "lastModified": "2026-01-30T19:44:37.951Z",
+    "lastModified": "2026-06-04T00:38:11.140Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4677,13 +4677,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.951Z"
+    "updatedAt": "2026-06-04T00:38:11.140Z"
   },
   {
     "id": "conv_1762896480517_8hn817mac",
     "title": "Please send an email to average.",
     "createdAt": "2025-11-11T21:28:00.517Z",
-    "lastModified": "2026-01-30T19:44:37.959Z",
+    "lastModified": "2026-06-04T00:38:11.147Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -4706,13 +4706,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.959Z"
+    "updatedAt": "2026-06-04T00:38:11.147Z"
   },
   {
     "id": "conv_1762893233984_kur21c07p",
     "title": "Ok, I would like to send an email to patrick_a_jon...",
     "createdAt": "2025-11-11T20:33:53.984Z",
-    "lastModified": "2026-01-30T19:44:37.966Z",
+    "lastModified": "2026-06-04T00:38:11.156Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4815,13 +4815,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.966Z"
+    "updatedAt": "2026-06-04T00:38:11.156Z"
   },
   {
     "id": "conv_1755903362449_752kudbyf",
     "title": "Who directed the movie Bladerunner?",
     "createdAt": "2025-08-22T22:56:02.449Z",
-    "lastModified": "2026-01-30T19:44:37.975Z",
+    "lastModified": "2026-06-03T23:48:43.322Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4884,13 +4884,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.975Z"
+    "updatedAt": "2026-06-03T23:48:43.322Z"
   },
   {
     "id": "conv_1759514698147_5hzbrpof2",
     "title": "hiya! we are just testing you",
     "createdAt": "2025-10-03T18:04:58.147Z",
-    "lastModified": "2026-01-30T19:44:37.982Z",
+    "lastModified": "2026-06-04T00:38:11.163Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -4913,13 +4913,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.982Z"
+    "updatedAt": "2026-06-04T00:38:11.163Z"
   },
   {
     "id": "conv_1758071192427_9rdc1r34i",
     "title": "what day is it",
     "createdAt": "2025-09-17T01:06:32.428Z",
-    "lastModified": "2026-01-30T19:44:37.990Z",
+    "lastModified": "2026-06-04T00:38:11.170Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -4940,13 +4940,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.990Z"
+    "updatedAt": "2026-06-04T00:38:11.170Z"
   },
   {
     "id": "conv_1759511727921_z1fwk0vjh",
     "title": "We need to understand what happened to cause the r...",
     "createdAt": "2025-10-03T17:15:27.921Z",
-    "lastModified": "2026-01-30T19:44:37.997Z",
+    "lastModified": "2026-06-04T00:38:11.178Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -4969,13 +4969,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:37.997Z"
+    "updatedAt": "2026-06-04T00:38:11.178Z"
   },
   {
     "id": "conv_1759507977620_ncpi3it1t",
     "title": "oh no you're memory is broken",
     "createdAt": "2025-10-03T16:12:57.620Z",
-    "lastModified": "2026-01-30T19:44:38.003Z",
+    "lastModified": "2026-06-04T00:38:11.184Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -4998,13 +4998,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.003Z"
+    "updatedAt": "2026-06-04T00:38:11.184Z"
   },
   {
     "id": "conv_1759508902871_1q5h29506",
     "title": "how is this working",
     "createdAt": "2025-10-03T16:28:22.871Z",
-    "lastModified": "2026-01-30T19:44:38.008Z",
+    "lastModified": "2026-06-04T00:38:11.191Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -5059,13 +5059,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.008Z"
+    "updatedAt": "2026-06-04T00:38:11.191Z"
   },
   {
     "id": "conv_1759511352774_9h0ipzhsp",
     "title": "is the chat server running",
     "createdAt": "2025-10-03T17:09:12.774Z",
-    "lastModified": "2026-01-30T19:44:38.013Z",
+    "lastModified": "2026-06-04T00:38:11.200Z",
     "provider": "ollama",
     "currentModel": "qwen2.5-coder:1.5b",
     "modelHistory": [],
@@ -5088,13 +5088,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.013Z"
+    "updatedAt": "2026-06-04T00:38:11.200Z"
   },
   {
     "id": "conv_1760069191888_dt9kns34v",
     "title": "what is the other doggone deal",
     "createdAt": "2025-10-10T04:06:31.888Z",
-    "lastModified": "2026-01-30T19:44:38.018Z",
+    "lastModified": "2026-06-04T00:38:11.208Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -5117,13 +5117,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.018Z"
+    "updatedAt": "2026-06-04T00:38:11.208Z"
   },
   {
     "id": "conv_1760070399317_elal8mqyg",
     "title": "ok this is the 3rd doggone deal",
     "createdAt": "2025-10-10T04:26:39.317Z",
-    "lastModified": "2026-01-30T19:44:38.022Z",
+    "lastModified": "2026-06-04T00:38:11.217Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -5146,13 +5146,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.022Z"
+    "updatedAt": "2026-06-04T00:38:11.217Z"
   },
   {
     "id": "conv_1760070944046_jr6umr4zk",
     "title": "so this will now be the 4th time I have asked you ...",
     "createdAt": "2025-10-10T04:35:44.046Z",
-    "lastModified": "2026-01-30T19:44:38.027Z",
+    "lastModified": "2026-06-04T00:38:11.225Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -5175,13 +5175,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.027Z"
+    "updatedAt": "2026-06-04T00:38:11.225Z"
   },
   {
     "id": "conv_1760071366419_wpde5i2tl",
     "title": "What did the inspector say to vic?",
     "createdAt": "2025-10-10T04:42:46.419Z",
-    "lastModified": "2026-01-30T19:44:38.032Z",
+    "lastModified": "2026-06-04T00:38:11.232Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -5204,13 +5204,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.032Z"
+    "updatedAt": "2026-06-04T00:38:11.232Z"
   },
   {
     "id": "conv_1760071570676_ojm4bbv9q",
     "title": "What did the inspector say to Vic?",
     "createdAt": "2025-10-10T04:46:10.676Z",
-    "lastModified": "2026-01-30T19:44:38.037Z",
+    "lastModified": "2026-06-04T00:38:11.239Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5233,13 +5233,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.037Z"
+    "updatedAt": "2026-06-04T00:38:11.239Z"
   },
   {
     "id": "conv_1760071748051_t0mmeu4uv",
     "title": "What did the inspector say to Vic?",
     "createdAt": "2025-10-10T04:49:08.051Z",
-    "lastModified": "2026-01-30T19:44:38.042Z",
+    "lastModified": "2026-06-04T00:38:11.246Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5262,13 +5262,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.042Z"
+    "updatedAt": "2026-06-04T00:38:11.246Z"
   },
   {
     "id": "conv_1762825244966_nv5wti1ei",
     "title": "Ok, what did the inspector say to Vic?",
     "createdAt": "2025-11-11T01:40:44.966Z",
-    "lastModified": "2026-01-30T19:44:38.046Z",
+    "lastModified": "2026-06-04T00:38:11.252Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5291,13 +5291,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.046Z"
+    "updatedAt": "2026-06-04T00:38:11.252Z"
   },
   {
     "id": "conv_1762825259809_z06t80xau",
     "title": "OK then, what did the inspector say to Vic?",
     "createdAt": "2025-11-11T01:40:59.810Z",
-    "lastModified": "2026-01-30T19:44:38.051Z",
+    "lastModified": "2026-06-04T00:38:11.259Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5352,13 +5352,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.051Z"
+    "updatedAt": "2026-06-04T00:38:11.259Z"
   },
   {
     "id": "conv_1762828735747_xiavrosk9",
     "title": "What day is today?",
     "createdAt": "2025-11-11T02:38:55.747Z",
-    "lastModified": "2026-01-30T19:44:38.056Z",
+    "lastModified": "2026-06-04T00:38:11.266Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5379,13 +5379,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.056Z"
+    "updatedAt": "2026-06-04T00:38:11.266Z"
   },
   {
     "id": "conv_1762845085498_jnd4fai5a",
     "title": "Now what day is it?",
     "createdAt": "2025-11-11T07:11:25.498Z",
-    "lastModified": "2026-01-30T19:44:38.066Z",
+    "lastModified": "2026-06-04T00:38:11.272Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5406,13 +5406,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.066Z"
+    "updatedAt": "2026-06-04T00:38:11.272Z"
   },
   {
     "id": "conv_1762845135067_9crqk2237",
     "title": "And now what day is it",
     "createdAt": "2025-11-11T07:12:15.067Z",
-    "lastModified": "2026-01-30T19:44:38.071Z",
+    "lastModified": "2026-06-04T00:38:11.279Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5451,13 +5451,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.071Z"
+    "updatedAt": "2026-06-04T00:38:11.279Z"
   },
   {
     "id": "conv_1762851798909_8cqezjxyn",
     "title": "what day is it today?",
     "createdAt": "2025-11-11T09:03:18.909Z",
-    "lastModified": "2026-01-30T19:44:38.075Z",
+    "lastModified": "2026-06-04T00:38:11.285Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5510,13 +5510,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.075Z"
+    "updatedAt": "2026-06-04T00:38:11.285Z"
   },
   {
     "id": "conv_1762854424178_ejeohevr9",
     "title": "please sent an email with the subject line \"you ch...",
     "createdAt": "2025-11-11T09:47:04.179Z",
-    "lastModified": "2026-01-30T19:44:38.081Z",
+    "lastModified": "2026-06-04T00:38:11.292Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5562,13 +5562,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.081Z"
+    "updatedAt": "2026-06-04T00:38:11.292Z"
   },
   {
     "id": "conv_1763520940308_f1x49fd5z",
     "title": "LLM App count webpage list example",
     "createdAt": "2025-11-19T02:55:40.325Z",
-    "lastModified": "2026-01-30T19:44:38.086Z",
+    "lastModified": "2026-06-04T00:38:11.299Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5611,13 +5611,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.086Z"
+    "updatedAt": "2026-06-04T00:38:11.299Z"
   },
   {
     "id": "conv_1762848522640_wdl6age38",
     "title": "Please send an email to themarsgroup@gmail.com",
     "createdAt": "2025-11-11T08:08:42.662Z",
-    "lastModified": "2026-01-30T19:44:38.091Z",
+    "lastModified": "2026-06-04T00:38:11.305Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -5670,13 +5670,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T19:44:38.091Z"
+    "updatedAt": "2026-06-04T00:38:11.305Z"
   },
   {
     "id": "conv_1769802568815_i5twwbxlb",
     "title": "Hiya DeepSeek, TGIF!",
     "createdAt": "2026-01-30T19:49:28.818Z",
-    "lastModified": "2026-01-30T22:02:10.292Z",
+    "lastModified": "2026-06-04T00:38:11.311Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -5737,13 +5737,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T22:02:10.292Z"
+    "updatedAt": "2026-06-04T00:38:11.311Z"
   },
   {
     "id": "conv_1769803269381_nauin7fl6",
     "title": "please send an email to themarsgroup@gmail.com rem...",
     "createdAt": "2026-01-30T20:01:09.386Z",
-    "lastModified": "2026-01-30T21:58:17.747Z",
+    "lastModified": "2026-06-04T00:38:11.318Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -5822,13 +5822,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-01-30T21:58:17.747Z"
+    "updatedAt": "2026-06-04T00:38:11.318Z"
   },
   {
     "id": "conv_1769901348981_9v3ocv0rl",
     "title": "Who is Robert Thurman's favourite Buddhist teacher...",
     "createdAt": "2026-01-31T23:15:48.983Z",
-    "lastModified": "2026-02-02T03:14:57.590Z",
+    "lastModified": "2026-06-04T00:38:11.324Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -6015,13 +6015,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-02-02T03:14:57.590Z"
+    "updatedAt": "2026-06-04T00:38:11.324Z"
   },
   {
     "id": "conv_1770083682879_t8b3ydts9",
     "title": "What Kant + Bohr show:\nThe contradictions aren't l...",
     "createdAt": "2026-02-03T01:54:42.880Z",
-    "lastModified": "2026-02-03T02:05:22.906Z",
+    "lastModified": "2026-06-04T00:38:11.331Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -6082,13 +6082,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-02-03T02:05:22.906Z"
+    "updatedAt": "2026-06-04T00:38:11.331Z"
   },
   {
     "id": "conv_1770083991936_8vosvu5su",
     "title": "What Kant + Bohr show:\nThe contradictions aren't l...",
     "createdAt": "2026-02-03T01:59:51.936Z",
-    "lastModified": "2026-02-03T02:00:22.577Z",
+    "lastModified": "2026-06-04T00:38:11.338Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -6113,13 +6113,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-02-03T02:00:22.577Z"
+    "updatedAt": "2026-06-04T00:38:11.338Z"
   },
   {
     "id": "conv_1770084041780_97fscwma1",
     "title": "What Kant + Bohr show:\nThe contradictions aren't l...",
     "createdAt": "2026-02-03T02:00:41.780Z",
-    "lastModified": "2026-02-03T02:02:17.317Z",
+    "lastModified": "2026-06-04T00:38:11.346Z",
     "provider": "ollama",
     "currentModel": "deepseek-r1:latest",
     "modelHistory": [],
@@ -6162,13 +6162,13 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-02-03T02:02:17.317Z"
+    "updatedAt": "2026-06-04T00:38:11.346Z"
   },
   {
     "id": "conv_1770136598437_4ac9q0mps",
     "title": "Was Immanuel Kant a Platonist or Aristotelean?",
     "createdAt": "2026-02-03T16:36:38.437Z",
-    "lastModified": "2026-02-03T16:38:19.119Z",
+    "lastModified": "2026-06-04T00:38:11.353Z",
     "provider": "ollama",
     "currentModel": "gemma3:latest",
     "modelHistory": [],
@@ -6193,6 +6193,18 @@
       }
     ],
     "isArchived": false,
-    "updatedAt": "2026-02-03T16:38:19.119Z"
+    "updatedAt": "2026-06-04T00:38:11.353Z"
+  },
+  {
+    "id": "conv_1755836962430_tqfjk20pm",
+    "title": "New Chat 8/22/2025",
+    "createdAt": "2025-08-22T04:29:22.430Z",
+    "lastModified": "2026-06-03T23:48:43.322Z",
+    "provider": "ollama",
+    "currentModel": "gemma3:latest",
+    "modelHistory": [],
+    "messages": [],
+    "isArchived": false,
+    "updatedAt": "2026-06-03T23:48:43.322Z"
   }
 ]
