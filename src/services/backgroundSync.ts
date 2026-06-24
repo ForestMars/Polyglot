@@ -93,6 +93,14 @@ export class BackgroundSyncService {
       await this.updateLastSync();
 
       console.log(`[sync] Successfully synced ${syncedCount} chats from server`);
+      // Notify UI that conversations were updated so state managers can reload
+      try {
+        if (typeof window !== 'undefined' && syncedCount > 0) {
+          window.dispatchEvent(new Event('conversations-updated'));
+        }
+      } catch (e) {
+        console.warn('[sync] Failed to dispatch conversations-updated event', e);
+      }
       return { success: true, syncedCount };
       
     } catch (error) {
@@ -107,8 +115,8 @@ export class BackgroundSyncService {
   // Fetch chats from server (chatStore.json)
   private async fetchServerChats(): Promise<Chat[]> {
     try {
-      // This assumes your server endpoint exists - adjust URL as needed
-      const response = await fetch('/api/chats', {
+      // Prefer the local chat sync API endpoint
+      const response = await fetch('http://localhost:4001/fetchChats', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -116,7 +124,7 @@ export class BackgroundSyncService {
       });
 
       if (!response.ok) {
-        // If API endpoint doesn't exist, try to load from static file
+        // If API endpoint doesn't exist or returns an error, try to load from static file
         return await this.loadChatStoreFile();
       }
 
@@ -125,7 +133,7 @@ export class BackgroundSyncService {
         ...chat,
         createdAt: new Date(chat.createdAt),
         updatedAt: new Date(chat.updatedAt),
-        messages: chat.messages.map(msg => ({
+        messages: (chat.messages || []).map(msg => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         }))
