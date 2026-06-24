@@ -1,230 +1,372 @@
-// src/services/backgroundSync.ts - Fixed version with proper error handling
+// src/services/backgroundSync.ts
+//
+// Sync service implementing the eventual coherence architecture.
+//
+// Control plane (syncWithServer): runs at epoch boundaries. Sends full local
+// state including deletion records. Receives missing chats and server-side
+// deletion records. Applies Invariant 5 before writing anything locally.
+//
+// Data plane (pushChat, receiveUpdate): real-time propagation. Receive handler
+// enforces Invariant 5: if local_storage.get(id) returns is_deleted=true,
+// the incoming update is silently discarded regardless of content.
+//
+// Lamport clock: every write advances the local clock. Clock is persisted in
+// IndexedDB meta so it survives page reloads.
 
-import { storage } from './indexedDbStorage';
-import { Chat } from './indexedDbStorage';
+import { storage, Chat } from './indexedDbStorage';
 
-interface ServerDelta {
-  id: string;
-  type: 'create' | 'update' | 'delete';
-  data?: Chat;
-  timestamp: Date;
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface LamportTuple extends Array<number | string> {
+  0: number;   // logical time
+  1: string;   // device id
 }
 
-interface SyncResult {
+export interface DeletionRecord {
+  id: string;
+  deletedAtLamport: LamportTuple;
+}
+
+interface SyncPayload {
+  chats: Chat[];
+  deletionRecords: DeletionRecord[];
+}
+
+interface SyncResponse {
+  missing: Chat[];
+  deletions: DeletionRecord[];
+}
+
+export interface SyncResult {
   success: boolean;
   syncedCount?: number;
+  deletedCount?: number;
   error?: string;
 }
+
+// ---------------------------------------------------------------------------
+// Lamport helpers (client-side mirror of chatStore.js)
+// ---------------------------------------------------------------------------
+
+// τ_a ≻ τ_b
+function dominates(tauA: LamportTuple, tauB: LamportTuple): boolean {
+  if (!tauA || !tauB) return false;
+  const [lA, dA] = tauA;
+  const [lB, dB] = tauB;
+  return lA > lB || (lA === lB && String(dA) > String(dB));
+}
+
+// ---------------------------------------------------------------------------
+// BackgroundSyncService
+// ---------------------------------------------------------------------------
 
 export class BackgroundSyncService {
   private isInitialized = false;
   private initPromise: Promise<void> | null = null;
 
-  // Ensure database is initialized before any operations
+  // Lamport clock state — persisted to IndexedDB meta between sessions.
+  private lamportTime = 0;
+  private deviceId: string = '';
+
+  // Local deletion records: id → DeletionRecord.
+  // Persisted to IndexedDB meta. This is the Invariant 5 retention requirement:
+  // a device that deletes r must retain {r.id, r.deletedAtLamport} and never
+  // remove it via a data plane operation.
+  private deletionRecords: Map<string, DeletionRecord> = new Map();
+
+  // ---------------------------------------------------------------------------
+  // Initialisation
+  // ---------------------------------------------------------------------------
+
   private async ensureInitialized(): Promise<void> {
     if (this.isInitialized) return;
-    
-    if (!this.initPromise) {
-      this.initPromise = this.initialize();
-    }
-    
+    if (!this.initPromise) this.initPromise = this.initialize();
     await this.initPromise;
   }
 
   private async initialize(): Promise<void> {
     try {
-      console.log('[sync] Initializing background sync service...');
-      
-      // Wait for storage to be ready
+      console.log('[sync] Initializing...');
       await storage.initialize();
-      
-      // Verify database is accessible
-      // const isReady = await storage.isReady();
-      const isReady = true; // Database is already initialized if we got here. (No need to await)
 
-      if (!isReady) {
-        throw new Error('Database is not ready after initialization');
-      }
-      
+      // Restore Lamport clock and device ID from meta.
+      const meta = await storage.getMeta('sync') || {};
+      this.lamportTime = meta.lamportTime ?? 0;
+      this.deviceId = meta.deviceId ?? this.generateDeviceId();
+
+      // Restore deletion records from meta.
+      const storedRecords: DeletionRecord[] = meta.deletionRecords ?? [];
+      this.deletionRecords = new Map(storedRecords.map((r: DeletionRecord) => [r.id, r]));
+
       this.isInitialized = true;
-      console.log('[sync] Background sync service initialized successfully');
+      console.log(`[sync] Initialized. Device: ${this.deviceId}, clock: ${this.lamportTime}`);
     } catch (error) {
-      console.error('[sync] Failed to initialize background sync service:', error);
+      console.error('[sync] Initialization failed:', error);
       this.isInitialized = false;
       this.initPromise = null;
       throw error;
     }
   }
 
-  // Sync with server data (chatStore.json)
+  private generateDeviceId(): string {
+    return `device_${crypto.randomUUID()}`;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Lamport clock
+  // ---------------------------------------------------------------------------
+
+  private tick(incomingTime?: number): LamportTuple {
+    this.lamportTime = Math.max(this.lamportTime, incomingTime ?? 0) + 1;
+    return [this.lamportTime, this.deviceId];
+  }
+
+  private async persistClockState(): Promise<void> {
+    try {
+      const meta = await storage.getMeta('sync') || {};
+      await storage.setMeta({
+        ...meta,
+        id: 'sync',
+        lamportTime: this.lamportTime,
+        deviceId: this.deviceId,
+        deletionRecords: Array.from(this.deletionRecords.values()),
+      });
+    } catch (error) {
+      console.error('[sync] Failed to persist clock state:', error);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Deletion record management (Invariant 5)
+  // ---------------------------------------------------------------------------
+
+  // Register a local deletion. Returns the deletion record.
+  async recordLocalDeletion(chatId: string): Promise<DeletionRecord> {
+    await this.ensureInitialized();
+    const tau = this.tick();
+    const record: DeletionRecord = { id: chatId, deletedAtLamport: tau };
+    this.deletionRecords.set(chatId, record);
+    await this.persistClockState();
+    return record;
+  }
+
+  // Receive handler: enforce Invariant 5 before writing any incoming update.
+  // Returns true if the update was accepted, false if discarded.
+  private async receiveUpdate(incoming: Chat): Promise<boolean> {
+    // Check local deletion record first.
+    const deletionRecord = this.deletionRecords.get(incoming.id);
+    if (deletionRecord) {
+      // Resource is locally deleted. Discard unless the incoming update causally
+      // dominates the deletion (Definition 7 / Sub-case 4a).
+      const tauIncoming = (incoming as any).updatedAtLamport as LamportTuple | undefined;
+      if (!tauIncoming || !dominates(tauIncoming, deletionRecord.deletedAtLamport)) {
+        // τ_local ⊀ τ_delete — discard (Invariant 5).
+        return false;
+      }
+      // Incoming causally dominates: remove local deletion record and accept.
+      this.deletionRecords.delete(incoming.id);
+      await this.persistClockState();
+    }
+
+    // Check IndexedDB — handles the topologically unknown resource case.
+    // If local_storage.get returns null, device has never seen this resource
+    // (Invariant 5's retention requirement makes null unambiguous).
+    // Accept it as a new resource.
+    const existing = await storage.getChat(incoming.id);
+    const incomingTime = (incoming as any).updatedAtLamport?.[0] as number | undefined;
+    this.tick(incomingTime);
+
+    await storage.saveChat({
+      ...incoming,
+      createdAt: new Date(incoming.createdAt),
+      updatedAt: new Date(incoming.updatedAt),
+      messages: (incoming.messages || []).map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp),
+      })),
+    });
+
+    return true;
+  }
+
+  // Apply a deletion record received from the server or another device.
+  private async receiveDeletion(record: DeletionRecord): Promise<void> {
+    // If we already have this deletion, nothing to do.
+    if (this.deletionRecords.has(record.id)) return;
+
+    this.deletionRecords.set(record.id, record);
+
+    // Advance clock to account for the incoming deletion timestamp.
+    this.tick(record.deletedAtLamport[0]);
+
+    // Remove from local storage if present.
+    try {
+      await storage.deleteChat(record.id);
+    } catch {
+      // Not present locally — that's fine; Invariant 5 still holds because
+      // the deletion record is now registered.
+    }
+
+    await this.persistClockState();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Control plane: epoch-boundary sync (Section 3.4)
+  // ---------------------------------------------------------------------------
+
   async syncWithServer(): Promise<SyncResult> {
     try {
-      console.log('[sync] Starting sync with server...');
-      
-      // Ensure database is ready
       await this.ensureInitialized();
-      
-      // Get server data
-      const serverChats = await this.fetchServerChats();
-      if (!serverChats || serverChats.length === 0) {
-        console.log('[sync] No server chats found');
-        return { success: true, syncedCount: 0 };
-      }
+      console.log('[sync] Starting control plane sync...');
 
-      // Get current local chats
       const localChats = await storage.getChats();
-      const localChatIds = new Set(localChats.map(chat => chat.id));
+      const payload: SyncPayload = {
+        chats: localChats.map(c => ({
+          ...c,
+          updatedAtLamport: (c as any).updatedAtLamport ?? this.tick(),
+        })),
+        deletionRecords: Array.from(this.deletionRecords.values()),
+      };
 
-      // Sync server chats to local database
+      const response = await fetch('http://localhost:4001/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server sync failed: ${response.status}`);
+      }
+
+      const { missing, deletions }: SyncResponse = await response.json();
+
+      // Apply missing chats from server (receive handler enforces Invariant 5).
       let syncedCount = 0;
-      for (const serverChat of serverChats) {
-        try {
-          if (!localChatIds.has(serverChat.id)) {
-            await storage.saveChat(serverChat);
-            syncedCount++;
-            console.log(`[sync] Synced chat: ${serverChat.title}`);
-          }
-        } catch (error) {
-          console.error(`[sync] Failed to sync chat ${serverChat.id}:`, error);
-        }
+      for (const chat of missing) {
+        const accepted = await this.receiveUpdate(chat);
+        if (accepted) syncedCount++;
       }
 
-      // Update last sync timestamp
+      // Apply deletion records from server.
+      let deletedCount = 0;
+      for (const record of deletions) {
+        await this.receiveDeletion(record);
+        deletedCount++;
+      }
+
       await this.updateLastSync();
+      await this.persistClockState();
 
-      console.log(`[sync] Successfully synced ${syncedCount} chats from server`);
-      // Notify UI that conversations were updated so state managers can reload
-      try {
-        if (typeof window !== 'undefined' && syncedCount > 0) {
+      console.log(`[sync] Sync complete: +${syncedCount} chats, -${deletedCount} deletions`);
+
+      if (typeof window !== 'undefined' && (syncedCount > 0 || deletedCount > 0)) {
+        try {
           window.dispatchEvent(new Event('conversations-updated'));
+        } catch (e) {
+          console.warn('[sync] Failed to dispatch conversations-updated event', e);
         }
-      } catch (e) {
-        console.warn('[sync] Failed to dispatch conversations-updated event', e);
       }
-      return { success: true, syncedCount };
-      
+
+      return { success: true, syncedCount, deletedCount };
     } catch (error) {
-      console.error('[sync] Failed to sync with server:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown sync error' 
+      console.error('[sync] Sync failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown sync error',
       };
     }
   }
 
-  // Fetch chats from server (chatStore.json)
-  private async fetchServerChats(): Promise<Chat[]> {
+  // ---------------------------------------------------------------------------
+  // Data plane: real-time push (Section 3.1)
+  // ---------------------------------------------------------------------------
+
+  // Push a local update to the server. Stamps with local Lamport tuple.
+  async pushChat(chat: Chat): Promise<boolean> {
+    await this.ensureInitialized();
+
+    const tau = this.tick();
+    const stamped = { ...chat, updatedAtLamport: tau };
+
     try {
-      // Prefer the local chat sync API endpoint
-      const response = await fetch('http://localhost:4001/fetchChats', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch('http://localhost:4001/pushChats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chats: [stamped] }),
       });
-
-      if (!response.ok) {
-        // If API endpoint doesn't exist or returns an error, try to load from static file
-        return await this.loadChatStoreFile();
-      }
-
-      const chats: Chat[] = await response.json();
-      return chats.map(chat => ({
-        ...chat,
-        createdAt: new Date(chat.createdAt),
-        updatedAt: new Date(chat.updatedAt),
-        messages: (chat.messages || []).map(msg => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }))
-      }));
-      
+      await this.persistClockState();
+      return response.ok;
     } catch (error) {
-      console.log('[sync] API not available, trying to load from chatStore.json...');
-      return await this.loadChatStoreFile();
+      console.error('[sync] Push failed:', error);
+      return false;
     }
   }
 
-  // Load from chatStore.json file (fallback)
-  private async loadChatStoreFile(): Promise<Chat[]> {
-    try {
-      // Try to fetch the static chatStore.json file
-      const response = await fetch('/api/chatStore.json');
-      
-      if (!response.ok) {
-        console.log('[sync] chatStore.json not found or not accessible');
-        return [];
-      }
+  // Push a local deletion to the server and register the deletion record.
+  async pushDeletion(chatId: string): Promise<boolean> {
+    await this.ensureInitialized();
 
-      const data = await response.json();
-      const chats: Chat[] = data.chats || data || [];
-      
-      return chats.map(chat => ({
-        ...chat,
-        id: chat.id || crypto.randomUUID(),
-        createdAt: new Date(chat.createdAt || Date.now()),
-        updatedAt: new Date(chat.updatedAt || Date.now()),
-        messages: chat.messages?.map(msg => ({
-          ...msg,
-          id: msg.id || crypto.randomUUID(),
-          timestamp: new Date(msg.timestamp || Date.now())
-        })) || []
-      }));
-      
-    } catch (error) {
-      console.error('[sync] Failed to load chatStore.json:', error);
-      return [];
-    }
-  }
+    const record = await this.recordLocalDeletion(chatId);
 
-  // Update last sync timestamp
-  private async updateLastSync(): Promise<void> {
     try {
-      const currentMeta = await storage.getMeta('app') || {
-        id: 'app',
-        version: '1.0.0'
-      };
-      if (!currentMeta.id) currentMeta.id = 'app';
-      await storage.setMeta({
-        ...currentMeta,
-        lastSync: new Date()
+      const response = await fetch('http://localhost:4001/deleteChat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId, lamport: record.deletedAtLamport }),
       });
+      return response.ok;
     } catch (error) {
-      console.error('[sync] Failed to update last sync timestamp:', error);
-      // Don't throw - this is not critical for sync operation
+      // Deletion record is already registered locally; server will get it at
+      // the next sync boundary.
+      console.warn('[sync] Push deletion failed, will retry at sync:', error);
+      return false;
     }
   }
 
-  // Get sync status
-  async getSyncStatus(): Promise<{ lastSync: Date | null; isReady: boolean }> {
+  // ---------------------------------------------------------------------------
+  // Status / housekeeping
+  // ---------------------------------------------------------------------------
+
+  async getSyncStatus(): Promise<{ lastSync: Date | null; isReady: boolean; deviceId: string }> {
     try {
       await this.ensureInitialized();
       const meta = await storage.getMeta('app');
       return {
         lastSync: meta?.lastSync || null,
-        isReady: this.isInitialized
+        isReady: this.isInitialized,
+        deviceId: this.deviceId,
       };
-    } catch (error) {
-      console.error('[sync] Failed to get sync status:', error);
-      return {
-        lastSync: null,
-        isReady: false
-      };
+    } catch {
+      return { lastSync: null, isReady: false, deviceId: '' };
     }
   }
 
-  // Force reset sync state (for debugging)
+  private async updateLastSync(): Promise<void> {
+    try {
+      const meta = await storage.getMeta('app') || { id: 'app', version: '1.0.0' };
+      await storage.setMeta({ ...meta, lastSync: new Date() });
+    } catch (error) {
+      console.error('[sync] Failed to update lastSync:', error);
+    }
+  }
+
   async reset(): Promise<void> {
     this.isInitialized = false;
     this.initPromise = null;
+    this.lamportTime = 0;
+    this.deletionRecords.clear();
     await storage.initialize();
   }
 }
 
-// Export singleton instance
+// ---------------------------------------------------------------------------
+// Exports
+// ---------------------------------------------------------------------------
+
 export const backgroundSync = new BackgroundSyncService();
 
-// Export main sync function for use in App.tsx
 export async function backgroundSyncWithServer(): Promise<SyncResult> {
-  return await backgroundSync.syncWithServer();
+  return backgroundSync.syncWithServer();
 }
