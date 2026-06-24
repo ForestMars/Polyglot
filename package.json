@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "app": "bun -v",
+    "chat": "bun src/server/chatSyncApi.js",
+    "chat:test": "npm test -- src/tests/server/chatSync.unit.test.ts",
     "build": "tsc --noEmit && vite build",
     "build:ci": "npm run build && npm run test:ci",
     "build:dev": "vite build --mode development",
