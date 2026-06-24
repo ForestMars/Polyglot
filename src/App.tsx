@@ -15,23 +15,17 @@ const queryClient = new QueryClient();
 
 const App = () => {
   console.log('App component is running');
-  
 
-  // Polyfill for requestIdleCallback
-  const rIC = (cb: Function) => (window as any).requestIdleCallback ? (window as any).requestIdleCallback(cb) : setTimeout(cb, 200);
-
-  console.log('App component is running');
+  const rIC = (cb: Function) => (window as any).requestIdleCallback
+    ? (window as any).requestIdleCallback(cb)
+    : setTimeout(cb, 200);
 
   useEffect(() => {
-    // 1. Render UI immediately (this component)
-    // 2. Schedule background tasks after paint
     rIC(async () => {
-      // Task A: Fast load of initial conversations for UI (sidebar, preview)
+      // Task A: Load initial conversations for UI (sidebar, preview)
       try {
-        await indexedDbStorage.ready;
-        // Example: load top 20 conversations (headers only)
-        const items = await indexedDbStorage.listConversations({ limit: 20 });
-        // TODO: set into UI store or state for sidebar/preview
+        await indexedDbStorage.initialize();
+        const items = await indexedDbStorage.listConversations(false);
         console.log('[startup] Loaded initial conversations:', items.length);
       } catch (err) {
         console.error('[startup] Failed to load initial conversations', err);
@@ -56,7 +50,6 @@ const App = () => {
       }
     });
 
-    // Still run MCP service init
     mcpService.initialize().catch((error) => {
       console.error('Failed to initialize MCP service:', error);
     });
