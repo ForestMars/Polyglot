@@ -3,26 +3,23 @@
 // Returns SyncResult — never touches the DOM. Callers decide what to do
 // with the result. window.dispatchEvent belongs in the presentation layer.
 
+// src/services/backgroundSync.ts
 import { ChatResource, DeletionRecord, SyncResult } from '../types/sync';
 import { CoherenceClock } from './CoherenceClock';
 import { polyglotDb } from './db';
 import { ReconciliationEngine } from './ReconciliationEngine';
 
 const SYNC_URL = 'http://localhost:4001';
-
 const reconciliationEngine = new ReconciliationEngine(polyglotDb);
 
 // ---------------------------------------------------------------------------
-// Initialization
+// Core Operations
 // ---------------------------------------------------------------------------
 
-// Must be called once before any sync or push operation.
-// Restores device identity and Lamport counter from the metadata store.
 export async function initializeSync(): Promise<void> {
   await polyglotDb.init();
   let meta = await polyglotDb.getSyncMetadata();
   if (!meta) {
-    // Secure fallback for environments accessing via non-localhost IP addresses over HTTP
     const deviceId = `device_${
       typeof crypto !== 'undefined' && crypto.randomUUID 
         ? crypto.randomUUID() 
@@ -43,10 +40,6 @@ async function persistClockState(): Promise<void> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Control plane: epoch-boundary reconciliation
-// ---------------------------------------------------------------------------
-
 export async function syncWithServer(): Promise<SyncResult> {
   try {
     const localResources = await polyglotDb.getAllResources();
@@ -58,7 +51,6 @@ export async function syncWithServer(): Promise<SyncResult> {
       body: JSON.stringify({
         chats: localResources.map(r => ({
           ...r,
-          // Translate ClockTuple → server's [number, string] tuple format
           updatedAtLamport: [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId],
         })),
         deletionRecords: localDeletions.map(d => ({
@@ -72,7 +64,6 @@ export async function syncWithServer(): Promise<SyncResult> {
 
     const { missing, deletions } = await response.json();
 
-    // Translate server response back to protocol types.
     const incomingResources: ChatResource[] = (missing || []).map((c: any) => ({
       ...c,
       createdAt: new Date(c.createdAt),
@@ -122,11 +113,7 @@ export async function syncWithServer(): Promise<SyncResult> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Data plane: real-time push
-// ---------------------------------------------------------------------------
-
-export async function pushResource(resource: ChatResource): Promise<boolean> {
+export async function pushResourceInternal(resource: ChatResource): Promise<boolean> {
   const tau = CoherenceClock.getInstance().tick();
   const stamped = {
     ...resource,
@@ -146,7 +133,7 @@ export async function pushResource(resource: ChatResource): Promise<boolean> {
   }
 }
 
-export async function pushDeletion(record: DeletionRecord): Promise<boolean> {
+export async function pushDeletionInternal(record: DeletionRecord): Promise<boolean> {
   try {
     const response = await fetch(`${SYNC_URL}/deleteChat`, {
       method: 'POST',
@@ -163,38 +150,34 @@ export async function pushDeletion(record: DeletionRecord): Promise<boolean> {
 }
 
 // ---------------------------------------------------------------------------
-// Convenience Hybrid Exports
+// Unified Namespace Managers to prevent 'undefined (reading changed)' crashes
 // ---------------------------------------------------------------------------
 
-// 1. Standalone function structure for App.tsx invocation
-export async function backgroundSync(): Promise<SyncResult> {
-  return syncWithServer();
-}
-
-// 2. Intercept and wrap push properties to fulfill the object contract expected by conversationSync.ts
-backgroundSync.pushResource = async function(resource: ChatResource) {
-  const success = await pushResource(resource);
-  return {
-    success,
-    syncedCount: success ? 1 : 0,
-    deletedCount: 0,
-    changed: success, // Prevents 'Cannot read properties of undefined (reading changed)' crash
-  };
+export const backgroundSync = {
+  syncWithServer: async (): Promise<SyncResult> => {
+    return syncWithServer();
+  },
+  pushResource: async (resource: ChatResource) => {
+    const success = await pushResourceInternal(resource);
+    return {
+      success,
+      syncedCount: success ? 1 : 0,
+      deletedCount: 0,
+      changed: success,
+    };
+  },
+  pushDeletion: async (record: DeletionRecord) => {
+    const success = await pushDeletionInternal(record);
+    return {
+      success,
+      syncedCount: 0,
+      deletedCount: success ? 1 : 0,
+      changed: success,
+    };
+  }
 };
 
-backgroundSync.pushDeletion = async function(record: DeletionRecord) {
-  const success = await pushDeletion(record);
-  return {
-    success,
-    syncedCount: 0,
-    deletedCount: success ? 1 : 0,
-    changed: success,
-  };
-};
-
-backgroundSync.syncWithServer = syncWithServer;
-
-// 3. Keep alternative name active for fallback compatibility
+// Top-level function footprint matching the original App.tsx startup call pattern
 export async function backgroundSyncWithServer(): Promise<SyncResult> {
   return syncWithServer();
 }
