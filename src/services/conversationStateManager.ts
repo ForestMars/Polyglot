@@ -54,10 +54,6 @@ export class ConversationStateManager {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Initialization
-  // ---------------------------------------------------------------------------
-
   async initialize(cacheEnabled: boolean = true): Promise<void> {
     if (this.isInitialized) return;
     this.cacheEnabled = cacheEnabled;
@@ -76,10 +72,7 @@ export class ConversationStateManager {
     }
   }
 
-  // ---------------------------------------------------------------------------
   // DOM event dispatch — lives here and only here
-  // ---------------------------------------------------------------------------
-
   private notifyUI(): void {
     if (typeof window !== 'undefined') {
       try {
@@ -95,10 +88,7 @@ export class ConversationStateManager {
     if (result.changed) this.notifyUI();
   }
 
-  // ---------------------------------------------------------------------------
   // Public API
-  // ---------------------------------------------------------------------------
-
   getState(): Readonly<ConversationState> {
     return { ...this.state };
   }
@@ -117,10 +107,7 @@ export class ConversationStateManager {
     return this.cacheEnabled;
   }
 
-  // ---------------------------------------------------------------------------
   // Write operations — delegate to conversationSync, react to result
-  // ---------------------------------------------------------------------------
-
   async createConversation(provider: string, model: string): Promise<Conversation> {
     const conversation = ConversationUtils.createConversation(provider, model);
     const result = await saveConversation(conversation as unknown as ChatResource);
@@ -247,10 +234,7 @@ export class ConversationStateManager {
     if (result.changed) this.notifyUI();
   }
 
-  // ---------------------------------------------------------------------------
   // Read operations — go directly to db
-  // ---------------------------------------------------------------------------
-
   async loadConversation(id: string): Promise<Conversation> {
     if (this.loadingConversations.has(id)) throw new Error('Already loading');
 
@@ -332,10 +316,7 @@ export class ConversationStateManager {
     return count;
   }
 
-  // ---------------------------------------------------------------------------
   // Internal
-  // ---------------------------------------------------------------------------
-
   private async loadConversations(): Promise<void> {
     try {
       this.setState({ isLoading: true, error: null });
