@@ -2,6 +2,12 @@
 // Presentation adapter. This is the only layer that dispatches DOM events.
 // Protocol operations return ConversationSyncResult; this class reads .changed
 // and decides whether to fire 'conversations-updated'.
+import { Conversation, Message, ModelChange } from '@/types/conversation';
+import { ChatResource, ConversationSyncResult } from '../types/sync';
+import { polyglotDb } from './db';
+import { saveConversation, deleteConversation } from './conversationSync';
+import { ConversationUtils } from './conversationUtils';
+import { SettingsService } from './settingsService';
 
 interface ConversationFilters {
   searchQuery: string;
@@ -10,13 +16,6 @@ interface ConversationFilters {
   showArchived: boolean;
   dateRange?: { start: Date; end: Date };
 }
-
-import { Conversation, Message, ModelChange } from '@/types/conversation';
-import { ChatResource, ConversationSyncResult } from '../types/sync';
-import { polyglotDb } from './db';
-import { saveConversation, deleteConversation } from './conversationSync';
-import { ConversationUtils } from './conversationUtils';
-import { SettingsService } from './settingsService';
 
 export interface ConversationState {
   conversations: Conversation[];
