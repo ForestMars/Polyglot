@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "app": "bun -v",
+    "chat": "bun src/server/chatSyncApi.js",
+    "chat:test": "npm test -- src/tests/server/chatSync.unit.test.ts",
     "build": "tsc --noEmit && vite build",
     "build:ci": "npm run build && npm run test:ci",
     "build:dev": "vite build --mode development",
@@ -60,6 +63,7 @@
     "dexie-react-hooks": "^4.2.0",
     "dotenv": "^17.2.3",
     "embla-carousel-react": "^8.6.0",
+    "idb": "^8.0.3",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.544.0",
     "model-context-protocol": "^1.0.2",

@@ -1,230 +1,171 @@
-// src/services/backgroundSync.ts - Fixed version with proper error handling
+// src/services/backgroundSync.ts
+import { ChatResource, DeletionRecord, SyncResult } from '../types/sync';
+import { CoherenceClock } from './CoherenceClock';
+import { polyglotDb } from './db';
+import { ReconciliationEngine } from './ReconciliationEngine';
 
-import { storage } from './indexedDbStorage';
-import { Chat } from './indexedDbStorage';
+const SYNC_URL = 'http://localhost:4001';
+const reconciliationEngine = new ReconciliationEngine(polyglotDb);
 
-interface ServerDelta {
-  id: string;
-  type: 'create' | 'update' | 'delete';
-  data?: Chat;
-  timestamp: Date;
+export async function initializeSync(): Promise<void> {
+  await polyglotDb.init();
+  let meta = await polyglotDb.getSyncMetadata();
+  if (!meta) {
+    const deviceId = `device_${
+      typeof crypto !== 'undefined' && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    }`;
+    meta = { id: 'sync_state', deviceId, lamportCounter: 0, lastSyncAt: null };
+    await polyglotDb.saveSyncMetadata(meta);
+  }
+  await CoherenceClock.initialize(meta.deviceId, meta.lamportCounter ?? 0);
+  console.log(`[sync] Initialized. Device: ${meta.deviceId}, clock: ${meta.lamportCounter}`);
 }
 
-interface SyncResult {
-  success: boolean;
-  syncedCount?: number;
-  error?: string;
-}
-
-export class BackgroundSyncService {
-  private isInitialized = false;
-  private initPromise: Promise<void> | null = null;
-
-  // Ensure database is initialized before any operations
-  private async ensureInitialized(): Promise<void> {
-    if (this.isInitialized) return;
-    
-    if (!this.initPromise) {
-      this.initPromise = this.initialize();
-    }
-    
-    await this.initPromise;
-  }
-
-  private async initialize(): Promise<void> {
-    try {
-      console.log('[sync] Initializing background sync service...');
-      
-      // Wait for storage to be ready
-      await storage.initialize();
-      
-      // Verify database is accessible
-      // const isReady = await storage.isReady();
-      const isReady = true; // Database is already initialized if we got here. (No need to await)
-
-      if (!isReady) {
-        throw new Error('Database is not ready after initialization');
-      }
-      
-      this.isInitialized = true;
-      console.log('[sync] Background sync service initialized successfully');
-    } catch (error) {
-      console.error('[sync] Failed to initialize background sync service:', error);
-      this.isInitialized = false;
-      this.initPromise = null;
-      throw error;
-    }
-  }
-
-  // Sync with server data (chatStore.json)
-  async syncWithServer(): Promise<SyncResult> {
-    try {
-      console.log('[sync] Starting sync with server...');
-      
-      // Ensure database is ready
-      await this.ensureInitialized();
-      
-      // Get server data
-      const serverChats = await this.fetchServerChats();
-      if (!serverChats || serverChats.length === 0) {
-        console.log('[sync] No server chats found');
-        return { success: true, syncedCount: 0 };
-      }
-
-      // Get current local chats
-      const localChats = await storage.getChats();
-      const localChatIds = new Set(localChats.map(chat => chat.id));
-
-      // Sync server chats to local database
-      let syncedCount = 0;
-      for (const serverChat of serverChats) {
-        try {
-          if (!localChatIds.has(serverChat.id)) {
-            await storage.saveChat(serverChat);
-            syncedCount++;
-            console.log(`[sync] Synced chat: ${serverChat.title}`);
-          }
-        } catch (error) {
-          console.error(`[sync] Failed to sync chat ${serverChat.id}:`, error);
-        }
-      }
-
-      // Update last sync timestamp
-      await this.updateLastSync();
-
-      console.log(`[sync] Successfully synced ${syncedCount} chats from server`);
-      // Notify UI that conversations were updated so state managers can reload
-      try {
-        if (typeof window !== 'undefined' && syncedCount > 0) {
-          window.dispatchEvent(new Event('conversations-updated'));
-        }
-      } catch (e) {
-        console.warn('[sync] Failed to dispatch conversations-updated event', e);
-      }
-      return { success: true, syncedCount };
-      
-    } catch (error) {
-      console.error('[sync] Failed to sync with server:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Unknown sync error' 
-      };
-    }
-  }
-
-  // Fetch chats from server (chatStore.json)
-  private async fetchServerChats(): Promise<Chat[]> {
-    try {
-      // Prefer the local chat sync API endpoint
-      const response = await fetch('http://localhost:4001/fetchChats', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        // If API endpoint doesn't exist or returns an error, try to load from static file
-        return await this.loadChatStoreFile();
-      }
-
-      const chats: Chat[] = await response.json();
-      return chats.map(chat => ({
-        ...chat,
-        createdAt: new Date(chat.createdAt),
-        updatedAt: new Date(chat.updatedAt),
-        messages: (chat.messages || []).map(msg => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }))
-      }));
-      
-    } catch (error) {
-      console.log('[sync] API not available, trying to load from chatStore.json...');
-      return await this.loadChatStoreFile();
-    }
-  }
-
-  // Load from chatStore.json file (fallback)
-  private async loadChatStoreFile(): Promise<Chat[]> {
-    try {
-      // Try to fetch the static chatStore.json file
-      const response = await fetch('/api/chatStore.json');
-      
-      if (!response.ok) {
-        console.log('[sync] chatStore.json not found or not accessible');
-        return [];
-      }
-
-      const data = await response.json();
-      const chats: Chat[] = data.chats || data || [];
-      
-      return chats.map(chat => ({
-        ...chat,
-        id: chat.id || crypto.randomUUID(),
-        createdAt: new Date(chat.createdAt || Date.now()),
-        updatedAt: new Date(chat.updatedAt || Date.now()),
-        messages: chat.messages?.map(msg => ({
-          ...msg,
-          id: msg.id || crypto.randomUUID(),
-          timestamp: new Date(msg.timestamp || Date.now())
-        })) || []
-      }));
-      
-    } catch (error) {
-      console.error('[sync] Failed to load chatStore.json:', error);
-      return [];
-    }
-  }
-
-  // Update last sync timestamp
-  private async updateLastSync(): Promise<void> {
-    try {
-      const currentMeta = await storage.getMeta('app') || {
-        id: 'app',
-        version: '1.0.0'
-      };
-      if (!currentMeta.id) currentMeta.id = 'app';
-      await storage.setMeta({
-        ...currentMeta,
-        lastSync: new Date()
-      });
-    } catch (error) {
-      console.error('[sync] Failed to update last sync timestamp:', error);
-      // Don't throw - this is not critical for sync operation
-    }
-  }
-
-  // Get sync status
-  async getSyncStatus(): Promise<{ lastSync: Date | null; isReady: boolean }> {
-    try {
-      await this.ensureInitialized();
-      const meta = await storage.getMeta('app');
-      return {
-        lastSync: meta?.lastSync || null,
-        isReady: this.isInitialized
-      };
-    } catch (error) {
-      console.error('[sync] Failed to get sync status:', error);
-      return {
-        lastSync: null,
-        isReady: false
-      };
-    }
-  }
-
-  // Force reset sync state (for debugging)
-  async reset(): Promise<void> {
-    this.isInitialized = false;
-    this.initPromise = null;
-    await storage.initialize();
+async function persistClockState(): Promise<void> {
+  const clock = CoherenceClock.getInstance();
+  const meta = await polyglotDb.getSyncMetadata();
+  if (meta) {
+    await polyglotDb.saveSyncMetadata({ ...meta, lamportCounter: clock.getCounter() });
   }
 }
 
-// Export singleton instance
-export const backgroundSync = new BackgroundSyncService();
+export async function syncWithServer(): Promise<SyncResult> {
+  try {
+    const localResources = await polyglotDb.getAllResources();
+    const localDeletions = await polyglotDb.getAllDeletionRecords();
 
-// Export main sync function for use in App.tsx
-export async function backgroundSyncWithServer(): Promise<SyncResult> {
-  return await backgroundSync.syncWithServer();
+    const response = await fetch(`${SYNC_URL}/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chats: localResources.map(r => ({
+          ...r,
+          updatedAtLamport: [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId],
+        })),
+        deletionRecords: localDeletions.map(d => ({
+          id: d.resourceId,
+          deletedAtLamport: [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId],
+        })),
+      }),
+    });
+
+    if (!response.ok) throw new Error(`Server sync failed: ${response.status}`);
+
+    const { missing, deletions } = await response.json();
+
+    const incomingResources: ChatResource[] = (missing || []).map((c: any) => ({
+      ...c,
+      createdAt: new Date(c.createdAt),
+      updatedAt: new Date(c.updatedAt),
+      lastModified: new Date(c.lastModified || c.updatedAt),
+      messages: (c.messages || []).map((m: any) => ({
+        ...m,
+        timestamp: new Date(m.timestamp),
+      })),
+      lastMutationLamport: c.updatedAtLamport
+        ? { lamport: c.updatedAtLamport[0], deviceId: c.updatedAtLamport[1] }
+        : { lamport: 0, deviceId: 'server' },
+    }));
+
+    const incomingDeletions: DeletionRecord[] = (deletions || []).map((d: any) => ({
+      resourceId: d.id,
+      deletedAtLamport: {
+        lamport: d.deletedAtLamport[0],
+        deviceId: d.deletedAtLamport[1],
+      },
+    }));
+
+    const { resourcesApplied, deletionsApplied } =
+      await reconciliationEngine.reconcileBoundary(incomingResources, incomingDeletions);
+
+    const meta = await polyglotDb.getSyncMetadata();
+    if (meta) {
+      await polyglotDb.saveSyncMetadata({ ...meta, lastSyncAt: new Date().toISOString() });
+    }
+    await persistClockState();
+
+    return {
+      success: true,
+      syncedCount: resourcesApplied,
+      deletedCount: deletionsApplied,
+      changed: resourcesApplied > 0 || deletionsApplied > 0,
+    };
+  } catch (error) {
+    console.error('[sync] syncWithServer failed:', error);
+    return {
+      success: false,
+      syncedCount: 0,
+      deletedCount: 0,
+      changed: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
 }
+
+// Data plane methods must return SyncResult structures to meet orchestration expectations
+export async function pushResource(resource: ChatResource): Promise<SyncResult> {
+  const tau = CoherenceClock.getInstance().tick();
+  const stamped = {
+    ...resource,
+    lastMutationLamport: tau,
+    updatedAtLamport: [tau.lamport, tau.deviceId],
+  };
+  try {
+    const response = await fetch(`${SYNC_URL}/pushChats`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chats: [stamped] }),
+    });
+    await persistClockState();
+    return {
+      success: response.ok,
+      syncedCount: response.ok ? 1 : 0,
+      deletedCount: 0,
+      changed: response.ok,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      syncedCount: 0,
+      deletedCount: 0,
+      changed: false,
+      error: error instanceof Error ? error.message : 'Fetch failed',
+    };
+  }
+}
+
+export async function pushDeletion(record: DeletionRecord): Promise<SyncResult> {
+  try {
+    const response = await fetch(`${SYNC_URL}/deleteChat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chatId: record.resourceId,
+        lamport: [record.deletedAtLamport.lamport, record.deletedAtLamport.deviceId],
+      }),
+    });
+    return {
+      success: response.ok,
+      syncedCount: 0,
+      deletedCount: response.ok ? 1 : 0,
+      changed: response.ok,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      syncedCount: 0,
+      deletedCount: 0,
+      changed: false,
+      error: error instanceof Error ? error.message : 'Fetch failed',
+    };
+  }
+}
+
+// Namespace export mirror to capture object-destructuring imports
+export const backgroundSync = {
+  syncWithServer,
+  pushResource,
+  pushDeletion,
+};

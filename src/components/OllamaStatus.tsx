@@ -1,9 +1,9 @@
+// src/components/OllamaStatus.tsx
 import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Loader2, Server } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ApiService } from '@/services/api';
 
 interface OllamaStatusProps {
   baseUrl: string;
@@ -13,27 +13,22 @@ export const OllamaStatus = ({ baseUrl }: OllamaStatusProps) => {
   const [isHealthy, setIsHealthy] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [models, setModels] = useState<string[]>([]);
-  const apiService = new ApiService();
 
   const checkHealth = async () => {
     setIsChecking(true);
     try {
-      const healthy = await apiService.checkProviderHealth('ollama', baseUrl);
-      setIsHealthy(healthy);
+      // 1. Query Ollama directly instead of wrapping via ApiService
+      const response = await fetch(`${baseUrl}/api/tags`);
       
-      if (healthy) {
-        // Try to fetch models
-        try {
-          const response = await fetch(`${baseUrl}/api/tags`);
-          if (response.ok) {
-            const data = await response.json();
-            setModels(data.models?.map((m: any) => m.name) || []);
-          }
-        } catch (error) {
-          console.error('Failed to fetch models:', error);
-        }
+      if (response.ok) {
+        const data = await response.json();
+        setModels(data.models?.map((m: any) => m.name) || []);
+        setIsHealthy(true);
+      } else {
+        setIsHealthy(false);
       }
     } catch (error) {
+      console.error('Failed to connect directly to Ollama:', error);
       setIsHealthy(false);
     } finally {
       setIsChecking(false);

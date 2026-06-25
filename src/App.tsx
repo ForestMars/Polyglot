@@ -7,59 +7,62 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { useEffect } from 'react';
-import { indexedDbStorage } from './services/indexedDbStorage';
-import { backgroundSyncWithServer } from './services/backgroundSync';
+import { initializeSync, backgroundSync } from './services/backgroundSync';
 import { mcpService } from './services/mcpService';
 
 const queryClient = new QueryClient();
 
+const rIC = (cb: () => void) =>
+  (window as any).requestIdleCallback
+    ? (window as any).requestIdleCallback(cb)
+    : setTimeout(cb, 200);
+
 const App = () => {
-  console.log('App component is running');
-  
-
-  // Polyfill for requestIdleCallback
-  const rIC = (cb: Function) => (window as any).requestIdleCallback ? (window as any).requestIdleCallback(cb) : setTimeout(cb, 200);
-
-  console.log('App component is running');
-
   useEffect(() => {
-    // 1. Render UI immediately (this component)
-    // 2. Schedule background tasks after paint
-    rIC(async () => {
-      // Task A: Fast load of initial conversations for UI (sidebar, preview)
+    const startup = async () => {
+      // Step 1: Force critical core systems to initialize immediately
       try {
-        await indexedDbStorage.ready;
-        // Example: load top 20 conversations (headers only)
-        const items = await indexedDbStorage.listConversations({ limit: 20 });
-        // TODO: set into UI store or state for sidebar/preview
-        console.log('[startup] Loaded initial conversations:', items.length);
+        await initializeSync();
+        console.log('[startup] Sync protocol initialized');
+        
+        // Step 2: Initialize MCP / Ollama bridge now that the DB is ready
+        await mcpService.initialize();
+        console.log('[startup] MCP initialized');
       } catch (err) {
-        console.error('[startup] Failed to load initial conversations', err);
+        console.error('[startup] Critical initialization failed:', err);
+        return;
       }
 
-      // Task B: One-time localStorage -> IndexedDB migration (if needed)
-      try {
-        if (typeof indexedDbStorage.migrateFromLocalStorage === 'function') {
-          await indexedDbStorage.migrateFromLocalStorage();
-          console.log('[startup] Migration from localStorage complete');
+      // Step 3: Defer non-critical network operations and migration until idle
+      rIC(async () => {
+        // Task B: One-time localStorage migration
+        try {
+          const raw = localStorage.getItem('polyglot-chats');
+          if (raw) {
+            const { polyglotDb } = await import('./services/db');
+            const chats = JSON.parse(raw);
+            for (const chat of chats) await polyglotDb.saveResource(chat);
+            localStorage.removeItem('polyglot-chats');
+            console.log('[startup] Migrated from localStorage');
+          }
+        } catch (err) {
+          console.error('[startup] Migration failed:', err);
         }
-      } catch (err) {
-        console.error('[startup] Migration from localStorage failed', err);
-      }
 
-      // Task C: Background sync with server (non-blocking)
-      try {
-        await backgroundSyncWithServer();
-        console.log('[startup] Background sync with server complete');
-      } catch (err) {
-        console.error('[startup] Background sync failed', err);
-      }
-    });
+        // Task C: Background sync execution
+        try {
+          const result = await backgroundSync.syncWithServer(); // Explicit execution route
+          console.log('[startup] Sync complete:', result);
+          if (result.changed) {
+            window.dispatchEvent(new Event('conversations-updated'));
+          }
+        } catch (err) {
+          console.error('[startup] Sync failed:', err);
+        }
+      });
+    };
 
-    // Still run MCP service init
-    mcpService.initialize().catch((error) => {
-      console.error('Failed to initialize MCP service:', error);
-    });
+    startup();
   }, []);
 
   return (
