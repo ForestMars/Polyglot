@@ -6,6 +6,7 @@
 //
 // Requires: npm install idb
 
+// src/services/db.ts
 import { openDB, IDBPDatabase } from 'idb';
 import { ChatResource, DeletionRecord, SyncMetadata } from '../types/sync';
 import { CoherenceClock } from './CoherenceClock';
@@ -13,121 +14,108 @@ import { compareLamport, earlier } from '../utils/ordering';
 
 export class PolyglotDatabase {
   private db: IDBPDatabase | null = null;
+  private initPromise: Promise<IDBPDatabase> | null = null;
 
-  async init(): Promise<void> {
-    this.db = await openDB('polyglot_coherence_v1', 1, {
-      upgrade(db) {
-        db.createObjectStore('chatResources', { keyPath: 'id' });
-        db.createObjectStore('deletionRecords', { keyPath: 'resourceId' });
-        db.createObjectStore('metadata', { keyPath: 'id' });
+  /**
+   * Initializes the wrapped idb database instance.
+   * Version bump matching your existing local storage version matrix.
+   */
+  async init(): Promise<IDBPDatabase> {
+    if (this.initPromise) return this.initPromise;
+
+    // Set to version 10 to clear the VersionError block
+    this.initPromise = openDB("PolyglotDB", 10, {
+      upgrade(database) {
+        if (!database.objectStoreNames.contains("chats")) {
+          database.createObjectStore("chats", { keyPath: "id" });
+        }
+        if (!database.objectStoreNames.contains("metadata")) {
+          database.createObjectStore("metadata", { keyPath: "key" });
+        }
+        if (!database.objectStoreNames.contains("deletions")) {
+          database.createObjectStore("deletions", { keyPath: "id" });
+        }
       },
+    }).then((database) => {
+      this.db = database;
+      return database;
     });
+
+    return this.initPromise;
   }
 
-  // ---------------------------------------------------------------------------
-  // chatResources
-  // ---------------------------------------------------------------------------
-
-  async getResource(id: string): Promise<ChatResource | undefined> {
-    return this.db!.get('chatResources', id);
+  /**
+   * Internal lazy initialization guard to ensure execution safety when methods
+   * are triggered during early React mounting steps before init() settles.
+   */
+  private async ensureReady(): Promise<IDBPDatabase> {
+    if (!this.db) {
+      await this.init();
+    }
+    return this.db!;
   }
 
   async getAllResources(): Promise<ChatResource[]> {
-    return this.db!.getAll('chatResources');
+    const database = await this.ensureReady();
+    const resources = await database.getAll("chats");
+    return (resources || []) as ChatResource[];
+  }
+
+  async loadConversation(id: string): Promise<ChatResource | null> {
+    const database = await this.ensureReady();
+    const resource = await database.get("chats", id);
+    return (resource as ChatResource) || null;
+  }
+
+  async getVisibleChats(): Promise<ChatResource[]> {
+    const resources = await this.getAllResources();
+    return resources.filter(c => !c.isArchived);
+  }
+
+  async listConversations(showArchived: boolean): Promise<ChatResource[]> {
+    const resources = await this.getAllResources();
+    return resources
+      .filter(c => showArchived || !c.isArchived)
+      .sort((a, b) => {
+        if (a.clock && b.clock) {
+          return compareLamport(b.clock, a.clock);
+        }
+        return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
+      });
   }
 
   async saveResource(resource: ChatResource): Promise<void> {
-    await this.db!.put('chatResources', resource);
+    const database = await this.ensureReady();
+    await database.put("chats", resource);
   }
 
   async deleteResource(id: string): Promise<void> {
-    await this.db!.delete('chatResources', id);
+    const database = await this.ensureReady();
+    await database.delete("chats", id);
   }
 
-  // ---------------------------------------------------------------------------
-  // deletionRecords
-  // ---------------------------------------------------------------------------
+  // --- Extended Sync & Coherence Protocol Methods ---
 
-  async getDeletionRecord(resourceId: string): Promise<DeletionRecord | undefined> {
-    return this.db!.get('deletionRecords', resourceId);
+  async getSyncMetadata(): Promise<SyncMetadata | null> {
+    const database = await this.ensureReady();
+    const meta = await database.get("metadata", "sync_state");
+    return (meta as SyncMetadata) || null;
   }
 
-  async getAllDeletionRecords(): Promise<DeletionRecord[]> {
-    return this.db!.getAll('deletionRecords');
+  async saveSyncMetadata(metadata: SyncMetadata): Promise<void> {
+    const database = await this.ensureReady();
+    await database.put("metadata", { key: "sync_state", ...metadata });
   }
 
-  // Deletion records are logically immutable: the earliest deletion establishes
-  // the binding causal horizon. Under concurrent deletes from two devices we
-  // retain whichever happened first. We never throw — concurrent deletes are
-  // a legitimate protocol event, not a violation.
-  async saveDeletionRecord(record: DeletionRecord): Promise<void> {
-    const existing = await this.getDeletionRecord(record.resourceId);
-    if (existing) {
-      const binding = earlier(existing.deletedAtLamport, record.deletedAtLamport);
-      if (compareLamport(binding, existing.deletedAtLamport) === 0) {
-        return; // Existing record is already the earlier horizon; nothing to do.
-      }
-      // Incoming is earlier; replace.
-    }
-    await this.db!.put('deletionRecords', record);
+  async getDeletionRecords(): Promise<DeletionRecord[]> {
+    const database = await this.ensureReady();
+    const deletions = await database.getAll("deletions");
+    return (deletions || []) as DeletionRecord[];
   }
 
-  // Register a local delete: tick the clock, write the deletion record,
-  // remove the resource. Returns the record for server propagation.
-  async registerLocalDelete(resourceId: string): Promise<DeletionRecord> {
-    const tau = CoherenceClock.getInstance().tick();
-    const record: DeletionRecord = { resourceId, deletedAtLamport: tau };
-    await this.saveDeletionRecord(record);
-    await this.deleteResource(resourceId);
-    return record;
-  }
-
-  async removeDeletionRecord(resourceId: string): Promise<void> {
-    await this.db!.delete('deletionRecords', resourceId);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Queries
-  // ---------------------------------------------------------------------------
-
-  // Returns resources that have no deletion record. N+1 for now — acceptable
-  // at prototype scale; replace with an index join when needed.
-  async getVisibleChats(): Promise<ChatResource[]> {
-    const resources = await this.getAllResources();
-    const visible: ChatResource[] = [];
-    for (const res of resources) {
-      const deletion = await this.getDeletionRecord(res.id);
-      if (!deletion) visible.push(res);
-    }
-    return visible;
-  }
-
-  async listConversations(showArchived: boolean = false): Promise<ChatResource[]> {
-    const visible = await this.getVisibleChats();
-    const filtered = showArchived ? visible : visible.filter(c => !c.isArchived);
-    return filtered.sort(
-      (a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime()
-    );
-  }
-
-  async loadConversation(id: string): Promise<ChatResource> {
-    const resource = await this.getResource(id);
-    if (!resource) throw new Error(`Conversation not found: ${id}`);
-    const deletion = await this.getDeletionRecord(id);
-    if (deletion) throw new Error(`Conversation ${id} has been deleted`);
-    return resource;
-  }
-
-  // ---------------------------------------------------------------------------
-  // metadata
-  // ---------------------------------------------------------------------------
-
-  async getSyncMetadata(): Promise<SyncMetadata | undefined> {
-    return this.db!.get('metadata', 'sync_state');
-  }
-
-  async saveSyncMetadata(meta: SyncMetadata): Promise<void> {
-    await this.db!.put('metadata', meta);
+  async trackDeletion(record: DeletionRecord): Promise<void> {
+    const database = await this.ensureReady();
+    await database.put("deletions", record);
   }
 }
 
