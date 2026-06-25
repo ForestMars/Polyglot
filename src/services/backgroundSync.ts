@@ -22,7 +22,12 @@ export async function initializeSync(): Promise<void> {
   await polyglotDb.init();
   let meta = await polyglotDb.getSyncMetadata();
   if (!meta) {
-    const deviceId = `device_${crypto.randomUUID()}`;
+    // Secure fallback for environments accessing via non-localhost IP addresses over HTTP
+    const deviceId = `device_${
+      typeof crypto !== 'undefined' && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    }`;
     meta = { id: 'sync_state', deviceId, lamportCounter: 0, lastSyncAt: null };
     await polyglotDb.saveSyncMetadata(meta);
   }
@@ -157,7 +162,39 @@ export async function pushDeletion(record: DeletionRecord): Promise<boolean> {
   }
 }
 
-// Convenience export for App.tsx
+// ---------------------------------------------------------------------------
+// Convenience Hybrid Exports
+// ---------------------------------------------------------------------------
+
+// 1. Standalone function structure for App.tsx invocation
 export async function backgroundSync(): Promise<SyncResult> {
+  return syncWithServer();
+}
+
+// 2. Intercept and wrap push properties to fulfill the object contract expected by conversationSync.ts
+backgroundSync.pushResource = async function(resource: ChatResource) {
+  const success = await pushResource(resource);
+  return {
+    success,
+    syncedCount: success ? 1 : 0,
+    deletedCount: 0,
+    changed: success, // Prevents 'Cannot read properties of undefined (reading changed)' crash
+  };
+};
+
+backgroundSync.pushDeletion = async function(record: DeletionRecord) {
+  const success = await pushDeletion(record);
+  return {
+    success,
+    syncedCount: 0,
+    deletedCount: success ? 1 : 0,
+    changed: success,
+  };
+};
+
+backgroundSync.syncWithServer = syncWithServer;
+
+// 3. Keep alternative name active for fallback compatibility
+export async function backgroundSyncWithServer(): Promise<SyncResult> {
   return syncWithServer();
 }
