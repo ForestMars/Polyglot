@@ -19,50 +19,50 @@ const rIC = (cb: () => void) =>
 
 const App = () => {
   useEffect(() => {
-    rIC(async () => {
-      // Task A: Initialize protocol core (db + clock).
-      // Must complete before any sync or write operation.
+    const startup = async () => {
+      // Step 1: Force critical core systems to initialize immediately
       try {
         await initializeSync();
-        console.log('[startup] Sync initialized');
+        console.log('[startup] Sync protocol initialized');
+        
+        // Step 2: Initialize MCP / Ollama bridge now that the DB is ready
+        await mcpService.initialize();
+        console.log('[startup] MCP initialized');
       } catch (err) {
-        console.error('[startup] Failed to initialize sync:', err);
+        console.error('[startup] Critical initialization failed:', err);
         return;
       }
 
-      // Task B: One-time localStorage migration.
-      try {
-        const raw = localStorage.getItem('polyglot-chats');
-        if (raw) {
-          const { polyglotDb } = await import('./services/db');
-          const chats = JSON.parse(raw);
-          for (const chat of chats) await polyglotDb.saveResource(chat);
-          localStorage.removeItem('polyglot-chats');
-          console.log('[startup] Migrated from localStorage');
+      // Step 3: Defer non-critical network operations and migration until idle
+      rIC(async () => {
+        // Task B: One-time localStorage migration
+        try {
+          const raw = localStorage.getItem('polyglot-chats');
+          if (raw) {
+            const { polyglotDb } = await import('./services/db');
+            const chats = JSON.parse(raw);
+            for (const chat of chats) await polyglotDb.saveResource(chat);
+            localStorage.removeItem('polyglot-chats');
+            console.log('[startup] Migrated from localStorage');
+          }
+        } catch (err) {
+          console.error('[startup] Migration failed:', err);
         }
-      } catch (err) {
-        console.error('[startup] Migration failed:', err);
-      }
 
-      // Task C: Background sync.
-      // Protocol layer returns SyncResult — no DOM side effects.
-      // Presentation layer (here) decides what to do with it.
-      try {
-        const result = await backgroundSync();
-        console.log('[startup] Sync complete:', result);
-        if (result.changed) {
-          // Notify the state manager to reload. This is the only place
-          // 'conversations-updated' is dispatched for sync-triggered reloads.
-          window.dispatchEvent(new Event('conversations-updated'));
+        // Task C: Background sync execution
+        try {
+          const result = await backgroundSync();
+          console.log('[startup] Sync complete:', result);
+          if (result.changed) {
+            window.dispatchEvent(new Event('conversations-updated'));
+          }
+        } catch (err) {
+          console.error('[startup] Sync failed:', err);
         }
-      } catch (err) {
-        console.error('[startup] Sync failed:', err);
-      }
-    });
+      });
+    };
 
-    mcpService.initialize().catch(err =>
-      console.error('[startup] MCP init failed:', err)
-    );
+    startup();
   }, []);
 
   return (
