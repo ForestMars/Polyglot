@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { useEffect } from 'react';
-import { initializeSync, backgroundSyncWithServer } from './services/backgroundSync';
+import { initializeSync, backgroundSync } from './services/backgroundSync';
 import { mcpService } from './services/mcpService';
 
 const queryClient = new QueryClient();
@@ -48,7 +48,7 @@ const App = () => {
       // Protocol layer returns SyncResult — no DOM side effects.
       // Presentation layer (here) decides what to do with it.
       try {
-        const result = await backgroundSyncWithServer();
+        const result = await backgroundSync();
         console.log('[startup] Sync complete:', result);
         if (result.changed) {
           // Notify the state manager to reload. This is the only place
