@@ -51,7 +51,7 @@ const App = () => {
 
         // Task C: Background sync execution
         try {
-          const result = await backgroundSync();
+          const result = await backgroundSync.syncWithServer(); // Explicit execution route
           console.log('[startup] Sync complete:', result);
           if (result.changed) {
             window.dispatchEvent(new Event('conversations-updated'));
