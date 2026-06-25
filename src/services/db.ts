@@ -18,14 +18,14 @@ export class PolyglotDatabase {
 
   /**
    * Initializes the wrapped idb database instance.
-   * Version bump matching your existing local storage version matrix.
+   * Version bumped to 11 to force execution of the upgrade hook on existing v10 databases.
    */
   async init(): Promise<IDBPDatabase> {
     if (this.initPromise) return this.initPromise;
 
-    // Set to version 10 to clear the VersionError block
-    this.initPromise = openDB("PolyglotDB", 10, {
-      upgrade(database) {
+    this.initPromise = openDB("PolyglotDB", 11, {
+      upgrade(database, oldVersion, newVersion) {
+        // Safe creation checks across any legacy version transition
         if (!database.objectStoreNames.contains("chats")) {
           database.createObjectStore("chats", { keyPath: "id" });
         }
