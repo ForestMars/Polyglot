@@ -158,6 +158,6 @@ export async function pushDeletion(record: DeletionRecord): Promise<boolean> {
 }
 
 // Convenience export for App.tsx
-export async function backgroundSyncWithServer(): Promise<SyncResult> {
+export async function backgroundSync(): Promise<SyncResult> {
   return syncWithServer();
 }
