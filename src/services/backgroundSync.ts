@@ -1,9 +1,4 @@
 // src/services/backgroundSync.ts
-// Network adapter + application service for sync operations.
-// Returns SyncResult — never touches the DOM. Callers decide what to do
-// with the result. window.dispatchEvent belongs in the presentation layer.
-
-// src/services/backgroundSync.ts
 import { ChatResource, DeletionRecord, SyncResult } from '../types/sync';
 import { CoherenceClock } from './CoherenceClock';
 import { polyglotDb } from './db';
@@ -11,10 +6,6 @@ import { ReconciliationEngine } from './ReconciliationEngine';
 
 const SYNC_URL = 'http://localhost:4001';
 const reconciliationEngine = new ReconciliationEngine(polyglotDb);
-
-// ---------------------------------------------------------------------------
-// Core Operations
-// ---------------------------------------------------------------------------
 
 export async function initializeSync(): Promise<void> {
   await polyglotDb.init();
@@ -113,7 +104,8 @@ export async function syncWithServer(): Promise<SyncResult> {
   }
 }
 
-export async function pushResourceInternal(resource: ChatResource): Promise<boolean> {
+// Data plane methods must return SyncResult structures to meet orchestration expectations
+export async function pushResource(resource: ChatResource): Promise<SyncResult> {
   const tau = CoherenceClock.getInstance().tick();
   const stamped = {
     ...resource,
@@ -127,13 +119,24 @@ export async function pushResourceInternal(resource: ChatResource): Promise<bool
       body: JSON.stringify({ chats: [stamped] }),
     });
     await persistClockState();
-    return response.ok;
-  } catch {
-    return false;
+    return {
+      success: response.ok,
+      syncedCount: response.ok ? 1 : 0,
+      deletedCount: 0,
+      changed: response.ok,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      syncedCount: 0,
+      deletedCount: 0,
+      changed: false,
+      error: error instanceof Error ? error.message : 'Fetch failed',
+    };
   }
 }
 
-export async function pushDeletionInternal(record: DeletionRecord): Promise<boolean> {
+export async function pushDeletion(record: DeletionRecord): Promise<SyncResult> {
   try {
     const response = await fetch(`${SYNC_URL}/deleteChat`, {
       method: 'POST',
@@ -143,41 +146,26 @@ export async function pushDeletionInternal(record: DeletionRecord): Promise<bool
         lamport: [record.deletedAtLamport.lamport, record.deletedAtLamport.deviceId],
       }),
     });
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Unified Namespace Managers to prevent 'undefined (reading changed)' crashes
-// ---------------------------------------------------------------------------
-
-export const backgroundSync = {
-  syncWithServer: async (): Promise<SyncResult> => {
-    return syncWithServer();
-  },
-  pushResource: async (resource: ChatResource) => {
-    const success = await pushResourceInternal(resource);
     return {
-      success,
-      syncedCount: success ? 1 : 0,
-      deletedCount: 0,
-      changed: success,
-    };
-  },
-  pushDeletion: async (record: DeletionRecord) => {
-    const success = await pushDeletionInternal(record);
-    return {
-      success,
+      success: response.ok,
       syncedCount: 0,
-      deletedCount: success ? 1 : 0,
-      changed: success,
+      deletedCount: response.ok ? 1 : 0,
+      changed: response.ok,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      syncedCount: 0,
+      deletedCount: 0,
+      changed: false,
+      error: error instanceof Error ? error.message : 'Fetch failed',
     };
   }
-};
-
-// Top-level function footprint matching the original App.tsx startup call pattern
-export async function backgroundSyncWithServer(): Promise<SyncResult> {
-  return syncWithServer();
 }
+
+// Namespace export mirror to capture object-destructuring imports
+export const backgroundSync = {
+  syncWithServer,
+  pushResource,
+  pushDeletion,
+};
