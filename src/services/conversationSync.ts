@@ -13,6 +13,7 @@
 
 // src/services/conversationSync.ts
 import { ChatResource, ConversationSyncResult } from '../types/sync';
+import { CoherenceClock } from './CoherenceClock';
 import { polyglotDb } from './db';
 
 /**
@@ -44,7 +45,12 @@ export async function saveConversation(resource: ChatResource): Promise<Conversa
  */
 export async function deleteConversation(conversationId: string): Promise<ConversationSyncResult> {
   try {
-    await polyglotDb.deleteResource(conversationId);
+    const tau = CoherenceClock.getInstance().tick();
+    const record: DeletionRecord = {
+      resourceId: conversationId,
+      deletedAtLamport: tau,
+    };
+    await polyglotDb.deleteResource(conversationId, record);
     
     return {
       success: true,
