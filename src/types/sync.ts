@@ -36,7 +36,7 @@ export interface ChatResource {
 // Lives in its own store. Structurally separate from ChatResource.
 // Immutable once written: the earliest deletion establishes the binding causal horizon.
 export interface DeletionRecord {
-  resourceId: string;
+  id: string;                     // resourceId
   deletedAtLamport: ClockTuple;
 }
 
