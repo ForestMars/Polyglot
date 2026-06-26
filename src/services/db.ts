@@ -89,9 +89,19 @@ export class PolyglotDatabase {
     await database.put("chats", resource);
   }
 
-  async deleteResource(id: string): Promise<void> {
+  /**
+  * Removes a resource from the data plane store and writes its deletion
+  * record to the control plane store in a single transaction. The two
+  * writes must not be separable: a resource removed without a
+  * corresponding record is indistinguishable, on next read, from a
+  * resource that was never created (Invariant 5/6 distinction).
+  */
+  async deleteResource(id: string, record: DeletionRecord): Promise<void> {
     const database = await this.ensureReady();
-    await database.delete("chats", id);
+    const tx = database.transaction(["chats", "deletions"], "readwrite");
+    await tx.objectStore("chats").delete(id);
+    await tx.objectStore("deletions").put(record);
+    await tx.done;
   }
 
   // --- Extended Sync & Coherence Protocol Methods ---
