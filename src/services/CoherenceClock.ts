@@ -4,6 +4,12 @@
 
 import { ClockTuple } from '../types/sync';
 
+export interface ClockSnapshot {
+  deviceId: string;
+  localCounter: number;
+  observedCounter: number;
+}
+
 export class CoherenceClock {
   private static instance: CoherenceClock;
   private deviceId!: string;
@@ -54,5 +60,23 @@ export class CoherenceClock {
 
   public getCounter(): number {
     return this.localCounter;
+  }
+
+  public static async initialize(deviceId: string, local: number = 0, observed: number = 0): Promise<CoherenceClock> {
+  if (!CoherenceClock.instance) {
+    CoherenceClock.instance = new CoherenceClock();
+    CoherenceClock.instance.deviceId = deviceId;
+    CoherenceClock.instance.localCounter = local;
+    CoherenceClock.instance.maxObservedCounter = observed;
+  }
+  return CoherenceClock.instance;
+}
+
+  public snapshot(): ClockSnapshot {
+    return {
+      deviceId: this.deviceId,
+      localCounter: this.localCounter,
+      observedCounter: this.maxObservedCounter
+    };
   }
 }
