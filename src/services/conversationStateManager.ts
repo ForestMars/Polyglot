@@ -12,12 +12,12 @@ import { Conversation, Message } from '@/types/conversation';
 import { ChatResource } from '../types/sync';
 import { polyglotDb } from './db';
 import { saveConversation, deleteConversation } from './conversationSync';
-import { syncWithServer, pushResource } from './backgroundSync';
 import { CoherenceClock } from './CoherenceClock';
 import { ConversationUtils } from './conversationUtils';
 import { SettingsService } from './settingsService';
 
-import { syncWithServer, pushResource, ensureSocketRegistered } from './backgroundSync'; 
+// Combine them cleanly here:
+import { syncWithServer, pushResource, ensureSocketRegistered } from './backgroundSync';
 
 interface ConversationFilters {
   searchQuery: string;
