@@ -1,16 +1,14 @@
 // src/services/db.ts
 // Storage adapter. Owns three IndexedDB object stores:
-//   chatResources   — live resource state (data plane)
-//   deletionRecords — causal horizons (control plane), structurally separate
-//   metadata        — device identity, Lamport counter, sync timestamps
+//   chats     — live resource state (data plane)
+//   deletions — causal horizons (control plane), structurally separate
+//   metadata  — device identity, Lamport counter, sync timestamps
 //
 // Requires: npm install idb
 
-// src/services/db.ts
 import { openDB, IDBPDatabase } from 'idb';
 import { ChatResource, DeletionRecord, SyncMetadata } from '../types/sync';
-import { CoherenceClock } from './CoherenceClock';
-import { compareLamport, earlier } from '../utils/ordering';
+import { compareLamport } from '../utils/ordering';
 
 export class PolyglotDatabase {
   private db: IDBPDatabase | null = null;
@@ -25,7 +23,6 @@ export class PolyglotDatabase {
 
     this.initPromise = openDB("PolyglotDB", 11, {
       upgrade(database, oldVersion, newVersion) {
-        // Safe creation checks across any legacy version transition
         if (!database.objectStoreNames.contains("chats")) {
           database.createObjectStore("chats", { keyPath: "id" });
         }
@@ -44,10 +41,6 @@ export class PolyglotDatabase {
     return this.initPromise;
   }
 
-  /**
-   * Internal lazy initialization guard to ensure execution safety when methods
-   * are triggered during early React mounting steps before init() settles.
-   */
   private async ensureReady(): Promise<IDBPDatabase> {
     if (!this.db) {
       await this.init();
@@ -55,16 +48,28 @@ export class PolyglotDatabase {
     return this.db!;
   }
 
+  // --- Data plane: chats store ---
+
   async getAllResources(): Promise<ChatResource[]> {
     const database = await this.ensureReady();
     const resources = await database.getAll("chats");
     return (resources || []) as ChatResource[];
   }
 
-  async loadConversation(id: string): Promise<ChatResource | null> {
+  /**
+   * Single-resource lookup by id. Returns null if no resource with this id
+   * exists, which is the only correct meaning of null per Invariant 6 — a
+   * resource that was deleted retains a record in the deletions store, not
+   * here, so this method never needs to disambiguate "deleted" from "unknown."
+   */
+  async getResource(id: string): Promise<ChatResource | null> {
     const database = await this.ensureReady();
     const resource = await database.get("chats", id);
     return (resource as ChatResource) || null;
+  }
+
+  async loadConversation(id: string): Promise<ChatResource | null> {
+    return this.getResource(id);
   }
 
   async getVisibleChats(): Promise<ChatResource[]> {
@@ -90,12 +95,12 @@ export class PolyglotDatabase {
   }
 
   /**
-  * Removes a resource from the data plane store and writes its deletion
-  * record to the control plane store in a single transaction. The two
-  * writes must not be separable: a resource removed without a
-  * corresponding record is indistinguishable, on next read, from a
-  * resource that was never created (Invariant 5/6 distinction).
-  */
+   * Removes a resource from the data plane store and writes its deletion
+   * record to the control plane store in a single transaction. The two
+   * writes must not be separable: a resource removed without a
+   * corresponding record is indistinguishable, on next read, from a
+   * resource that was never created (Invariant 5/6 distinction).
+   */
   async deleteResource(id: string, record: DeletionRecord): Promise<void> {
     const database = await this.ensureReady();
     const tx = database.transaction(["chats", "deletions"], "readwrite");
@@ -104,7 +109,56 @@ export class PolyglotDatabase {
     await tx.done;
   }
 
-  // --- Extended Sync & Coherence Protocol Methods ---
+  // --- Control plane: deletions store ---
+
+  async getAllDeletionRecords(): Promise<DeletionRecord[]> {
+    const database = await this.ensureReady();
+    const deletions = await database.getAll("deletions");
+    return (deletions || []) as DeletionRecord[];
+  }
+
+  /**
+   * Single-record lookup by resource id. Returns null if this resource was
+   * never deleted locally — the complement of getResource returning null,
+   * together giving an unambiguous three-way read: active, deleted, or
+   * never seen.
+   */
+  async getDeletionRecord(id: string): Promise<DeletionRecord | null> {
+    const database = await this.ensureReady();
+    const record = await database.get("deletions", id);
+    return (record as DeletionRecord) || null;
+  }
+
+  /**
+   * Writes a deletion record directly. Used by ReconciliationEngine when a
+   * remote deletion is accepted, or when both sides agree a resource is
+   * deleted and the record is being reconciled rather than originated.
+   * Does not touch the chats store — callers that also need the resource
+   * removed call deleteResource instead, or remove it separately.
+   */
+  async saveDeletionRecord(record: DeletionRecord): Promise<void> {
+    const database = await this.ensureReady();
+    await database.put("deletions", record);
+  }
+
+  /**
+   * Removes a deletion record without restoring the resource. Used when a
+   * remote update is found to causally dominate a local deletion horizon —
+   * the caller is responsible for then saving the restored resource.
+   */
+  async removeDeletionRecord(id: string): Promise<void> {
+    const database = await this.ensureReady();
+    await database.delete("deletions", id);
+  }
+
+  /** @deprecated retained for backward compatibility, use trackDeletion's
+   * callers migrating to saveDeletionRecord. Will be removed once no
+   * call sites remain. */
+  async trackDeletion(record: DeletionRecord): Promise<void> {
+    await this.saveDeletionRecord(record);
+  }
+
+  // --- Metadata store ---
 
   async getSyncMetadata(): Promise<SyncMetadata | null> {
     const database = await this.ensureReady();
@@ -115,17 +169,6 @@ export class PolyglotDatabase {
   async saveSyncMetadata(metadata: SyncMetadata): Promise<void> {
     const database = await this.ensureReady();
     await database.put("metadata", { key: "sync_state", ...metadata });
-  }
-
-  async getDeletionRecords(): Promise<DeletionRecord[]> {
-    const database = await this.ensureReady();
-    const deletions = await database.getAll("deletions");
-    return (deletions || []) as DeletionRecord[];
-  }
-
-  async trackDeletion(record: DeletionRecord): Promise<void> {
-    const database = await this.ensureReady();
-    await database.put("deletions", record);
   }
 }
 

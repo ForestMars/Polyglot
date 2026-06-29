@@ -18,6 +18,11 @@ export interface Message {
 // The canonical resource type. Extends the app's chat fields so the protocol
 // core and the presentation layer share a single type rather than mapping
 // between two parallel hierarchies.
+//
+// clock: the load-bearing Lamport field. Named consistently with db.ts.
+//   Replaces the former lastMutationLamport (object form, was unused by db.ts)
+//   and updatedAtLamport (array form cast as any in backgroundSync.ts).
+//   All writes must stamp this field via CoherenceClock.tick().
 export interface ChatResource {
   id: string;
   title: string;
@@ -25,7 +30,7 @@ export interface ChatResource {
   createdAt: Date;
   updatedAt: Date;
   lastModified: Date;
-  lastMutationLamport: ClockTuple;
+  clock: ClockTuple;         // canonical Lamport field — do not alias
   // App-specific metadata — protocol core carries but does not interpret these.
   model?: string;
   provider?: string;
@@ -34,14 +39,15 @@ export interface ChatResource {
 }
 
 // Lives in its own store. Structurally separate from ChatResource.
-// Immutable once written: the earliest deletion establishes the binding causal horizon.
+// Immutable once written: the earliest deletion establishes the binding
+// causal horizon. The id field is the keyPath for the deletions store in db.ts.
 export interface DeletionRecord {
-  id: string;                     // resourceId
+  id: string;                   // keyPath — aligns with db.ts deletions store
   deletedAtLamport: ClockTuple;
 }
 
 export interface SyncMetadata {
-  id: 'sync_state';
+  key: 'sync_state';            // keyPath for the metadata store in db.ts
   deviceId: string;
   lamportCounter: number;
   lastSyncAt: string | null;
@@ -59,5 +65,5 @@ export interface SyncResult {
 export interface ConversationSyncResult {
   success: boolean;
   changed: boolean;
-  error?: string;
+  error?: string | null;
 }

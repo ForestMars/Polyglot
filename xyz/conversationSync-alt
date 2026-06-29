@@ -1,0 +1,88 @@
+// src/services/conversationSync.ts (alternate version)
+// Application service for conversation write operations.
+// Returns ConversationSyncResult — no DOM side effects.
+//
+// Every write stamps the resource with the current Lamport clock and
+// updates the local participation record so this device's causal horizon
+// is tracked correctly for reconciliation.
+
+import { ChatResource, ParticipationRecord, ConversationSyncResult } from '../types/sync';
+import { CoherenceClock } from './CoherenceClock';
+import { localStore } from './localStore';
+import { pushResource, pushParticipationRecord } from './backgroundSync';
+
+export async function saveConversation(chat: ChatResource): Promise<ConversationSyncResult> {
+  try {
+    const clock = CoherenceClock.getInstance();
+    const tau = clock.tick();
+
+    const filteredMessages = (chat.messages || []).filter(m => !m.isPrivate);
+
+    const toSave: ChatResource = {
+      ...chat,
+      messages: filteredMessages,
+      lastMutationClock: tau,
+      updatedAt: new Date(),
+      lastModified: new Date(),
+    };
+
+    // Write resource locally.
+    await localStore.saveResource(toSave);
+
+    // Update local participation record: this device has seen and actively
+    // participated in this resource at clock tau.
+    const participation: ParticipationRecord = {
+      resourceId: toSave.id,
+      deviceId: clock.getDeviceId(),
+      lastObservedClock: tau,
+      isDeleted: false,
+    };
+    await localStore.saveParticipationRecord(participation);
+
+    // Fire-and-forget data plane push. Local write already committed;
+    // server catches up at next sync boundary if push fails.
+    pushResource(toSave).catch(err =>
+      console.warn('[conversationSync] Push failed, will sync at boundary:', err)
+    );
+
+    return { success: true, changed: true };
+  } catch (error) {
+    return {
+      success: false,
+      changed: false,
+      error: error instanceof Error ? error.message : 'Save failed',
+    };
+  }
+}
+
+export async function deleteConversation(id: string): Promise<ConversationSyncResult> {
+  try {
+    const clock = CoherenceClock.getInstance();
+    const tau = clock.tick();
+
+    // Write deletion intent as a participation record with isDeleted=true.
+    // The resource itself stays in chatResources until distributed GC confirms
+    // all peers have acknowledged the deletion (peerStabilityVectors check).
+    const record: ParticipationRecord = {
+      resourceId: id,
+      deviceId: clock.getDeviceId(),
+      lastObservedClock: tau,
+      isDeleted: true,
+    };
+    await localStore.saveParticipationRecord(record);
+
+    // Push to server immediately so other devices can reconcile without
+    // waiting for the next boundary sync.
+    pushParticipationRecord(record).catch(err =>
+      console.warn('[conversationSync] Push deletion failed, will sync at boundary:', err)
+    );
+
+    return { success: true, changed: true };
+  } catch (error) {
+    return {
+      success: false,
+      changed: false,
+      error: error instanceof Error ? error.message : 'Delete failed',
+    };
+  }
+}
