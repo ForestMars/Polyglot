@@ -159,7 +159,12 @@ export interface SyncResult {
 export async function syncWithServer(): Promise<SyncResult> {
   try {
     const localResources = await polyglotDb.getAllResources();
-    const localDeletions = await polyglotDb.getAllDeletionRecords();
+    // const localDeletions = await polyglotDb.getAllDeletionRecords(); deprecated
+    // At the very beginning of syncWithServer(), before fetching from server:
+    const localDeletions = await polyglotDb.listDeletions(); // Add listDeletions() to db.ts to return all records
+    for (const del of localDeletions) {
+      await pushDeletion(del); 
+    }
 
     const response = await fetch(`${SYNC_URL}/sync`, {
       method: 'POST',
