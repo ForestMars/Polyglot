@@ -376,13 +376,14 @@ export class ConversationStateManager {
       return;
     }
 
-    const updatedConversations = this.state.conversations.filter((c) => c.id !== conversationId);
-    const currentConversation =
-      this.state.currentConversation?.id === conversationId
-        ? updatedConversations[0] || null
-        : this.state.currentConversation;
+    // FIX: Proactively push the control plane horizon to the server immediately
+    const localDel = await polyglotDb.getDeletionRecord(conversationId);
+    if (localDel) {
+      await pushDeletion(localDel);
+    }
 
-    this.setState({ conversations: updatedConversations, currentConversation, lastUpdated: new Date() });
+    const updatedConversations = this.state.conversations.filter((c) => c.id !== conversationId);
+    this.setState({ conversations: updatedConversations, lastUpdated: new Date() });
   }
 
   // ── Read operations — go directly to db.ts ───────────────────────────────
