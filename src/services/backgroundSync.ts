@@ -108,13 +108,38 @@ export function ensureSocketRegistered(
 
 /**
  * Pushes a locally mutated resource out to the server data plane.
+ * * @remarks
+ * Data plane methods must return SyncResult structures to meet orchestration expectations.
  */
-export async function pushResource(resource: ChatResource): Promise<void> {
-  // Update clock metadata tracking whenever local writes advance time
-  await persistClockState();
-  
-  // TODO: Insert outbound network push code here
-  // (e.g., fetch('/api/sync', { method: 'POST', body: JSON.stringify(resource) }))
+export async function pushResource(resource: ChatResource): Promise<SyncResult> {
+  const tau = CoherenceClock.getInstance().tick();
+  const stamped = {
+    ...resource,
+    lastMutationLamport: tau,
+    updatedAtLamport: [tau.lamport, tau.deviceId],
+  };
+  try {
+    const response = await fetch(`${SYNC_URL}/pushChats`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chats: [stamped] }),
+    });
+    await persistClockState();
+    return {
+      success: response.ok,
+      syncedCount: response.ok ? 1 : 0,
+      deletedCount: 0,
+      changed: response.ok,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      syncedCount: 0,
+      deletedCount: 0,
+      changed: false,
+      error: error instanceof Error ? error.message : 'Fetch failed',
+    };
+  }
 }
 
 // ── Inbound Boundary Reconciliation ────────────────────────────────────────
@@ -204,37 +229,7 @@ export async function syncWithServer(): Promise<SyncResult> {
   }
 }
 
-// Data plane methods must return SyncResult structures to meet orchestration expectations
-export async function pushResource(resource: ChatResource): Promise<SyncResult> {
-  const tau = CoherenceClock.getInstance().tick();
-  const stamped = {
-    ...resource,
-    lastMutationLamport: tau,
-    updatedAtLamport: [tau.lamport, tau.deviceId],
-  };
-  try {
-    const response = await fetch(`${SYNC_URL}/pushChats`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chats: [stamped] }),
-    });
-    await persistClockState();
-    return {
-      success: response.ok,
-      syncedCount: response.ok ? 1 : 0,
-      deletedCount: 0,
-      changed: response.ok,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      syncedCount: 0,
-      deletedCount: 0,
-      changed: false,
-      error: error instanceof Error ? error.message : 'Fetch failed',
-    };
-  }
-}
+
 
 export async function pushDeletion(record: DeletionRecord): Promise<SyncResult> {
   try {
