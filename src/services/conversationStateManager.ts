@@ -17,6 +17,8 @@ import { CoherenceClock } from './CoherenceClock';
 import { ConversationUtils } from './conversationUtils';
 import { SettingsService } from './settingsService';
 
+import { syncWithServer, pushResource, ensureSocketRegistered } from './backgroundSync'; 
+
 interface ConversationFilters {
   searchQuery: string;
   provider: string;
@@ -103,16 +105,9 @@ export class ConversationStateManager {
         }
       };
 
-      this.ws.onmessage = async (event) => {
-        try {
-          const msg = JSON.parse(event.data as string);
-          if (msg.type === 'conversationUpdated') {
-            await this.handleBroadcast(msg.data as ChatResource);
-          }
-        } catch (err) {
-          console.warn('[CSM] WS message parse error:', err);
-        }
-      };
+      // CALLING the imported utility function here.
+      // We pass the socket instance and a bound reference to our local handler.
+      ensureSocketRegistered(this.ws, this.handleBroadcast.bind(this));
 
       this.ws.onclose = () => {
         console.log('[CSM] WebSocket closed. Reconnecting in 3s.');
