@@ -7,20 +7,50 @@ import { ReconciliationEngine } from './ReconciliationEngine';
 const SYNC_URL = 'http://localhost:4001';
 const reconciliationEngine = new ReconciliationEngine(polyglotDb);
 
-export async function initializeSync(): Promise<void> {
-  await polyglotDb.init();
-  let meta = await polyglotDb.getSyncMetadata();
-  if (!meta) {
-    const deviceId = `device_${
-      typeof crypto !== 'undefined' && crypto.randomUUID 
-        ? crypto.randomUUID() 
-        : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-    }`;
-    meta = { id: 'sync_state', deviceId, lamportCounter: 0, lastSyncAt: null };
-    await polyglotDb.saveSyncMetadata(meta);
-  }
-  await CoherenceClock.initialize(meta.deviceId, meta.lamportCounter ?? 0);
-  console.log(`[sync] Initialized. Device: ${meta.deviceId}, clock: ${meta.lamportCounter}`);
+let initPromise: Promise<void> | null = null;
+
+/**
+ * Idempotent setup: device identity assignment, metadata persistence, and
+ * CoherenceClock initialization as a single atomic unit.
+ *
+ * This must be one guarded block, not three separately-guarded steps.
+ * CoherenceClock.initialize() is already idempotent on its own
+ * (`if (!CoherenceClock.instance)`), but that guard only protects the
+ * clock singleton itself — it does nothing for the read-or-create-metadata
+ * sequence that runs before it. Two concurrent callers can both observe
+ * `meta === null`, both generate a different random deviceId, and both
+ * call saveSyncMetadata. Whichever write wins, every caller that already
+ * passed the `!meta` check is holding the *other* deviceId in its local
+ * variable, and will pass that losing identity into CoherenceClock.initialize()
+ * regardless of what's now persisted. The first caller to reach
+ * CoherenceClock.initialize() wins the singleton (by its own internal guard),
+ * but there's no guarantee the winning identity is the one that's persisted —
+ * so storage and memory can disagree about this device's own deviceId,
+ * silently, with no error raised anywhere.
+ *
+ * Memoizing the promise across the whole sequence is what prevents two
+ * callers from ever both passing the `!meta` check in the first place.
+ */
+export function initializeSync(): Promise<void> {
+  if (initPromise) return initPromise;
+
+  initPromise = (async () => {
+    await polyglotDb.init();
+    let meta = await polyglotDb.getSyncMetadata();
+    if (!meta) {
+      const deviceId = `device_${
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+      }`;
+      meta = { key: 'sync_state', deviceId, lamportCounter: 0, lastSyncAt: null };
+      await polyglotDb.saveSyncMetadata(meta);
+    }
+    await CoherenceClock.initialize(meta.deviceId, meta.lamportCounter ?? 0);
+    console.log(`[sync] Initialized. Device: ${meta.deviceId}, clock: ${meta.lamportCounter}`);
+  })();
+
+  return initPromise;
 }
 
 async function persistClockState(): Promise<void> {
