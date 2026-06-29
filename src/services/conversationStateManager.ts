@@ -1,11 +1,19 @@
-// src/services/conversationStateManager.ts (main version)
-// Presentation adapter. This is the only layer that dispatches DOM events.
-// Protocol operations return ConversationSyncResult; this class reads .changed
-// and decides whether to fire 'conversations-updated'.
-import { Conversation, Message, ModelChange } from '@/types/conversation';
-import { ChatResource, ConversationSyncResult } from '../types/sync';
+// src/services/conversationStateManager.ts
+//
+// UI-facing orchestrator. Owns React state, the WebSocket connection, and
+// the boundaryAvailable signal. Makes no protocol decisions itself — every
+// write goes through conversationSync.ts, every reconciliation goes through
+// backgroundSync.ts's syncWithServer (which delegates to ReconciliationEngine),
+// every Lamport operation goes through CoherenceClock. This file's only
+// direct call into db.ts is the read-only Invariant 6 null-check, since
+// that check has no protocol logic to enforce, only a fact to observe.
+
+import { Conversation, Message } from '@/types/conversation';
+import { ChatResource } from '../types/sync';
 import { polyglotDb } from './db';
 import { saveConversation, deleteConversation } from './conversationSync';
+import { syncWithServer, pushResource } from './backgroundSync';
+import { CoherenceClock } from './CoherenceClock';
 import { ConversationUtils } from './conversationUtils';
 import { SettingsService } from './settingsService';
 
@@ -23,16 +31,21 @@ export interface ConversationState {
   isLoading: boolean;
   error: string | null;
   lastUpdated: Date;
+  boundaryAvailable: boolean; // Invariant 6 signal
 }
+
+const WS_URL = 'ws://localhost:4001';
 
 export class ConversationStateManager {
   private settingsService: SettingsService;
   private state: ConversationState;
-  private listeners: Set<(state: ConversationState) => void>;
+  private listeners: Set<(state: ConversationState) => void> = new Set();
   private isInitialized = false;
   private conversationCache: Map<string, Conversation> = new Map();
   private loadingConversations: Set<string> = new Set();
-  private cacheEnabled: boolean = true;
+  private cacheEnabled = true;
+  private ws: WebSocket | null = null;
+  private wsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.settingsService = new SettingsService();
@@ -42,53 +55,157 @@ export class ConversationStateManager {
       isLoading: false,
       error: null,
       lastUpdated: new Date(),
+      boundaryAvailable: false,
     };
-    this.listeners = new Set();
-
-    // Listen for sync results dispatched by App.tsx after backgroundSyncWithServer.
-    if (typeof window !== 'undefined') {
-      window.addEventListener('conversations-updated', async () => {
-        console.log('[StateManager] conversations-updated received, reloading...');
-        await this.loadConversations();
-      });
-    }
   }
 
-  async initialize(cacheEnabled: boolean = true): Promise<void> {
+  // ── Initialization ───────────────────────────────────────────────────────
+
+  async initialize(cacheEnabled = true): Promise<void> {
     if (this.isInitialized) return;
     this.cacheEnabled = cacheEnabled;
+
     try {
       this.setState({ isLoading: true, error: null });
       await this.settingsService.loadSettings();
       await this.loadConversations();
+
+      this.connectWebSocket();
+
+      // Cross a synchronization boundary on startup to pull control plane
+      // state. This is the only call site for boundary crossings — there
+      // is no second, inline reconciliation implementation in this file.
+      await this.crossSynchronizationBoundary();
+
       this.isInitialized = true;
       this.setState({ isLoading: false });
-    } catch (error) {
-      console.error('[StateManager] Initialization failed:', error);
+    } catch (err) {
+      console.error('[CSM] Initialization failed:', err);
       this.setState({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Initialization failed',
+        error: err instanceof Error ? err.message : 'Initialization failed',
       });
     }
   }
 
-  // DOM event dispatch — lives here and only here
-  private notifyUI(): void {
-    if (typeof window !== 'undefined') {
-      try {
-        window.dispatchEvent(new Event('conversations-updated'));
-      } catch (e) {
-        console.warn('[StateManager] Failed to dispatch conversations-updated:', e);
-      }
+  // ── WebSocket — real-time data plane receive handler (§3.2) ──────────────
+
+  private connectWebSocket(): void {
+    if (typeof WebSocket === 'undefined') return;
+    try {
+      this.ws = new WebSocket(WS_URL);
+
+      this.ws.onopen = () => {
+        console.log('[CSM] WebSocket connected.');
+        if (this.wsReconnectTimer) {
+          clearTimeout(this.wsReconnectTimer);
+          this.wsReconnectTimer = null;
+        }
+      };
+
+      this.ws.onmessage = async (event) => {
+        try {
+          const msg = JSON.parse(event.data as string);
+          if (msg.type === 'conversationUpdated') {
+            await this.handleBroadcast(msg.data as ChatResource);
+          }
+        } catch (err) {
+          console.warn('[CSM] WS message parse error:', err);
+        }
+      };
+
+      this.ws.onclose = () => {
+        console.log('[CSM] WebSocket closed. Reconnecting in 3s.');
+        this.wsReconnectTimer = setTimeout(() => this.connectWebSocket(), 3000);
+      };
+
+      this.ws.onerror = (err) => {
+        console.warn('[CSM] WebSocket error:', err);
+      };
+    } catch (err) {
+      console.warn('[CSM] connectWebSocket failed:', err);
     }
   }
 
-  // Fire event if a sync result indicates state changed.
-  handleSyncResult(result: ConversationSyncResult | { changed: boolean }): void {
-    if (result.changed) this.notifyUI();
+  /**
+   * Receive handler for real-time data plane broadcasts (§3.2, Invariant 6).
+   *
+   * The only protocol fact this method needs is whether a local record
+   * exists at all — that's a read, not a decision, so it goes straight to
+   * db.ts rather than through conversationSync.ts. No content is ever
+   * materialized here: a present, non-deleted resource may be updated in
+   * place if the broadcast dominates; a deleted or unknown resource is
+   * left untouched and, for the unknown case, signals a boundary instead.
+   */
+  private async handleBroadcast(broadcast: ChatResource): Promise<void> {
+    CoherenceClock.getInstance().observe(broadcast.clock);
+
+    const localRes = await polyglotDb.getResource(broadcast.id);
+    const localDel = await polyglotDb.getDeletionRecord(broadcast.id);
+
+    if (!localRes && !localDel) {
+      // Invariant 6: no local record of any kind — signal boundary
+      // available rather than originating the resource from a data
+      // plane event.
+      this.signalBoundaryAvailable();
+      return;
+    }
+
+    if (localDel) {
+      // Invariant 5: locally deleted — discard broadcast unconditionally.
+      return;
+    }
+
+    if (localRes && broadcast.clock.lamport > localRes.clock.lamport) {
+      await polyglotDb.saveResource(broadcast);
+      await this.loadConversations();
+    }
   }
 
-  // Public API
+  /**
+   * Signal that a synchronization boundary is available (Invariant 6).
+   * Surfaces as a badge / notification via state.boundaryAvailable.
+   */
+  signalBoundaryAvailable(): void {
+    if (!this.state.boundaryAvailable) {
+      console.log('[CSM] Boundary available — unknown resource detected via data plane broadcast.');
+      this.setState({ boundaryAvailable: true });
+    }
+  }
+
+  // ── Synchronization boundary (§3.4) ──────────────────────────────────────
+
+  /**
+   * Crosses a synchronization boundary by delegating entirely to
+   * backgroundSync.syncWithServer(), which delegates to
+   * ReconciliationEngine.reconcileBoundary(). This file does not implement
+   * Case 1/2/3 itself — there is exactly one implementation of the
+   * reconciliation algorithm in this codebase.
+   */
+  async crossSynchronizationBoundary(): Promise<void> {
+    try {
+      console.log('[CSM] Crossing synchronization boundary.');
+      const result = await syncWithServer();
+      if (!result.success) {
+        console.error('[CSM] Synchronization boundary failed:', result.error);
+        this.setState({ error: result.error ?? 'Synchronization failed' });
+        return;
+      }
+      if (result.changed) {
+        await this.loadConversations();
+      }
+      this.setState({ boundaryAvailable: false });
+      console.log(
+        `[CSM] Boundary complete. Resources applied: ${result.syncedCount}, deletions applied: ${result.deletedCount}.`
+      );
+    } catch (err) {
+      console.error('[CSM] crossSynchronizationBoundary failed:', err);
+      this.setState({ error: err instanceof Error ? err.message : 'Synchronization failed' });
+    }
+  }
+
+  // ── State access ──────────────────────────────────────────────────────────
+
   getState(): Readonly<ConversationState> {
     return { ...this.state };
   }
@@ -107,18 +224,26 @@ export class ConversationStateManager {
     return this.cacheEnabled;
   }
 
-  // Write operations — delegate to conversationSync, react to result
+  // ── Write operations — delegate to conversationSync.ts ──────────────────
+
   async createConversation(provider: string, model: string): Promise<Conversation> {
     const conversation = ConversationUtils.createConversation(provider, model);
     const result = await saveConversation(conversation as unknown as ChatResource);
     if (result.changed) {
+      await pushResource(conversation as unknown as ChatResource);
       await this.loadConversations();
-      this.notifyUI();
     }
     this.setState({ currentConversation: conversation, lastUpdated: new Date() });
     return conversation;
   }
 
+  /**
+   * Add a message (data plane UPDATE). Invariant 5 enforcement lives in
+   * saveConversation, not here — if the conversation has been deleted,
+   * the write is silently discarded by the coordinator and result.changed
+   * is false, in which case local UI state and the cache are not updated
+   * either, so the discarded message never becomes visible.
+   */
   async addMessage(message: Message): Promise<void> {
     if (!this.state.currentConversation) throw new Error('No active conversation');
 
@@ -127,94 +252,121 @@ export class ConversationStateManager {
       return;
     }
 
-    const currentConv = JSON.parse(JSON.stringify(this.state.currentConversation));
-    const updatedConversation = ConversationUtils.addMessage(currentConv, message);
-    updatedConversation.lastModified = new Date();
+    const current = JSON.parse(JSON.stringify(this.state.currentConversation)) as Conversation;
+    const updated = ConversationUtils.addMessage(current, message);
+    updated.lastModified = new Date();
 
-    const result = await saveConversation(updatedConversation as unknown as ChatResource);
+    const result = await saveConversation(updated as unknown as ChatResource);
 
-    if (this.cacheEnabled) this.conversationCache.set(updatedConversation.id, updatedConversation);
+    if (!result.changed) {
+      // Invariant 5: write was discarded by the coordinator. Do not
+      // update local state or the cache with a message that was never
+      // actually committed.
+      console.log('[CSM] addMessage discarded — conversation has been deleted.');
+      return;
+    }
 
-    const updatedConversations = this.state.conversations.map(c =>
-      c.id === updatedConversation.id ? updatedConversation : c
+    await pushResource(updated as unknown as ChatResource);
+
+    if (this.cacheEnabled) this.conversationCache.set(updated.id, updated);
+
+    const updatedConversations = this.state.conversations.map((c) =>
+      c.id === updated.id ? updated : c
     );
-    if (!updatedConversations.some(c => c.id === updatedConversation.id)) {
-      updatedConversations.unshift(updatedConversation);
+    if (!updatedConversations.some((c) => c.id === updated.id)) {
+      updatedConversations.unshift(updated);
     }
 
     this.setState({
-      currentConversation: updatedConversation,
+      currentConversation: updated,
       conversations: updatedConversations,
       lastUpdated: new Date(),
     });
-
-    if (result.changed) this.notifyUI();
   }
 
   async switchModel(newModel: string): Promise<void> {
     if (!this.state.currentConversation) throw new Error('No active conversation');
 
-    const updatedConversation = ConversationUtils.recordModelChange(
+    const updated = ConversationUtils.recordModelChange(
       this.state.currentConversation,
       this.state.currentConversation.currentModel,
       newModel
     );
 
-    this.setState({ currentConversation: updatedConversation, lastUpdated: new Date() });
-    this.setState({
-      conversations: this.state.conversations.map(c =>
-        c.id === updatedConversation.id ? updatedConversation : c
-      ),
-    });
+    const result = await saveConversation(updated as unknown as ChatResource);
+    if (!result.changed) {
+      console.log('[CSM] switchModel discarded — conversation has been deleted.');
+      return;
+    }
 
-    const result = await saveConversation(updatedConversation as unknown as ChatResource);
-    if (this.cacheEnabled) this.conversationCache.set(updatedConversation.id, updatedConversation);
-    if (result.changed) this.notifyUI();
+    await pushResource(updated as unknown as ChatResource);
+    if (this.cacheEnabled) this.conversationCache.set(updated.id, updated);
+
+    this.setState({
+      currentConversation: updated,
+      conversations: this.state.conversations.map((c) => (c.id === updated.id ? updated : c)),
+      lastUpdated: new Date(),
+    });
   }
 
   async updateConversationMetadata(
     conversationId: string,
     updates: Partial<Pick<Conversation, 'title'>>
   ): Promise<Conversation> {
-    const conversation = this.state.conversations.find(c => c.id === conversationId);
+    const conversation = this.state.conversations.find((c) => c.id === conversationId);
     if (!conversation) throw new Error(`Conversation not found: ${conversationId}`);
 
     const updated = { ...conversation, ...updates, lastModified: new Date() };
+    const result = await saveConversation(updated as unknown as ChatResource);
+    if (!result.changed) {
+      console.log('[CSM] updateConversationMetadata discarded — conversation has been deleted.');
+      return conversation;
+    }
+
+    await pushResource(updated as unknown as ChatResource);
+    if (this.cacheEnabled) this.conversationCache.set(conversationId, updated);
 
     if (this.state.currentConversation?.id === conversationId) {
       this.setState({ currentConversation: updated, lastUpdated: new Date() });
     }
     this.setState({
-      conversations: this.state.conversations.map(c => c.id === conversationId ? updated : c),
+      conversations: this.state.conversations.map((c) => (c.id === conversationId ? updated : c)),
     });
-
-    const result = await saveConversation(updated as unknown as ChatResource);
-    if (this.cacheEnabled) this.conversationCache.set(conversationId, updated);
-    if (result.changed) this.notifyUI();
     return updated;
   }
 
   async toggleArchive(conversationId: string): Promise<void> {
-    const conversation = this.state.conversations.find(c => c.id === conversationId);
+    const conversation = this.state.conversations.find((c) => c.id === conversationId);
     if (!conversation) throw new Error('Conversation not found');
 
     const updated = { ...conversation, isArchived: !conversation.isArchived, lastModified: new Date() };
+    const result = await saveConversation(updated as unknown as ChatResource);
+    if (!result.changed) {
+      console.log('[CSM] toggleArchive discarded — conversation has been deleted.');
+      return;
+    }
+
+    await pushResource(updated as unknown as ChatResource);
     if (this.cacheEnabled) this.conversationCache.set(conversationId, updated);
 
-    const result = await saveConversation(updated as unknown as ChatResource);
-
-    const updatedConversations = this.state.conversations.map(c =>
+    const updatedConversations = this.state.conversations.map((c) =>
       c.id === conversationId ? updated : c
     );
     let currentConversation = this.state.currentConversation;
     if (updated.isArchived && currentConversation?.id === conversationId) {
-      currentConversation = updatedConversations.find(c => !c.isArchived) || null;
+      currentConversation = updatedConversations.find((c) => !c.isArchived) || null;
     }
 
     this.setState({ conversations: updatedConversations, currentConversation, lastUpdated: new Date() });
-    if (result.changed) this.notifyUI();
   }
 
+  /**
+   * Delete a conversation (control plane DELETE, §3.1). All deletion
+   * semantics — stamping the Lamport clock, constructing the
+   * DeletionRecord, the atomic store write — live in
+   * conversationSync.ts's deleteConversation. This method only updates
+   * local UI state to reflect that the deletion succeeded.
+   */
   async deleteConversation(conversationId: string): Promise<void> {
     if (this.cacheEnabled) this.conversationCache.delete(conversationId);
 
@@ -223,18 +375,23 @@ export class ConversationStateManager {
     }
 
     const result = await deleteConversation(conversationId);
+    if (!result.success) {
+      console.error('[CSM] deleteConversation failed:', result.error);
+      this.setState({ error: result.error ?? 'Delete failed' });
+      return;
+    }
 
-    const updatedConversations = this.state.conversations.filter(c => c.id !== conversationId);
-    const currentConversation = this.state.currentConversation?.id === conversationId
-      ? updatedConversations[0] || null
-      : this.state.currentConversation;
+    const updatedConversations = this.state.conversations.filter((c) => c.id !== conversationId);
+    const currentConversation =
+      this.state.currentConversation?.id === conversationId
+        ? updatedConversations[0] || null
+        : this.state.currentConversation;
 
     this.setState({ conversations: updatedConversations, currentConversation, lastUpdated: new Date() });
-
-    if (result.changed) this.notifyUI();
   }
 
-  // Read operations — go directly to db
+  // ── Read operations — go directly to db.ts ───────────────────────────────
+
   async loadConversation(id: string): Promise<Conversation> {
     if (this.loadingConversations.has(id)) throw new Error('Already loading');
 
@@ -246,7 +403,7 @@ export class ConversationStateManager {
 
     try {
       this.loadingConversations.add(id);
-      const conversation = await polyglotDb.loadConversation(id) as unknown as Conversation;
+      const conversation = (await polyglotDb.loadConversation(id)) as unknown as Conversation;
       if (this.cacheEnabled) this.conversationCache.set(id, conversation);
       this.setState({ currentConversation: conversation, lastUpdated: new Date() });
       return conversation;
@@ -257,22 +414,22 @@ export class ConversationStateManager {
 
   async searchConversations(filters: ConversationFilters): Promise<Conversation[]> {
     const settings = await this.settingsService.loadSettings();
-    const showArchived = filters.showArchived ?? (settings.showArchivedChats || false);
-    let results = await polyglotDb.listConversations(showArchived) as unknown as Conversation[];
+    const showArchived = filters.showArchived ?? settings.showArchivedChats ?? false;
+    let results = (await polyglotDb.listConversations(showArchived)) as unknown as Conversation[];
 
     if (filters.searchQuery) {
       const q = filters.searchQuery.toLowerCase();
-      results = results.filter(c =>
-        c.title.toLowerCase().includes(q) ||
-        c.messages.some((m: Message) => m.content.toLowerCase().includes(q))
+      results = results.filter(
+        (c) =>
+          c.title.toLowerCase().includes(q) ||
+          c.messages.some((m: Message) => m.content.toLowerCase().includes(q))
       );
     }
-    if (filters.provider) results = results.filter(c => c.provider === filters.provider);
-    if (filters.model) results = results.filter(c => c.currentModel === filters.model);
+    if (filters.provider) results = results.filter((c) => c.provider === filters.provider);
+    if (filters.model) results = results.filter((c) => c.currentModel === filters.model);
     if (filters.dateRange) {
-      results = results.filter(c =>
-        c.lastModified >= filters.dateRange!.start &&
-        c.lastModified <= filters.dateRange!.end
+      results = results.filter(
+        (c) => c.lastModified >= filters.dateRange!.start && c.lastModified <= filters.dateRange!.end
       );
     }
     return results;
@@ -282,10 +439,16 @@ export class ConversationStateManager {
     const convs = this.state.conversations;
     return {
       total: convs.length,
-      active: convs.filter(c => !c.isArchived).length,
-      archived: convs.filter(c => c.isArchived).length,
-      byProvider: convs.reduce((acc, c) => ({ ...acc, [c.provider]: (acc[c.provider] || 0) + 1 }), {} as Record<string, number>),
-      byModel: convs.reduce((acc, c) => ({ ...acc, [c.currentModel]: (acc[c.currentModel] || 0) + 1 }), {} as Record<string, number>),
+      active: convs.filter((c) => !c.isArchived).length,
+      archived: convs.filter((c) => c.isArchived).length,
+      byProvider: convs.reduce(
+        (acc, c) => ({ ...acc, [c.provider]: (acc[c.provider] || 0) + 1 }),
+        {} as Record<string, number>
+      ),
+      byModel: convs.reduce(
+        (acc, c) => ({ ...acc, [c.currentModel]: (acc[c.currentModel] || 0) + 1 }),
+        {} as Record<string, number>
+      ),
     };
   }
 
@@ -300,23 +463,32 @@ export class ConversationStateManager {
     conversation.id = ConversationUtils.generateId();
     conversation.createdAt = new Date();
     conversation.lastModified = new Date();
+
     const result = await saveConversation(conversation as unknown as ChatResource);
+    if (result.changed) {
+      await pushResource(conversation as unknown as ChatResource);
+    }
     this.setState({ conversations: [conversation, ...this.state.conversations], lastUpdated: new Date() });
-    if (result.changed) this.notifyUI();
     return conversation;
   }
 
   async cleanupOldConversations(maxAge: number): Promise<number> {
     const cutoffDate = new Date(Date.now() - maxAge * 24 * 60 * 60 * 1000);
-    const old = this.state.conversations.filter(c => c.lastModified < cutoffDate && c.isArchived);
+    const old = this.state.conversations.filter((c) => c.lastModified < cutoffDate && c.isArchived);
     let count = 0;
     for (const conv of old) {
-      try { await this.deleteConversation(conv.id); count++; } catch {}
+      try {
+        await this.deleteConversation(conv.id);
+        count++;
+      } catch {
+        // best-effort cleanup
+      }
     }
     return count;
   }
 
-  // Internal
+  // ── Internal ──────────────────────────────────────────────────────────────
+
   private async loadConversations(): Promise<void> {
     try {
       this.setState({ isLoading: true, error: null });
@@ -325,8 +497,8 @@ export class ConversationStateManager {
 
       if (this.cacheEnabled) this.conversationCache.clear();
 
-      const conversations = await polyglotDb.listConversations(showArchived) as unknown as Conversation[];
-      if (this.cacheEnabled) conversations.forEach(c => this.conversationCache.set(c.id, c));
+      const conversations = (await polyglotDb.listConversations(showArchived)) as unknown as Conversation[];
+      if (this.cacheEnabled) conversations.forEach((c) => this.conversationCache.set(c.id, c));
 
       this.setState({ conversations, isLoading: false, lastUpdated: new Date() });
     } catch (error) {
@@ -342,12 +514,18 @@ export class ConversationStateManager {
 
   private setState(updates: Partial<ConversationState>): void {
     this.state = { ...this.state, ...updates };
-    this.listeners.forEach(listener => {
-      try { listener(this.state); } catch (e) { console.error('[StateManager] Listener error:', e); }
+    this.listeners.forEach((listener) => {
+      try {
+        listener(this.state);
+      } catch (e) {
+        console.error('[StateManager] Listener error:', e);
+      }
     });
   }
 
   destroy(): void {
+    this.ws?.close();
+    if (this.wsReconnectTimer) clearTimeout(this.wsReconnectTimer);
     this.listeners.clear();
   }
 }
