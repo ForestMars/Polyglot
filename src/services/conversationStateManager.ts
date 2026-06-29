@@ -17,7 +17,7 @@ import { ConversationUtils } from './conversationUtils';
 import { SettingsService } from './settingsService';
 
 // Combine them cleanly here:
-import { syncWithServer, pushResource, ensureSocketRegistered } from './backgroundSync';
+import { syncWithServer, ensureSocketRegistered } from './backgroundSync';
 
 interface ConversationFilters {
   searchQuery: string;
@@ -230,7 +230,7 @@ export class ConversationStateManager {
     }
     this.setState({ currentConversation: conversation, lastUpdated: new Date() });
     return conversation;
-  }
+}
 
   /**
    * Add a message (data plane UPDATE). Invariant 5 enforcement lives in
