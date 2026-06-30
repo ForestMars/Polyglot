@@ -8,7 +8,9 @@
 
 import { openDB, IDBPDatabase } from 'idb';
 import { ChatResource, DeletionRecord, SyncMetadata } from '../types/sync';
+import { CoherenceClock } from './CoherenceClock';
 import { compareLamport } from '../utils/ordering';
+
 
 export interface SyncMetadata {
   key: "sync_state";
@@ -132,6 +134,15 @@ export class PolyglotDatabase {
   // --- Control plane: deletions store ---
 
   async getAllDeletionRecords(): Promise<DeletionRecord[]> {
+    const database = await this.ensureReady();
+    const deletions = await database.getAll("deletions");
+    return (deletions || []) as DeletionRecord[];
+  }
+
+  /* Retrieves all currently tracked local deletion causal horizons.
+   * Utilized during the synchronization boundary execution to flush the outbound control plane.
+   */
+  async listDeletions(): Promise<DeletionRecord[]> {
     const database = await this.ensureReady();
     const deletions = await database.getAll("deletions");
     return (deletions || []) as DeletionRecord[];
