@@ -244,10 +244,19 @@ export async function flushOutboundMutations(): Promise<void> {
       body: JSON.stringify({
         deviceId: clockSnapshot.deviceId,
         clientClock: clockSnapshot,
-        resources: outboundResources,
+        resources: outboundResources.map(r => ({
+          id: r.id,
+          title: r.title,
+          provider: r.provider,
+          currentModel: r.currentModel,
+          isArchived: r.isArchived,
+          messages: r.messages,
+          lastModified: typeof r.lastModified?.toISOString === 'function' ? r.lastModified.toISOString() : new Date(r.lastModified).toISOString(),
+          updatedAtLamport: r.lastMutationLamport ? [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId] : [0, clockSnapshot.deviceId]
+        })),
         deletions: outboundDeletions.map(d => ({
-          chatId: d.id,
-          lamport: [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId]
+          chatId: d.resourceId || d.id,
+          lamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
         })),
       }),
     });
