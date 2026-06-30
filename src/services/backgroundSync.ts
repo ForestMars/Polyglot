@@ -212,3 +212,32 @@ export async function persistClockState(): Promise<void> {
     console.error('[sync] Clock transaction storage persistence failure:', err);
   }
 }
+
+/**
+ * Fast-path outbound pipeline. Pushes local mutations and clocks to the server
+ * immediately to ensure real-time propagation, without triggering an inbound pull
+ * that could clobber hot local state.
+ */
+export async function flushOutboundMutations(): Promise<void> {
+  await initializeSync();
+
+  try {
+    const outboundResources = await polyglotDb.listConversations(true);
+    const outboundDeletions = await polyglotDb.listDeletions();
+    const clockSnapshot = CoherenceClock.getInstance().snapshot();
+
+    // Fire-and-forget push to keep the server up to date
+    await fetch(`${SYNC_URL}/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        deviceId: clockSnapshot.deviceId,
+        clientClock: clockSnapshot,
+        resources: outboundResources,
+        deletions: outboundDeletions,
+      }),
+    });
+  } catch (err) {
+    console.warn('[sync] Safe-path outbound flush delayed:', err);
+  }
+}
