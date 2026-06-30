@@ -56,11 +56,9 @@ export async function initializeSync(): Promise<void> {
 
 /**
  * Single Causal Boundary Entry Point (POST /sync)
- * Merges your points 5 and 10: Flushes all local tracking states and processes
- * all incoming changes inside a unified transaction loop.
+ * Flushes all local tracking states and processes all incoming changes inside a unified transaction loop.
  */
 export async function syncWithServer(): Promise<SyncResult> {
-  // Ensure initialization unconditionally (Point 1)
   await initializeSync();
 
   try {
@@ -71,15 +69,28 @@ export async function syncWithServer(): Promise<SyncResult> {
     const outboundDeletions = await polyglotDb.listDeletions();
     const clockSnapshot = CoherenceClock.getInstance().snapshot();
 
-    // Consolidated protocol boundary push/pull (Point 5 & 10)
+    // Consolidated protocol boundary push/pull
     const response = await fetch(`${SYNC_URL}/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         deviceId: clockSnapshot.deviceId,
         clientClock: clockSnapshot,
-        resources: outboundResources,
-        deletions: outboundDeletions,
+        // Map local format to wire protocol validation layout
+        resources: outboundResources.map(r => ({
+          id: r.id,
+          title: r.title,
+          provider: r.provider,
+          currentModel: r.currentModel,
+          isArchived: r.isArchived,
+          messages: r.messages,
+          lastModified: typeof r.lastModified?.toISOString === 'function' ? r.lastModified.toISOString() : new Date(r.lastModified).toISOString(),
+          updatedAtLamport: r.lastMutationLamport ? [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId] : [0, clockSnapshot.deviceId]
+        })),
+        deletions: outboundDeletions.map(d => ({
+          chatId: d.resourceId || d.id, 
+          lamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
+        })),
       }),
     });
 
@@ -91,7 +102,7 @@ export async function syncWithServer(): Promise<SyncResult> {
     const incomingResources: ChatResource[] = [];
     const incomingDeletions: DeletionRecord[] = [];
 
-    // Fault-isolated payload parsing (Point 4)
+    // Fault-isolated payload parsing
     for (const c of data.chats || []) {
       try {
         incomingResources.push({
@@ -112,6 +123,7 @@ export async function syncWithServer(): Promise<SyncResult> {
     for (const d of data.deletions || []) {
       try {
         incomingDeletions.push({
+          id: d.chatId,
           resourceId: d.chatId,
           deletedAtLamport: parseServerClockTuple(d.lamport, d.chatId),
         });
@@ -155,7 +167,7 @@ export async function syncWithServer(): Promise<SyncResult> {
 }
 
 /**
- * Channel WebSocket traffic directly through the ReconciliationEngine (Point 6).
+ * Channel WebSocket traffic directly through the ReconciliationEngine.
  */
 export function ensureSocketRegistered(ws: WebSocket, onSyncComplete: () => Promise<void>): void {
   if (registeredSockets.has(ws)) return;
@@ -177,7 +189,7 @@ export function ensureSocketRegistered(ws: WebSocket, onSyncComplete: () => Prom
           lastMutationLamport: parseServerClockTuple(payload.clock, payload.id),
         };
 
-        // Funnel cleanly into standard reconciliation pipeline (Point 6)
+        // Funnel cleanly into standard reconciliation pipeline
         const { resourcesApplied } = await reconciliationEngine.reconcileBoundary(
           [singleResource],
           []
@@ -226,7 +238,6 @@ export async function flushOutboundMutations(): Promise<void> {
     const outboundDeletions = await polyglotDb.listDeletions();
     const clockSnapshot = CoherenceClock.getInstance().snapshot();
 
-    // Fire-and-forget push to keep the server up to date
     await fetch(`${SYNC_URL}/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -234,7 +245,10 @@ export async function flushOutboundMutations(): Promise<void> {
         deviceId: clockSnapshot.deviceId,
         clientClock: clockSnapshot,
         resources: outboundResources,
-        deletions: outboundDeletions,
+        deletions: outboundDeletions.map(d => ({
+          chatId: d.id,
+          lamport: [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId]
+        })),
       }),
     });
   } catch (err) {
