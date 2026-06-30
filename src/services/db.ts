@@ -10,6 +10,14 @@ import { openDB, IDBPDatabase } from 'idb';
 import { ChatResource, DeletionRecord, SyncMetadata } from '../types/sync';
 import { compareLamport } from '../utils/ordering';
 
+export interface SyncMetadata {
+  key: "sync_state";
+  deviceId: string;
+  localCounter: number;
+  observedCounter: number;
+  lastSyncAt: string;
+}
+
 export class PolyglotDatabase {
   private db: IDBPDatabase | null = null;
   private initPromise: Promise<IDBPDatabase> | null = null;
