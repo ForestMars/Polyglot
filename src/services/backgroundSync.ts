@@ -105,7 +105,7 @@ export async function syncWithServer(): Promise<SyncResult> {
     const incomingDeletions: DeletionRecord[] = [];
 
     // Fault-isolated payload parsing
-    for (const c of data.chats || []) {
+    for (const c of data.missing || []) {
       try {
         incomingResources.push({
           id: c.id,
