@@ -10,9 +10,13 @@ const reconciliationEngine = new ReconciliationEngine(polyglotDb);
 let initPromise: Promise<void> | null = null;
 const registeredSockets = new WeakSet<WebSocket>();
 
+// ==========================================
+// Protocol Protocol Mappers & Parsers
+// ==========================================
+
 function parseServerClockTuple(rawTuple: any, resourceId: string): ClockTuple {
-  if (Array.isArray(rawTuple) && typeof rawTuple[0] === 'number' && typeof rawTuple[1] === 'string') {
-    return { lamport: rawTuple[0], deviceId: rawTuple[1] };
+  if (Array.isArray(rawTuple) && rawTuple.length >= 2) {
+    return { lamport: Number(rawTuple[0]) || 0, deviceId: String(rawTuple[1]) };
   }
   if (rawTuple && typeof rawTuple.lamport === 'number' && typeof rawTuple.deviceId === 'string') {
     return { lamport: rawTuple.lamport, deviceId: rawTuple.deviceId };
@@ -21,6 +25,31 @@ function parseServerClockTuple(rawTuple: any, resourceId: string): ClockTuple {
     `[Protocol Violation] Resource '${resourceId}' arrived with missing or malformed clock tuple metadata.`
   );
 }
+
+function mapToWire(outboundResources: any[], outboundDeletions: any[], clockSnapshot: ClockSnapshot) {
+  return {
+    deviceId: clockSnapshot.deviceId,
+    clientClock: clockSnapshot,
+    chats: outboundResources.map(r => ({
+      id: r.id,
+      title: r.title,
+      provider: r.provider,
+      currentModel: r.currentModel,
+      isArchived: r.isArchived,
+      messages: r.messages,
+      lastModified: typeof r.lastModified?.toISOString === 'function' ? r.lastModified.toISOString() : new Date(r.lastModified).toISOString(),
+      updatedAtLamport: r.lastMutationLamport ? [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId] : [0, clockSnapshot.deviceId]
+    })),
+    deletions: outboundDeletions.map(d => ({
+      id: d.resourceId || d.id, 
+      lamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
+    })),
+  };
+}
+
+// ==========================================
+// Core Sync Implementations
+// ==========================================
 
 export async function initializeSync(): Promise<void> {
   if (initPromise) return initPromise;
@@ -54,49 +83,24 @@ export async function initializeSync(): Promise<void> {
   return initPromise;
 }
 
-/**
- * Single Causal Boundary Entry Point (POST /sync)
- * Flushes all local tracking states and processes all incoming changes inside a unified transaction loop.
- */
 export async function syncWithServer(): Promise<SyncResult> {
   await initializeSync();
 
   try {
     console.log('[sync] Executing unified synchronization boundary pass...');
 
-    // Gather outbound state payloads
     const outboundResources = await polyglotDb.listConversations(true); 
     const outboundDeletions = await polyglotDb.listDeletions();
     const clockSnapshot = CoherenceClock.getInstance().snapshot();
 
-    // Consolidated protocol boundary push/pull
     const response = await fetch(`${SYNC_URL}/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        deviceId: clockSnapshot.deviceId,
-        clientClock: clockSnapshot,
-        // Map local format to wire protocol validation layout
-        chats: outboundResources.map(r => ({
-          id: r.id,
-          title: r.title,
-          provider: r.provider,
-          currentModel: r.currentModel,
-          isArchived: r.isArchived,
-          messages: r.messages,
-          lastModified: typeof r.lastModified?.toISOString === 'function' ? r.lastModified.toISOString() : new Date(r.lastModified).toISOString(),
-          updatedAtLamport: r.lastMutationLamport ? [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId] : [0, clockSnapshot.deviceId]
-        })),
-        deletions: outboundDeletions.map(d => ({
-          id: d.resourceId || d.id, 
-          lamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
-        })),
-      }),
+      body: JSON.stringify(mapToWire(outboundResources, outboundDeletions, clockSnapshot)),
     });
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '(no body)');
-      console.error('[sync] 400 response body:', errorBody);
       throw new Error(`Server sync endpoint rejected transaction with status ${response.status}: ${errorBody}`);
     }
 
@@ -104,7 +108,6 @@ export async function syncWithServer(): Promise<SyncResult> {
     const incomingResources: ChatResource[] = [];
     const incomingDeletions: DeletionRecord[] = [];
 
-    // Fault-isolated payload parsing
     for (const c of data.missing || []) {
       try {
         incomingResources.push({
@@ -124,23 +127,25 @@ export async function syncWithServer(): Promise<SyncResult> {
 
     for (const d of data.deletions || []) {
       try {
+        // Safe fallbacks to handle both 'chatId' and 'id' payloads from the backend
+        const deletionId = d.chatId || d.id; 
+        if (!deletionId) throw new Error("Deletion entry contains no valid identifier field ('chatId' or 'id')");
+
         incomingDeletions.push({
-          id: d.chatId,
-          resourceId: d.chatId,
-          deletedAtLamport: parseServerClockTuple(d.lamport, d.chatId),
+          id: deletionId,
+          resourceId: deletionId,
+          deletedAtLamport: parseServerClockTuple(d.lamport || d.updatedAtLamport, deletionId),
         });
       } catch (err) {
-        console.error(`[sync] Skipping malformed deletion control entry [ID: ${d?.chatId}]:`, err);
+        console.error(`[sync] Skipping malformed deletion control entry:`, err);
       }
     }
 
-    // Converge via Protocol Engine
     const { resourcesApplied, deletionsApplied } = await reconciliationEngine.reconcileBoundary(
       incomingResources,
       incomingDeletions
     );
 
-    // Save operational tracking states safely
     const meta = await polyglotDb.getSyncMetadata();
     if (meta) {
       await polyglotDb.saveSyncMetadata({
@@ -168,18 +173,14 @@ export async function syncWithServer(): Promise<SyncResult> {
   }
 }
 
-/**
- * Channel WebSocket traffic directly through the ReconciliationEngine.
- */
 export function ensureSocketRegistered(ws: WebSocket, onSyncComplete: () => Promise<void>): void {
   if (registeredSockets.has(ws)) return;
 
   ws.addEventListener('message', async (event) => {
     try {
       const payload = JSON.parse(event.data);
-      if (payload && payload.id && payload.clock) {
+      if (payload && payload.id && (payload.clock || payload.updatedAtLamport)) {
         
-        // Map to standard data plane entity safely
         const singleResource: ChatResource = {
           id: payload.id,
           title: payload.title || 'Untitled Chat',
@@ -188,15 +189,10 @@ export function ensureSocketRegistered(ws: WebSocket, onSyncComplete: () => Prom
           isArchived: !!payload.isArchived,
           messages: payload.messages || [],
           lastModified: new Date(payload.lastModified || Date.now()),
-          lastMutationLamport: parseServerClockTuple(payload.clock, payload.id),
+          lastMutationLamport: parseServerClockTuple(payload.clock || payload.updatedAtLamport, payload.id),
         };
 
-        // Funnel cleanly into standard reconciliation pipeline
-        const { resourcesApplied } = await reconciliationEngine.reconcileBoundary(
-          [singleResource],
-          []
-        );
-
+        const { resourcesApplied } = await reconciliationEngine.reconcileBoundary([singleResource], []);
         await persistClockState();
 
         if (resourcesApplied > 0) {
@@ -227,11 +223,6 @@ export async function persistClockState(): Promise<void> {
   }
 }
 
-/**
- * Fast-path outbound pipeline. Pushes local mutations and clocks to the server
- * immediately to ensure real-time propagation, without triggering an inbound pull
- * that could clobber hot local state.
- */
 export async function flushOutboundMutations(): Promise<void> {
   await initializeSync();
 
@@ -243,24 +234,7 @@ export async function flushOutboundMutations(): Promise<void> {
     await fetch(`${SYNC_URL}/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        deviceId: clockSnapshot.deviceId,
-        clientClock: clockSnapshot,
-        chats: outboundResources.map(r => ({
-          id: r.id,
-          title: r.title,
-          provider: r.provider,
-          currentModel: r.currentModel,
-          isArchived: r.isArchived,
-          messages: r.messages,
-          lastModified: typeof r.lastModified?.toISOString === 'function' ? r.lastModified.toISOString() : new Date(r.lastModified).toISOString(),
-          updatedAtLamport: r.lastMutationLamport ? [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId] : [0, clockSnapshot.deviceId]
-        })),
-        deletions: outboundDeletions.map(d => ({
-          chatId: d.resourceId || d.id,
-          lamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
-        })),
-      }),
+      body: JSON.stringify(mapToWire(outboundResources, outboundDeletions, clockSnapshot)),
     });
   } catch (err) {
     console.warn('[sync] Safe-path outbound flush delayed:', err);
