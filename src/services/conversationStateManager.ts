@@ -172,7 +172,7 @@ export class ConversationStateManager {
 
   /**
    * Crosses a synchronization boundary by delegating entirely to
-   * backgroundSync.syncWithServer(), which delegates to
+   * backgroundSync.syncWithServer(), which delegates to // NB THIS IS DEPRECATED
    * ReconciliationEngine.reconcileBoundary(). This file does not implement
    * Case 1/2/3 itself — there is exactly one implementation of the
    * reconciliation algorithm in this codebase.
@@ -318,7 +318,9 @@ export class ConversationStateManager {
       return conversation;
     }
 
-    await pushResource(updated as unknown as ChatResource);
+    // await pushResource(updated as unknown as ChatResource); // deprecated, can lead to race condition
+    await flushOutboundMutations();
+
     if (this.cacheEnabled) this.conversationCache.set(conversationId, updated);
 
     if (this.state.currentConversation?.id === conversationId) {
