@@ -24,7 +24,7 @@ const PORT = process.env.CHAT_SYNC_PORT || 4001;
 const sockets = new Set();
 
 function broadcast(chat) {
-  const payload = JSON.stringify({ id: chat.id, clock: chat.updatedAtLamport, ...chat });
+  const payload = JSON.stringify({ id: chat.id, updatedAtLamport: chat.updatedAtLamport, ...chat });
   for (const ws of sockets) {
     if (ws.readyState === ws.OPEN) ws.send(payload);
   }
@@ -87,7 +87,8 @@ function reconcile(clientChats, clientDeletionRecords) {
 
   /* Chats the client has live that the server has marked deleted:
    * already handled in addOrUpdateChats (discarded unless causal dominance).
-  */ We need to tell the client about server-side deletions it hasn't seen.
+   * We need to tell the client about server-side deletions it hasn't seen.
+   */
   const deletionsForClient = serverAll
     .filter(c => c.is_deleted && !clientDeletedIds.has(c.id))
     .map(c => ({ id: c.id, deletedAtLamport: c.deletedAtLamport }));
@@ -96,7 +97,10 @@ function reconcile(clientChats, clientDeletionRecords) {
   // live nor a deletion record for them — topologically unknown resource case).
   const missingForClient = serverAll.filter(
     c => !c.is_deleted && !clientLiveIds.has(c.id) && !clientDeletedIds.has(c.id)
-  );
+  ).map(c => ({
+    ...c,
+    updatedAtLamport: c.updatedAtLamport ?? c.clock ?? [0, "server"]
+    }));
 
   // Deletion records the client sent that the server doesn't have yet.
   // Apply them now (control plane delete on behalf of client).
