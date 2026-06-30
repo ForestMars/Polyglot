@@ -133,29 +133,24 @@ export class ConversationStateManager {
    * left untouched and, for the unknown case, signals a boundary instead.
    */
   private async handleBroadcast(broadcast: ChatResource): Promise<void> {
-    CoherenceClock.getInstance().observe(broadcast.clock);
+    CoherenceClock.getInstance().observe(broadcast.lastMutationLamport);
 
     const localRes = await polyglotDb.getResource(broadcast.id);
     const localDel = await polyglotDb.getDeletionRecord(broadcast.id);
 
     if (!localRes && !localDel) {
-      // Invariant 6: no local record of any kind — signal boundary
-      // available rather than originating the resource from a data
-      // plane event.
       this.signalBoundaryAvailable();
       return;
     }
 
     if (localDel) {
-      // Invariant 5: locally deleted — discard broadcast unconditionally.
       return;
     }
 
-    if (localRes && broadcast.clock.lamport > localRes.clock.lamport) {
+    if (localRes && broadcast.lastMutationLamport.lamport > localRes.lastMutationLamport.lamport) {
       await polyglotDb.saveResource(broadcast);
       await this.loadConversations();
     }
-  }
 
   /**
    * Signal that a synchronization boundary is available (Invariant 6).
