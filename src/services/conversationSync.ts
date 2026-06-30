@@ -1,4 +1,4 @@
-// src/services/conversationSync.ts
+// src/services/conversationSync.ts (main version)
 //
 // Coordinator: single call site for any operation that touches both local
 // storage and the sync layer. Replaces the direct fetch calls that were
