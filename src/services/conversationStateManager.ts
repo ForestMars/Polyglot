@@ -225,7 +225,7 @@ export class ConversationStateManager {
     const conversation = ConversationUtils.createConversation(provider, model);
     const result = await saveConversation(conversation as unknown as ChatResource);
     if (result.changed) {
-      await pushResource(conversation as unknown as ChatResource);
+      await syncWithServer();
       await this.loadConversations();
     }
     this.setState({ currentConversation: conversation, lastUpdated: new Date() });
@@ -261,7 +261,7 @@ export class ConversationStateManager {
       return;
     }
 
-    await pushResource(updated as unknown as ChatResource);
+    await syncWithServer();
 
     if (this.cacheEnabled) this.conversationCache.set(updated.id, updated);
 
@@ -294,7 +294,7 @@ export class ConversationStateManager {
       return;
     }
 
-    await pushResource(updated as unknown as ChatResource);
+    await syncWithServer();
     if (this.cacheEnabled) this.conversationCache.set(updated.id, updated);
 
     this.setState({
@@ -343,7 +343,7 @@ export class ConversationStateManager {
       return;
     }
 
-    await pushResource(updated as unknown as ChatResource);
+    await syncWithServer();
     if (this.cacheEnabled) this.conversationCache.set(conversationId, updated);
 
     const updatedConversations = this.state.conversations.map((c) =>
@@ -464,7 +464,7 @@ export class ConversationStateManager {
 
     const result = await saveConversation(conversation as unknown as ChatResource);
     if (result.changed) {
-      await pushResource(conversation as unknown as ChatResource);
+      await syncWithServer();
     }
     this.setState({ conversations: [conversation, ...this.state.conversations], lastUpdated: new Date() });
     return conversation;
