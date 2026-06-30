@@ -1,213 +1,152 @@
 // src/services/backgroundSync.ts
-import { ChatResource, DeletionRecord, SyncResult } from '../types/sync';
-import { CoherenceClock } from './CoherenceClock';
-import { polyglotDb } from './db';
+import { ChatResource, DeletionRecord, SyncResult, ClockTuple } from '../types/sync';
+import { CoherenceClock, ClockSnapshot } from './CoherenceClock';
+import { polyglotDb, SyncMetadata } from './db';
 import { ReconciliationEngine } from './ReconciliationEngine';
 
 const SYNC_URL = 'http://localhost:4001';
 const reconciliationEngine = new ReconciliationEngine(polyglotDb);
 
 let initPromise: Promise<void> | null = null;
-
-// Tracks registered socket instances across network drops and reconnections.
-// WeakSet allows old, disconnected socket objects to be garbage collected.
 const registeredSockets = new WeakSet<WebSocket>();
 
-/**
- * Idempotent setup: device identity assignment, metadata persistence, and
- * CoherenceClock initialization as a single atomic unit.
- *
- * This must be one guarded block, not three separately-guarded steps.
- * CoherenceClock.initialize() is already idempotent on its own
- * (`if (!CoherenceClock.instance)`), but that guard only protects the
- * clock singleton itself — it does nothing for the read-or-create-metadata
- * sequence that runs before it. Two concurrent callers can both observe
- * `meta === null`, both generate a different random deviceId, and both
- * call saveSyncMetadata. Whichever write wins, every caller that already
- * passed the `!meta` check is holding the *other* deviceId in its local
- * variable, and will pass that losing identity into CoherenceClock.initialize()
- * regardless of what's now persisted. The first caller to reach
- * CoherenceClock.initialize() wins the singleton (by its own internal guard),
- * but there's no guarantee the winning identity is the one that's persisted —
- * so storage and memory can disagree about this device's own deviceId,
- * silently, with no error raised anywhere.
- *
- * Memoizing the promise across the whole sequence is what prevents two
- * callers from ever both passing the `!meta` check in the first place.
- */
-export function initializeSync(): Promise<void> {
+function parseServerClockTuple(rawTuple: any, resourceId: string): ClockTuple {
+  if (Array.isArray(rawTuple) && typeof rawTuple[0] === 'number' && typeof rawTuple[1] === 'string') {
+    return { lamport: rawTuple[0], deviceId: rawTuple[1] };
+  }
+  if (rawTuple && typeof rawTuple.lamport === 'number' && typeof rawTuple.deviceId === 'string') {
+    return { lamport: rawTuple.lamport, deviceId: rawTuple.deviceId };
+  }
+  throw new TypeError(
+    `[Protocol Violation] Resource '${resourceId}' arrived with missing or malformed clock tuple metadata.`
+  );
+}
+
+export async function initializeSync(): Promise<void> {
   if (initPromise) return initPromise;
 
   initPromise = (async () => {
-    await polyglotDb.init();
-    let meta = await polyglotDb.getSyncMetadata();
-    if (!meta) {
-      const deviceId = `device_${
-        typeof crypto !== 'undefined' && crypto.randomUUID
-          ? crypto.randomUUID()
-          : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
-      }`;
-      meta = { key: 'sync_state', deviceId, lamportCounter: 0, lastSyncAt: null };
-      await polyglotDb.saveSyncMetadata(meta);
+    try {
+      await polyglotDb.init();
+      let meta = await polyglotDb.getSyncMetadata();
+
+      if (!meta) {
+        const generatedId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+        meta = {
+          key: 'sync_state',
+          deviceId: generatedId,
+          localCounter: 0,
+          observedCounter: 0,
+          lastSyncAt: new Date(0).toISOString(),
+        };
+        await polyglotDb.saveSyncMetadata(meta);
+      }
+
+      await CoherenceClock.initialize(meta.deviceId, meta.localCounter, meta.observedCounter);
+      console.log(`[sync] Protocol Core initialized. Identity: ${meta.deviceId}`);
+    } catch (error) {
+      initPromise = null;
+      console.error('[sync] Critical initialization failure:', error);
+      throw error;
     }
-    await CoherenceClock.initialize(meta.deviceId, meta.lamportCounter ?? 0);
-    console.log(`[sync] Initialized. Device: ${meta.deviceId}, clock: ${meta.lamportCounter}`);
   })();
 
   return initPromise;
 }
 
-async function persistClockState(): Promise<void> {
-  const clock = CoherenceClock.getInstance();
-  const meta = await polyglotDb.getSyncMetadata();
-  if (meta) {
-    await polyglotDb.saveSyncMetadata({ ...meta, lamportCounter: clock.getCounter() });
-  }
-}
-
-// ── Socket Control Plane Gateway ───────────────────────────────────────────
-
 /**
- * Ensures the background sync event listeners are attached exactly once
- * per WebSocket instance. 
- *
- * This runs independently of the initPromise guard so that when a socket drops 
- * and a new instance is created by the connection manager, it can cleanly bind 
- * its listeners without permanently locking out future reconnections.
- *
- * @param socket The current WebSocket instance generated by the connection manager.
- * @param onMessageReceived Callback bridging verified data plane updates back to the UI orchestrator.
- */
-export function ensureSocketRegistered(
-  socket: WebSocket, 
-  onMessageReceived: (data: ChatResource) => Promise<void>
-): void {
-  if (registeredSockets.has(socket)) return;
-  registeredSockets.add(socket);
-
-  socket.onmessage = async (event) => {
-    try {
-      // Gate message processing behind initialization completion.
-      // Early messages will safely stall here until the device identity and clock are ready.
-      await initializeSync();
-
-      const msg = JSON.parse(event.data as string);
-      if (msg.type === 'conversationUpdated') {
-        await onMessageReceived(msg.data as ChatResource);
-        
-        // Persist the newly bumped Lamport value if handleBroadcast mutated it
-        await persistClockState();
-      }
-    } catch (err) {
-      console.warn('[sync] WS message parse or execution error:', err);
-    }
-  };
-}
-
-// ── Outbound Sync Operations ───────────────────────────────────────────────
-
-/**
- * Pushes a locally mutated resource out to the server data plane.
- * * @remarks
- * Data plane methods must return SyncResult structures to meet orchestration expectations.
- */
-export async function pushResource(resource: ChatResource): Promise<SyncResult> {
-  const tau = CoherenceClock.getInstance().tick();
-  const stamped = {
-    ...resource,
-    lastMutationLamport: tau,
-    updatedAtLamport: [tau.lamport, tau.deviceId],
-  };
-  try {
-    const response = await fetch(`${SYNC_URL}/pushChats`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chats: [stamped] }),
-    });
-    await persistClockState();
-    return {
-      success: response.ok,
-      syncedCount: response.ok ? 1 : 0,
-      deletedCount: 0,
-      changed: response.ok,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      syncedCount: 0,
-      deletedCount: 0,
-      changed: false,
-      error: error instanceof Error ? error.message : 'Fetch failed',
-    };
-  }
-}
-
-// ── Inbound Boundary Reconciliation ────────────────────────────────────────
-
-export interface SyncResult {
-  success: boolean;
-  changed: boolean;
-  syncedCount: number;
-  deletedCount: number;
-  error?: string;
-}
-
-/**
- * Crosses the synchronization boundary by pulling server control plane state
- * and running the full reconciliation algorithm.
+ * Single Causal Boundary Entry Point (POST /sync)
+ * Flushes all local tracking states and processes all incoming changes inside a unified transaction loop.
  */
 export async function syncWithServer(): Promise<SyncResult> {
-  try {
-    const localResources = await polyglotDb.getAllResources();
-    const localDeletions = await polyglotDb.getAllDeletionRecords();
+  await initializeSync();
 
+  try {
+    console.log('[sync] Executing unified synchronization boundary pass...');
+
+    // Gather outbound state payloads
+    const outboundResources = await polyglotDb.listConversations(true); 
+    const outboundDeletions = await polyglotDb.listDeletions();
+    const clockSnapshot = CoherenceClock.getInstance().snapshot();
+
+    // Consolidated protocol boundary push/pull
     const response = await fetch(`${SYNC_URL}/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chats: localResources.map(r => ({
-          ...r,
-          updatedAtLamport: [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId],
+        deviceId: clockSnapshot.deviceId,
+        clientClock: clockSnapshot,
+        // Map local format to wire protocol validation layout
+        chats: outboundResources.map(r => ({
+          id: r.id,
+          title: r.title,
+          provider: r.provider,
+          currentModel: r.currentModel,
+          isArchived: r.isArchived,
+          messages: r.messages,
+          lastModified: typeof r.lastModified?.toISOString === 'function' ? r.lastModified.toISOString() : new Date(r.lastModified).toISOString(),
+          updatedAtLamport: r.lastMutationLamport ? [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId] : [0, clockSnapshot.deviceId]
         })),
-        deletionRecords: localDeletions.map(d => ({
-          id: d.resourceId,
-          deletedAtLamport: [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId],
+        deletions: outboundDeletions.map(d => ({
+          id: d.resourceId || d.id, 
+          lamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
         })),
       }),
     });
 
-    if (!response.ok) throw new Error(`Server sync failed: ${response.status}`);
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => '(no body)');
+      console.error('[sync] 400 response body:', errorBody);
+      throw new Error(`Server sync endpoint rejected transaction with status ${response.status}: ${errorBody}`);
+    }
 
-    const { missing, deletions } = await response.json();
+    const data = await response.json();
+    const incomingResources: ChatResource[] = [];
+    const incomingDeletions: DeletionRecord[] = [];
 
-    const incomingResources: ChatResource[] = (missing || []).map((c: any) => ({
-      ...c,
-      createdAt: new Date(c.createdAt),
-      updatedAt: new Date(c.updatedAt),
-      lastModified: new Date(c.lastModified || c.updatedAt),
-      messages: (c.messages || []).map((m: any) => ({
-        ...m,
-        timestamp: new Date(m.timestamp),
-      })),
-      lastMutationLamport: c.updatedAtLamport
-        ? { lamport: c.updatedAtLamport[0], deviceId: c.updatedAtLamport[1] }
-        : { lamport: 0, deviceId: 'server' },
-    }));
+    // Fault-isolated payload parsing
+    for (const c of data.missing || []) {
+      try {
+        incomingResources.push({
+          id: c.id,
+          title: c.title,
+          provider: c.provider,
+          currentModel: c.currentModel,
+          isArchived: !!c.isArchived,
+          messages: c.messages || [],
+          lastModified: new Date(c.lastModified || Date.now()),
+          lastMutationLamport: parseServerClockTuple(c.updatedAtLamport, c.id),
+        });
+      } catch (err) {
+        console.error(`[sync] Skipping malformed resource entity [ID: ${c?.id}]:`, err);
+      }
+    }
 
-    const incomingDeletions: DeletionRecord[] = (deletions || []).map((d: any) => ({
-      resourceId: d.id,
-      deletedAtLamport: {
-        lamport: d.deletedAtLamport[0],
-        deviceId: d.deletedAtLamport[1],
-      },
-    }));
+    for (const d of data.deletions || []) {
+      try {
+        incomingDeletions.push({
+          id: d.chatId,
+          resourceId: d.chatId,
+          deletedAtLamport: parseServerClockTuple(d.lamport, d.chatId),
+        });
+      } catch (err) {
+        console.error(`[sync] Skipping malformed deletion control entry [ID: ${d?.chatId}]:`, err);
+      }
+    }
 
-    const { resourcesApplied, deletionsApplied } =
-      await reconciliationEngine.reconcileBoundary(incomingResources, incomingDeletions);
+    // Converge via Protocol Engine
+    const { resourcesApplied, deletionsApplied } = await reconciliationEngine.reconcileBoundary(
+      incomingResources,
+      incomingDeletions
+    );
 
+    // Save operational tracking states safely
     const meta = await polyglotDb.getSyncMetadata();
     if (meta) {
-      await polyglotDb.saveSyncMetadata({ ...meta, lastSyncAt: new Date().toISOString() });
+      await polyglotDb.saveSyncMetadata({
+        ...meta,
+        lastSyncAt: new Date().toISOString(),
+      });
     }
     await persistClockState();
 
@@ -218,49 +157,112 @@ export async function syncWithServer(): Promise<SyncResult> {
       changed: resourcesApplied > 0 || deletionsApplied > 0,
     };
   } catch (error) {
-    console.error('[sync] syncWithServer failed:', error);
+    console.error('[sync] Synchronization cycle failed:', error);
     return {
       success: false,
       syncedCount: 0,
       deletedCount: 0,
       changed: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : 'Unknown exception',
     };
   }
 }
 
+/**
+ * Channel WebSocket traffic directly through the ReconciliationEngine.
+ */
+export function ensureSocketRegistered(ws: WebSocket, onSyncComplete: () => Promise<void>): void {
+  if (registeredSockets.has(ws)) return;
 
+  ws.addEventListener('message', async (event) => {
+    try {
+      const payload = JSON.parse(event.data);
+      if (payload && payload.id && payload.clock) {
+        
+        // Map to standard data plane entity safely
+        const singleResource: ChatResource = {
+          id: payload.id,
+          title: payload.title || 'Untitled Chat',
+          provider: payload.provider || 'unknown',
+          currentModel: payload.currentModel || 'unknown',
+          isArchived: !!payload.isArchived,
+          messages: payload.messages || [],
+          lastModified: new Date(payload.lastModified || Date.now()),
+          lastMutationLamport: parseServerClockTuple(payload.clock, payload.id),
+        };
 
-export async function pushDeletion(record: DeletionRecord): Promise<SyncResult> {
+        // Funnel cleanly into standard reconciliation pipeline
+        const { resourcesApplied } = await reconciliationEngine.reconcileBoundary(
+          [singleResource],
+          []
+        );
+
+        await persistClockState();
+
+        if (resourcesApplied > 0) {
+          await onSyncComplete();
+        }
+      }
+    } catch (err) {
+      console.warn('[sync] Real-time data path filtering encountered parsing error:', err);
+    }
+  });
+
+  registeredSockets.add(ws);
+}
+
+export async function persistClockState(): Promise<void> {
   try {
-    const response = await fetch(`${SYNC_URL}/deleteChat`, {
+    const snapshot = CoherenceClock.getInstance().snapshot();
+    const meta = await polyglotDb.getSyncMetadata();
+    if (meta) {
+      await polyglotDb.saveSyncMetadata({
+        ...meta,
+        localCounter: snapshot.localCounter,
+        observedCounter: snapshot.observedCounter,
+      });
+    }
+  } catch (err) {
+    console.error('[sync] Clock transaction storage persistence failure:', err);
+  }
+}
+
+/**
+ * Fast-path outbound pipeline. Pushes local mutations and clocks to the server
+ * immediately to ensure real-time propagation, without triggering an inbound pull
+ * that could clobber hot local state.
+ */
+export async function flushOutboundMutations(): Promise<void> {
+  await initializeSync();
+
+  try {
+    const outboundResources = await polyglotDb.listConversations(true);
+    const outboundDeletions = await polyglotDb.listDeletions();
+    const clockSnapshot = CoherenceClock.getInstance().snapshot();
+
+    await fetch(`${SYNC_URL}/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chatId: record.resourceId,
-        lamport: [record.deletedAtLamport.lamport, record.deletedAtLamport.deviceId],
+        deviceId: clockSnapshot.deviceId,
+        clientClock: clockSnapshot,
+        chats: outboundResources.map(r => ({
+          id: r.id,
+          title: r.title,
+          provider: r.provider,
+          currentModel: r.currentModel,
+          isArchived: r.isArchived,
+          messages: r.messages,
+          lastModified: typeof r.lastModified?.toISOString === 'function' ? r.lastModified.toISOString() : new Date(r.lastModified).toISOString(),
+          updatedAtLamport: r.lastMutationLamport ? [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId] : [0, clockSnapshot.deviceId]
+        })),
+        deletions: outboundDeletions.map(d => ({
+          chatId: d.resourceId || d.id,
+          lamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
+        })),
       }),
     });
-    return {
-      success: response.ok,
-      syncedCount: 0,
-      deletedCount: response.ok ? 1 : 0,
-      changed: response.ok,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      syncedCount: 0,
-      deletedCount: 0,
-      changed: false,
-      error: error instanceof Error ? error.message : 'Fetch failed',
-    };
+  } catch (err) {
+    console.warn('[sync] Safe-path outbound flush delayed:', err);
   }
 }
-
-// Namespace export mirror to capture object-destructuring imports
-export const backgroundSync = {
-  syncWithServer,
-  pushResource,
-  pushDeletion,
-};

@@ -8,7 +8,17 @@
 
 import { openDB, IDBPDatabase } from 'idb';
 import { ChatResource, DeletionRecord, SyncMetadata } from '../types/sync';
+import { CoherenceClock } from './CoherenceClock';
 import { compareLamport } from '../utils/ordering';
+
+
+export interface SyncMetadata {
+  key: "sync_state";
+  deviceId: string;
+  localCounter: number;
+  observedCounter: number;
+  lastSyncAt: string;
+}
 
 export class PolyglotDatabase {
   private db: IDBPDatabase | null = null;
@@ -82,8 +92,8 @@ export class PolyglotDatabase {
     return resources
       .filter(c => showArchived || !c.isArchived)
       .sort((a, b) => {
-        if (a.clock && b.clock) {
-          return compareLamport(b.clock, a.clock);
+        if (a.lastMutationLamport && b.lastMutationLamport) {
+          return compareLamport(b.lastMutationLamport, a.lastMutationLamport);
         }
         return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
       });
@@ -91,8 +101,20 @@ export class PolyglotDatabase {
 
   async saveResource(resource: ChatResource): Promise<void> {
     const database = await this.ensureReady();
-    await database.put("chats", resource);
+    const tx = database.transaction(["chats", "metadata"], "readwrite");
+    
+    // 1. Save the resource content
+    await tx.objectStore("chats").put(resource);
+    
+    // 2. Co-commit the clock metadata inside the same atomic transaction
+    const clock = CoherenceClock.getInstance();
+    const meta = (await tx.objectStore("metadata").get("sync_state")) || { key: "sync_state", deviceId: clock.getDeviceId() };
+    meta.lastLamport = Math.max(meta.lastLamport || 0, clock.currentLocal().lamport);
+    await tx.objectStore("metadata").put(meta);
+    
+    await tx.done;
   }
+
 
   /**
    * Removes a resource from the data plane store and writes its deletion
@@ -112,6 +134,15 @@ export class PolyglotDatabase {
   // --- Control plane: deletions store ---
 
   async getAllDeletionRecords(): Promise<DeletionRecord[]> {
+    const database = await this.ensureReady();
+    const deletions = await database.getAll("deletions");
+    return (deletions || []) as DeletionRecord[];
+  }
+
+  /* Retrieves all currently tracked local deletion causal horizons.
+   * Utilized during the synchronization boundary execution to flush the outbound control plane.
+   */
+  async listDeletions(): Promise<DeletionRecord[]> {
     const database = await this.ensureReady();
     const deletions = await database.getAll("deletions");
     return (deletions || []) as DeletionRecord[];

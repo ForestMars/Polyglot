@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { useEffect } from 'react';
-import { initializeSync, backgroundSync } from './services/backgroundSync';
+import { initializeSync, syncWithServer } from './services/backgroundSync';
 import { mcpService } from './services/mcpService';
 
 const queryClient = new QueryClient();
@@ -51,7 +51,7 @@ const App = () => {
 
         // Task C: Background sync execution
         try {
-          const result = await backgroundSync.syncWithServer(); // Explicit execution route
+          const result = await syncWithServer(); // Explicit execution route
           console.log('[startup] Sync complete:', result);
           if (result.changed) {
             window.dispatchEvent(new Event('conversations-updated'));

@@ -1,0 +1,144 @@
+async createConversation(provider: string, model: string): Promise<Conversation> {
+    const conversation = ConversationUtils.createConversation(provider, model);
+    const result = await saveConversation(conversation as unknown as ChatResource);
+    if (result.changed) {
+      // Swapped pushResource for the unified causal boundary sync pass
+      await syncWithServer();
+      await this.loadConversations();
+    }
+    this.setState({ currentConversation: conversation, lastUpdated: new Date() });
+    return conversation;
+  }
+
+  async addMessage(message: Message): Promise<void> {
+    if (!this.state.currentConversation) throw new Error('No active conversation');
+
+    if (message.isPrivate) {
+      this.setState({ lastUpdated: new Date() });
+      return;
+    }
+
+    const current = JSON.parse(JSON.stringify(this.state.currentConversation)) as Conversation;
+    const updated = ConversationUtils.addMessage(current, message);
+    updated.lastModified = new Date();
+
+    const result = await saveConversation(updated as unknown as ChatResource);
+
+    if (!result.changed) {
+      console.log('[CSM] addMessage discarded — conversation has been deleted.');
+      return;
+    }
+
+    // Swapped pushResource here
+    await syncWithServer();
+
+    if (this.cacheEnabled) this.conversationCache.set(updated.id, updated);
+
+    const updatedConversations = this.state.conversations.map((c) =>
+      c.id === updated.id ? updated : c
+    );
+    if (!updatedConversations.some((c) => c.id === updated.id)) {
+      updatedConversations.unshift(updated);
+    }
+
+    this.setState({
+      currentConversation: updated,
+      conversations: updatedConversations,
+      lastUpdated: new Date(),
+    });
+  }
+
+  async switchModel(newModel: string): Promise<void> {
+    if (!this.state.currentConversation) throw new Error('No active conversation');
+
+    const updated = ConversationUtils.recordModelChange(
+      this.state.currentConversation,
+      this.state.currentConversation.currentModel,
+      newModel
+    );
+
+    const result = await saveConversation(updated as unknown as ChatResource);
+    if (!result.changed) {
+      console.log('[CSM] switchModel discarded — conversation has been deleted.');
+      return;
+    }
+
+    // Swapped pushResource here
+    await syncWithServer();
+    if (this.cacheEnabled) this.conversationCache.set(updated.id, updated);
+
+    this.setState({
+      currentConversation: updated,
+      conversations: this.state.conversations.map((c) => (c.id === updated.id ? updated : c)),
+      lastUpdated: new Date(),
+    });
+  }
+
+  async updateConversationMetadata(
+    conversationId: string,
+    updates: Partial<Pick<Conversation, 'title'>>
+  ): Promise<Conversation> {
+    const conversation = this.state.conversations.find((c) => c.id === conversationId);
+    if (!conversation) throw new Error(`Conversation not found: ${conversationId}`);
+
+    const updated = { ...conversation, ...updates, lastModified: new Date() };
+    const result = await saveConversation(updated as unknown as ChatResource);
+    if (!result.changed) {
+      console.log('[CSM] updateConversationMetadata discarded — conversation has been deleted.');
+      return conversation;
+    }
+
+    // Swapped pushResource here
+    await syncWithServer();
+    if (this.cacheEnabled) this.conversationCache.set(conversationId, updated);
+
+    if (this.state.currentConversation?.id === conversationId) {
+      this.setState({ currentConversation: updated, lastUpdated: new Date() });
+    }
+    this.setState({
+      conversations: this.state.conversations.map((c) => (c.id === conversationId ? updated : c)),
+    });
+    return updated;
+  }
+
+  async toggleArchive(conversationId: string): Promise<void> {
+    const conversation = this.state.conversations.find((c) => c.id === conversationId);
+    if (!conversation) throw new Error('Conversation not found');
+
+    const updated = { ...conversation, isArchived: !conversation.isArchived, lastModified: new Date() };
+    const result = await saveConversation(updated as unknown as ChatResource);
+    if (!result.changed) {
+      console.log('[CSM] toggleArchive discarded — conversation has been deleted.');
+      return;
+    }
+
+    // Swapped pushResource here
+    await syncWithServer();
+    if (this.cacheEnabled) this.conversationCache.set(conversationId, updated);
+
+    const updatedConversations = this.state.conversations.map((c) =>
+      c.id === conversationId ? updated : c
+    );
+    let currentConversation = this.state.currentConversation;
+    if (updated.isArchived && currentConversation?.id === conversationId) {
+      currentConversation = updatedConversations.find((c) => !c.isArchived) || null;
+    }
+
+    this.setState({ conversations: updatedConversations, currentConversation, lastUpdated: new Date() });
+  }
+
+  async importConversation(jsonData: string): Promise<Conversation> {
+    const conversation = JSON.parse(jsonData);
+    if (!ConversationUtils.validateConversation(conversation)) throw new Error('Invalid format');
+    conversation.id = ConversationUtils.generateId();
+    conversation.createdAt = new Date();
+    conversation.lastModified = new Date();
+
+    const result = await saveConversation(conversation as unknown as ChatResource);
+    if (result.changed) {
+      // Swapped pushResource here
+      await syncWithServer();
+    }
+    this.setState({ conversations: [conversation, ...this.state.conversations], lastUpdated: new Date() });
+    return conversation;
+  }

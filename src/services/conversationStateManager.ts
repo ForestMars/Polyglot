@@ -17,7 +17,7 @@ import { ConversationUtils } from './conversationUtils';
 import { SettingsService } from './settingsService';
 
 // Combine them cleanly here:
-import { syncWithServer, pushResource, ensureSocketRegistered } from './backgroundSync';
+import { syncWithServer, ensureSocketRegistered } from './backgroundSync';
 
 interface ConversationFilters {
   searchQuery: string;
@@ -133,30 +133,25 @@ export class ConversationStateManager {
    * left untouched and, for the unknown case, signals a boundary instead.
    */
   private async handleBroadcast(broadcast: ChatResource): Promise<void> {
-    CoherenceClock.getInstance().observe(broadcast.clock);
+    CoherenceClock.getInstance().observe(broadcast.lastMutationLamport);
 
     const localRes = await polyglotDb.getResource(broadcast.id);
     const localDel = await polyglotDb.getDeletionRecord(broadcast.id);
 
     if (!localRes && !localDel) {
-      // Invariant 6: no local record of any kind — signal boundary
-      // available rather than originating the resource from a data
-      // plane event.
       this.signalBoundaryAvailable();
       return;
     }
 
     if (localDel) {
-      // Invariant 5: locally deleted — discard broadcast unconditionally.
       return;
     }
 
-    if (localRes && broadcast.clock.lamport > localRes.clock.lamport) {
+    if (localRes && broadcast.lastMutationLamport.lamport > localRes.lastMutationLamport.lamport) {
       await polyglotDb.saveResource(broadcast);
       await this.loadConversations();
     }
   }
-
   /**
    * Signal that a synchronization boundary is available (Invariant 6).
    * Surfaces as a badge / notification via state.boundaryAvailable.
@@ -172,7 +167,7 @@ export class ConversationStateManager {
 
   /**
    * Crosses a synchronization boundary by delegating entirely to
-   * backgroundSync.syncWithServer(), which delegates to
+   * backgroundSync.syncWithServer(), which delegates to // NB THIS IS DEPRECATED
    * ReconciliationEngine.reconcileBoundary(). This file does not implement
    * Case 1/2/3 itself — there is exactly one implementation of the
    * reconciliation algorithm in this codebase.
@@ -225,12 +220,12 @@ export class ConversationStateManager {
     const conversation = ConversationUtils.createConversation(provider, model);
     const result = await saveConversation(conversation as unknown as ChatResource);
     if (result.changed) {
-      await pushResource(conversation as unknown as ChatResource);
+      await syncWithServer();
       await this.loadConversations();
     }
     this.setState({ currentConversation: conversation, lastUpdated: new Date() });
     return conversation;
-  }
+}
 
   /**
    * Add a message (data plane UPDATE). Invariant 5 enforcement lives in
@@ -261,7 +256,7 @@ export class ConversationStateManager {
       return;
     }
 
-    await pushResource(updated as unknown as ChatResource);
+    await syncWithServer();
 
     if (this.cacheEnabled) this.conversationCache.set(updated.id, updated);
 
@@ -294,7 +289,7 @@ export class ConversationStateManager {
       return;
     }
 
-    await pushResource(updated as unknown as ChatResource);
+    await syncWithServer();
     if (this.cacheEnabled) this.conversationCache.set(updated.id, updated);
 
     this.setState({
@@ -318,7 +313,9 @@ export class ConversationStateManager {
       return conversation;
     }
 
-    await pushResource(updated as unknown as ChatResource);
+    // await pushResource(updated as unknown as ChatResource); // deprecated, can lead to race condition
+    await flushOutboundMutations();
+
     if (this.cacheEnabled) this.conversationCache.set(conversationId, updated);
 
     if (this.state.currentConversation?.id === conversationId) {
@@ -341,7 +338,7 @@ export class ConversationStateManager {
       return;
     }
 
-    await pushResource(updated as unknown as ChatResource);
+    await syncWithServer();
     if (this.cacheEnabled) this.conversationCache.set(conversationId, updated);
 
     const updatedConversations = this.state.conversations.map((c) =>
@@ -376,13 +373,10 @@ export class ConversationStateManager {
       return;
     }
 
-    const updatedConversations = this.state.conversations.filter((c) => c.id !== conversationId);
-    const currentConversation =
-      this.state.currentConversation?.id === conversationId
-        ? updatedConversations[0] || null
-        : this.state.currentConversation;
+    await syncWithServer();
 
-    this.setState({ conversations: updatedConversations, currentConversation, lastUpdated: new Date() });
+    const updatedConversations = this.state.conversations.filter((c) => c.id !== conversationId);
+    this.setState({ conversations: updatedConversations, lastUpdated: new Date() });
   }
 
   // ── Read operations — go directly to db.ts ───────────────────────────────
@@ -461,7 +455,7 @@ export class ConversationStateManager {
 
     const result = await saveConversation(conversation as unknown as ChatResource);
     if (result.changed) {
-      await pushResource(conversation as unknown as ChatResource);
+      await syncWithServer();
     }
     this.setState({ conversations: [conversation, ...this.state.conversations], lastUpdated: new Date() });
     return conversation;
