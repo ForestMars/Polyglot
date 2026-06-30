@@ -90,8 +90,8 @@ export class PolyglotDatabase {
     return resources
       .filter(c => showArchived || !c.isArchived)
       .sort((a, b) => {
-        if (a.clock && b.clock) {
-          return compareLamport(b.clock, a.clock);
+        if (a.lastMutationLamport && b.lastMutationLamport) {
+          return compareLamport(b.lastMutationLamport, a.lastMutationLamport);
         }
         return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
       });
