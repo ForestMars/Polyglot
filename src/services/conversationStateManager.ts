@@ -378,11 +378,7 @@ export class ConversationStateManager {
       return;
     }
 
-    // FIX: Proactively push the control plane horizon to the server immediately
-    const localDel = await polyglotDb.getDeletionRecord(conversationId);
-    if (localDel) {
-      await pushDeletion(localDel);
-    }
+    await syncWithServer();
 
     const updatedConversations = this.state.conversations.filter((c) => c.id !== conversationId);
     this.setState({ conversations: updatedConversations, lastUpdated: new Date() });
