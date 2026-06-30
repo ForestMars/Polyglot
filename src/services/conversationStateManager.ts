@@ -151,7 +151,7 @@ export class ConversationStateManager {
       await polyglotDb.saveResource(broadcast);
       await this.loadConversations();
     }
-
+  }
   /**
    * Signal that a synchronization boundary is available (Invariant 6).
    * Surfaces as a badge / notification via state.boundaryAvailable.

@@ -77,7 +77,7 @@ export async function syncWithServer(): Promise<SyncResult> {
         deviceId: clockSnapshot.deviceId,
         clientClock: clockSnapshot,
         // Map local format to wire protocol validation layout
-        resources: outboundResources.map(r => ({
+        chats: outboundResources.map(r => ({
           id: r.id,
           title: r.title,
           provider: r.provider,
@@ -88,14 +88,16 @@ export async function syncWithServer(): Promise<SyncResult> {
           updatedAtLamport: r.lastMutationLamport ? [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId] : [0, clockSnapshot.deviceId]
         })),
         deletions: outboundDeletions.map(d => ({
-          chatId: d.resourceId || d.id, 
+          id: d.resourceId || d.id, 
           lamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
         })),
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Server sync endpoint rejected transaction with status ${response.status}`);
+      const errorBody = await response.text().catch(() => '(no body)');
+      console.error('[sync] 400 response body:', errorBody);
+      throw new Error(`Server sync endpoint rejected transaction with status ${response.status}: ${errorBody}`);
     }
 
     const data = await response.json();
@@ -244,7 +246,7 @@ export async function flushOutboundMutations(): Promise<void> {
       body: JSON.stringify({
         deviceId: clockSnapshot.deviceId,
         clientClock: clockSnapshot,
-        resources: outboundResources.map(r => ({
+        chats: outboundResources.map(r => ({
           id: r.id,
           title: r.title,
           provider: r.provider,
