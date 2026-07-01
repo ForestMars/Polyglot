@@ -47,10 +47,7 @@ function mapToWire(outboundResources: any[], outboundDeletions: any[], clockSnap
   };
 }
 
-// ==========================================
 // Core Sync Implementations
-// ==========================================
-
 export async function initializeSync(): Promise<void> {
   if (initPromise) return initPromise;
 
