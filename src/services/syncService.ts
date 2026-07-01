@@ -1,6 +1,21 @@
-// src/services/syncService.ts
+/**
+ * @module SyncService
+ * @description Core background synchronization service handler.
+ * 
+ * Manages outbound payload serialization, handles server-side delta exchanges, 
+ * passes incoming payloads to the localized reconciliation engine, and handles post-sync 
+ * housekeeping like updating metadata timestamps and persisting the Lamport logic clock state.
+ */
+
 import { mapToWire, mapFromWire } from '../utils/syncUtils';
 
+/**
+ * Dispatches a serialized local sync payload downstream to the server endpoints.
+ * 
+ * @param payload - The outbound wire-formatted resource and deletion structural records.
+ * @returns The raw JSON payload mapping server side state updates back to the client.
+ * @throws {Error} If the server responds with a non-200 HTTP status code.
+ */
 async function fetchSyncPayload(payload: ReturnType<typeof mapToWire>) {
   const response = await fetch(`${SYNC_URL}/sync`, {
     method: 'POST',
@@ -12,6 +27,12 @@ async function fetchSyncPayload(payload: ReturnType<typeof mapToWire>) {
   return response.json();
 }
 
+/**
+ * Crosses a synchronization boundary by querying local tracking state, flushing 
+ * outbound deltas, and processing returned server updates through the reconciliation engine.
+ * 
+ * @returns A promise resolving to a structured `SyncResult` summarizing the operation telemetry.
+ */
 export async function syncWithServer(): Promise<SyncResult> {
   try {
     await initializeSync();

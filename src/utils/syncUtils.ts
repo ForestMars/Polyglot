@@ -1,4 +1,5 @@
 // src/utils/syncUtils.ts
+import { ChatResource, DeletionRecord } from '../types/sync';
 
 export function mapToWire(resources: ChatResource[], deletions: DeletionRecord[]) {
   return {
@@ -7,7 +8,7 @@ export function mapToWire(resources: ChatResource[], deletions: DeletionRecord[]
       updatedAtLamport: [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId],
     })),
     deletionRecords: deletions.map(d => ({
-      id: d.resourceId,
+      id: d.id,
       deletedAtLamport: [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId],
     })),
   };
@@ -26,7 +27,7 @@ export function mapFromWire(apiMissing: any[], apiDeletions: any[]) {
   }));
 
   const deletions: DeletionRecord[] = (apiDeletions || []).map(d => ({
-    resourceId: d.id,
+    id: d.id,
     deletedAtLamport: { lamport: d.deletedAtLamport[0], deviceId: d.deletedAtLamport[1] },
   }));
 

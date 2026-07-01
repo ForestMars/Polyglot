@@ -1,12 +1,14 @@
-// src/services/conversationStateManager.ts
-//
-// UI-facing orchestrator. Owns React state, the WebSocket connection, and
-// the boundaryAvailable signal. Makes no protocol decisions itself — every
-// write goes through conversationSync.ts, every reconciliation goes through
-// backgroundSync.ts's syncWithServer (which delegates to ReconciliationEngine),
-// every Lamport operation goes through CoherenceClock. This file's only
-// direct call into db.ts is the read-only Invariant 6 null-check, since
-// that check has no protocol logic to enforce, only a fact to observe.
+/**
+ * @module ConversationStateManager
+ * @description UI-facing orchestrator. Owns React state, the WebSocket connection, and
+ * the boundaryAvailable signal.
+ * 
+ * Makes no protocol decisions itself — every write goes through conversationSync.ts, 
+ * every reconciliation goes through backgroundSync.ts's syncWithServer (which delegates 
+ * to ReconciliationEngine), and every Lamport operation goes through CoherenceClock. 
+ * This file's only direct call into db.ts is the read-only Invariant 6 null-check, since 
+ * that check has no protocol logic to enforce, only a fact to observe.
+ */
 
 import { Conversation, Message } from '@/types/conversation';
 import { ChatResource } from '../types/sync';
@@ -15,10 +17,18 @@ import { saveConversation, deleteConversation } from './conversationSync';
 import { CoherenceClock } from './CoherenceClock';
 import { ConversationUtils } from './conversationUtils';
 import { SettingsService } from './settingsService';
-
-// Combine them cleanly here:
 import { syncWithServer, ensureSocketRegistered } from './backgroundSync';
 
+/**
+ * UI-facing orchestrator. Owns React state, the WebSocket connection, and
+ * the `boundaryAvailable` signal.
+ * 
+ * Makes no protocol decisions itself — every write goes through `conversationSync.ts`, 
+ * every reconciliation goes through `backgroundSync.ts`'s `syncWithServer` (which delegates 
+ * to `ReconciliationEngine`), and every Lamport operation goes through `CoherenceClock`. 
+ * This file's only direct call into `db.ts` is the read-only Invariant 6 null-check, since 
+ * that check has no protocol logic to enforce, only a fact to observe.
+ */
 interface ConversationFilters {
   searchQuery: string;
   provider: string;
@@ -33,11 +43,16 @@ export interface ConversationState {
   isLoading: boolean;
   error: string | null;
   lastUpdated: Date;
-  boundaryAvailable: boolean; // Invariant 6 signal
+  /** Invariant 6 signal */
+  boundaryAvailable: boolean;
 }
 
 const WS_URL = 'ws://localhost:4001';
 
+/**
+ * Core manager for orchestrating local conversation state, WebSocket connections,
+ * and synchronization boundary signaling.
+ */
 export class ConversationStateManager {
   private settingsService: SettingsService;
   private state: ConversationState;
@@ -63,6 +78,12 @@ export class ConversationStateManager {
 
   // ── Initialization ───────────────────────────────────────────────────────
 
+  /**
+   * Initializes the manager, loads settings, populates initial conversations,
+   * establishes a WebSocket connection, and crosses the initial synchronization boundary.
+   * 
+   * @param cacheEnabled - Whether the conversation cache layer should be enabled.
+   */
   async initialize(cacheEnabled = true): Promise<void> {
     if (this.isInitialized) return;
     this.cacheEnabled = cacheEnabled;
@@ -74,9 +95,11 @@ export class ConversationStateManager {
 
       this.connectWebSocket();
 
-      // Cross a synchronization boundary on startup to pull control plane
-      // state. This is the only call site for boundary crossings — there
-      // is no second, inline reconciliation implementation in this file.
+      /**
+       * Cross a synchronization boundary on startup to pull control plane
+       * state. This is the only call site for boundary crossings — there
+       * is no second, inline reconciliation implementation in this file.
+       */
       await this.crossSynchronizationBoundary();
 
       this.isInitialized = true;
@@ -92,6 +115,10 @@ export class ConversationStateManager {
 
   // ── WebSocket — real-time data plane receive handler (§3.2) ──────────────
 
+  /**
+   * Establishes the real-time WebSocket connection data plane, setting up
+   * connection lifecycle hooks and automatic reconnection timers.
+   */
   private connectWebSocket(): void {
     if (typeof WebSocket === 'undefined') return;
     try {
@@ -105,8 +132,10 @@ export class ConversationStateManager {
         }
       };
 
-      // CALLING the imported utility function here.
-      // We pass the socket instance and a bound reference to our local handler.
+      /**
+       * Registers the active socket instance alongside a bound reference 
+       * to the local handler using the background sync system.
+       */
       ensureSocketRegistered(this.ws, this.handleBroadcast.bind(this));
 
       this.ws.onclose = () => {
@@ -127,10 +156,12 @@ export class ConversationStateManager {
    *
    * The only protocol fact this method needs is whether a local record
    * exists at all — that's a read, not a decision, so it goes straight to
-   * db.ts rather than through conversationSync.ts. No content is ever
+   * `db.ts` rather than through `conversationSync.ts`. No content is ever
    * materialized here: a present, non-deleted resource may be updated in
    * place if the broadcast dominates; a deleted or unknown resource is
    * left untouched and, for the unknown case, signals a boundary instead.
+   * 
+   * @param broadcast - The arriving chat resource payload from the network.
    */
   private async handleBroadcast(broadcast: ChatResource): Promise<void> {
     CoherenceClock.getInstance().observe(broadcast.lastMutationLamport);
@@ -152,9 +183,10 @@ export class ConversationStateManager {
       await this.loadConversations();
     }
   }
+
   /**
    * Signal that a synchronization boundary is available (Invariant 6).
-   * Surfaces as a badge / notification via state.boundaryAvailable.
+   * Surfaces as a badge / notification via `state.boundaryAvailable`.
    */
   signalBoundaryAvailable(): void {
     if (!this.state.boundaryAvailable) {
@@ -167,10 +199,11 @@ export class ConversationStateManager {
 
   /**
    * Crosses a synchronization boundary by delegating entirely to
-   * backgroundSync.syncWithServer(), which delegates to // NB THIS IS DEPRECATED
-   * ReconciliationEngine.reconcileBoundary(). This file does not implement
-   * Case 1/2/3 itself — there is exactly one implementation of the
-   * reconciliation algorithm in this codebase.
+   * `backgroundSync.syncWithServer()`, which handles server reconciliation.
+   * 
+   * @deprecated `ReconciliationEngine.reconcileBoundary` handling should be preferred.
+   * This file does not implement Case 1/2/3 itself — there is exactly one 
+   * implementation of the reconciliation algorithm in this codebase.
    */
   async crossSynchronizationBoundary(): Promise<void> {
     try {
@@ -196,26 +229,43 @@ export class ConversationStateManager {
 
   // ── State access ──────────────────────────────────────────────────────────
 
+  /**
+   * Fetches an unmodifiable snapshot of the current local state.
+   */
   getState(): Readonly<ConversationState> {
     return { ...this.state };
   }
 
+  /**
+   * Subscribes a listener callback to any local state updates.
+   * 
+   * @returns A teardown function to unsubscribe the listener.
+   */
   subscribe(listener: (state: ConversationState) => void): () => void {
     this.listeners.add(listener);
     return () => { this.listeners.delete(listener); };
   }
 
+  /**
+   * Toggles the conversation memory cache layer and wipes data upon disabling.
+   */
   toggleCache(): void {
     this.cacheEnabled = !this.cacheEnabled;
     if (!this.cacheEnabled) this.conversationCache.clear();
   }
 
+  /**
+   * Checks whether the local memory cache layer is active.
+   */
   isCacheEnabled(): boolean {
     return this.cacheEnabled;
   }
 
   // ── Write operations — delegate to conversationSync.ts ──────────────────
 
+  /**
+   * Instantiates a new conversation item and saves it downstream.
+   */
   async createConversation(provider: string, model: string): Promise<Conversation> {
     const conversation = ConversationUtils.createConversation(provider, model);
     const result = await saveConversation(conversation as unknown as ChatResource);
@@ -225,14 +275,15 @@ export class ConversationStateManager {
     }
     this.setState({ currentConversation: conversation, lastUpdated: new Date() });
     return conversation;
-}
+  }
 
   /**
-   * Add a message (data plane UPDATE). Invariant 5 enforcement lives in
-   * saveConversation, not here — if the conversation has been deleted,
-   * the write is silently discarded by the coordinator and result.changed
-   * is false, in which case local UI state and the cache are not updated
-   * either, so the discarded message never becomes visible.
+   * Add a message (data plane UPDATE). 
+   * 
+   * Invariant 5 enforcement lives in `saveConversation`, not here — if the 
+   * conversation has been deleted, the write is silently discarded by the coordinator 
+   * and `result.changed` is false. In that event, local UI state and the cache are 
+   * not updated either, so the discarded message never becomes visible.
    */
   async addMessage(message: Message): Promise<void> {
     if (!this.state.currentConversation) throw new Error('No active conversation');
@@ -249,9 +300,11 @@ export class ConversationStateManager {
     const result = await saveConversation(updated as unknown as ChatResource);
 
     if (!result.changed) {
-      // Invariant 5: write was discarded by the coordinator. Do not
-      // update local state or the cache with a message that was never
-      // actually committed.
+      /**
+       * Invariant 5: write was discarded by the coordinator. Do not
+       * update local state or the cache with a message that was never
+       * actually committed.
+       */
       console.log('[CSM] addMessage discarded — conversation has been deleted.');
       return;
     }
@@ -274,6 +327,9 @@ export class ConversationStateManager {
     });
   }
 
+  /**
+   * Updates the current conversation model configuration.
+   */
   async switchModel(newModel: string): Promise<void> {
     if (!this.state.currentConversation) throw new Error('No active conversation');
 
@@ -299,6 +355,9 @@ export class ConversationStateManager {
     });
   }
 
+  /**
+   * Updates core metadata elements of a designated conversation.
+   */
   async updateConversationMetadata(
     conversationId: string,
     updates: Partial<Pick<Conversation, 'title'>>
@@ -313,7 +372,10 @@ export class ConversationStateManager {
       return conversation;
     }
 
-    // await pushResource(updated as unknown as ChatResource); // deprecated, can lead to race condition
+    /**
+     * @deprecated `pushResource` can lead to an unexpected race condition.
+     * We explicitly flush outbound mutations instead.
+     */
     await flushOutboundMutations();
 
     if (this.cacheEnabled) this.conversationCache.set(conversationId, updated);
@@ -327,6 +389,9 @@ export class ConversationStateManager {
     return updated;
   }
 
+  /**
+   * Toggles the local archive visibility state wrapper for a conversation.
+   */
   async toggleArchive(conversationId: string): Promise<void> {
     const conversation = this.state.conversations.find((c) => c.id === conversationId);
     if (!conversation) throw new Error('Conversation not found');
@@ -353,11 +418,12 @@ export class ConversationStateManager {
   }
 
   /**
-   * Delete a conversation (control plane DELETE, §3.1). All deletion
-   * semantics — stamping the Lamport clock, constructing the
-   * DeletionRecord, the atomic store write — live in
-   * conversationSync.ts's deleteConversation. This method only updates
-   * local UI state to reflect that the deletion succeeded.
+   * Delete a conversation (control plane DELETE, §3.1). 
+   * 
+   * All deletion semantics — stamping the Lamport clock, constructing the
+   * DeletionRecord, and the atomic store write — live in `conversationSync.ts`'s 
+   * `deleteConversation`. This method only updates local UI state to reflect 
+   * that the deletion succeeded.
    */
   async deleteConversation(conversationId: string): Promise<void> {
     if (this.cacheEnabled) this.conversationCache.delete(conversationId);
@@ -381,6 +447,9 @@ export class ConversationStateManager {
 
   // ── Read operations — go directly to db.ts ───────────────────────────────
 
+  /**
+   * Requests a target conversation out of the localized database or active cache.
+   */
   async loadConversation(id: string): Promise<Conversation> {
     if (this.loadingConversations.has(id)) throw new Error('Already loading');
 
@@ -401,6 +470,9 @@ export class ConversationStateManager {
     }
   }
 
+  /**
+   * Filters and searches across conversations based on queried criteria.
+   */
   async searchConversations(filters: ConversationFilters): Promise<Conversation[]> {
     const settings = await this.settingsService.loadSettings();
     const showArchived = filters.showArchived ?? settings.showArchivedChats ?? false;
@@ -424,6 +496,9 @@ export class ConversationStateManager {
     return results;
   }
 
+  /**
+   * Computes tracking and system utilization metrics for active conversations.
+   */
   getConversationStats() {
     const convs = this.state.conversations;
     return {
@@ -441,11 +516,17 @@ export class ConversationStateManager {
     };
   }
 
+  /**
+   * Exports an individual conversation string matching a desired identifier.
+   */
   async exportConversation(conversationId: string): Promise<string> {
     const conversation = await polyglotDb.loadConversation(conversationId);
     return JSON.stringify(conversation, null, 2);
   }
 
+  /**
+   * Imports a raw serialized chat payload string into local context.
+   */
   async importConversation(jsonData: string): Promise<Conversation> {
     const conversation = JSON.parse(jsonData);
     if (!ConversationUtils.validateConversation(conversation)) throw new Error('Invalid format');
@@ -461,6 +542,10 @@ export class ConversationStateManager {
     return conversation;
   }
 
+  /**
+   * Sweeps and drops archived conversations exceeding the provided threshold window.
+   * Runs as a best-effort sanitation pass.
+   */
   async cleanupOldConversations(maxAge: number): Promise<number> {
     const cutoffDate = new Date(Date.now() - maxAge * 24 * 60 * 60 * 1000);
     const old = this.state.conversations.filter((c) => c.lastModified < cutoffDate && c.isArchived);
@@ -478,6 +563,9 @@ export class ConversationStateManager {
 
   // ── Internal ──────────────────────────────────────────────────────────────
 
+  /**
+   * Internally updates local fields and synchronization indexes out of the system DB.
+   */
   private async loadConversations(): Promise<void> {
     try {
       this.setState({ isLoading: true, error: null });
@@ -501,6 +589,9 @@ export class ConversationStateManager {
     }
   }
 
+  /**
+   * Dispatches unified updates onto the manager's core runtime state block.
+   */
   private setState(updates: Partial<ConversationState>): void {
     this.state = { ...this.state, ...updates };
     this.listeners.forEach((listener) => {
@@ -512,6 +603,10 @@ export class ConversationStateManager {
     });
   }
 
+  /**
+   * Performs critical cleanup routine operations, closing the WebSocket
+   * channels and clear out state events.
+   */
   destroy(): void {
     this.ws?.close();
     if (this.wsReconnectTimer) clearTimeout(this.wsReconnectTimer);

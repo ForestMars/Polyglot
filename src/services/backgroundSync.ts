@@ -47,10 +47,7 @@ function mapToWire(outboundResources: any[], outboundDeletions: any[], clockSnap
   };
 }
 
-// ==========================================
 // Core Sync Implementations
-// ==========================================
-
 export async function initializeSync(): Promise<void> {
   if (initPromise) return initPromise;
 
@@ -146,6 +143,12 @@ export async function syncWithServer(): Promise<SyncResult> {
       incomingDeletions
     );
 
+    for (const record of allDeletions) {
+      if (!serverResourceIds.has(record.id)) {
+       await this.db.removeDeletionRecord(record.id);
+      }
+    }
+
     const meta = await polyglotDb.getSyncMetadata();
     if (meta) {
       await polyglotDb.saveSyncMetadata({
@@ -240,3 +243,10 @@ export async function flushOutboundMutations(): Promise<void> {
     console.warn('[sync] Safe-path outbound flush delayed:', err);
   }
 }
+
+// GC: purge deletion records where the server has no record of the resource.
+// Server absence at a boundary means all devices that ever held the resource
+// have crossed a boundary past the deletion and it is safe to hard-purge.
+const allDeletions = await this.db.getAllDeletionRecords();
+const serverResourceIds = new Set(incomingResources.map(r => r.id));
+
