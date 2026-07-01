@@ -41,8 +41,8 @@ export class ReconciliationEngine {
    */
   async reconcileBoundary(
     incomingResources: ChatResource[],
-    incomingDeletions: DeletionRecord[]
-    serverids: Set<string> = new Set()
+    incomingDeletions: DeletionRecord[],
+    serverResourceids: Set<string> = new Set()
   ): Promise<ReconciliationResult> {
     const clock = CoherenceClock.getInstance();
     let resourcesApplied = 0;
