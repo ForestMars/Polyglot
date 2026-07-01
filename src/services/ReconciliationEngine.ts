@@ -1,6 +1,11 @@
-// src/services/ReconciliationEngine.ts
-// Protocol core. Evaluates state correctness and enforces multi-plane invariants
-// at the causal boundary. No knowledge of React, DOM, sidebars, or UI state.
+/**
+ * @module ReconciliationEngine
+ * @description Protocol core engine. Evaluates state correctness and enforces multi-plane invariants
+ * at the causal boundary. 
+ * 
+ * This engine has no knowledge of React, DOM, sidebars, or UI state. It is strictly a pure data-plane 
+ * and control-plane ordering coordinator.
+ */
 
 import { ChatResource, DeletionRecord } from '../types/sync';
 import { PolyglotDatabase } from './db';
@@ -12,9 +17,28 @@ export interface ReconciliationResult {
   deletionsApplied: number;
 }
 
+/**
+ * Orchestrates the synchronization boundaries by evaluating local state versus 
+ * incoming state using Lamport clock causal dominate comparisons.
+ */
 export class ReconciliationEngine {
   constructor(private db: PolyglotDatabase) {}
 
+  /**
+   * Reconciles incoming remote resources and deletions against the local database instance.
+   * 
+   * This evaluation runs multi-plane updates across discrete execution phases:
+   * 1. **Control plane processing:** Incoming deletion records establish causal horizons. 
+   * These must be evaluated before data plane mutations so the horizon is in place when each 
+   * resource is tested.
+   * 2. **Data plane processing:** Process incoming resource mutations. Invariant 5 is 
+   * enforced here: a local deletion record discards the incoming update unless the update 
+   * strictly dominates the deletion horizon.
+   * 
+   * @param incomingResources - Collection of data plane mutations arriving from the network.
+   * @param incomingDeletions - Collection of control plane deletion markers establishing horizons.
+   * @returns A promise resolving to the structural results describing metrics applied.
+   */
   async reconcileBoundary(
     incomingResources: ChatResource[],
     incomingDeletions: DeletionRecord[]
@@ -23,10 +47,7 @@ export class ReconciliationEngine {
     let resourcesApplied = 0;
     let deletionsApplied = 0;
 
-    // 1. Control plane first.
-    // Incoming deletion records establish causal horizons. These must be
-    // evaluated before data plane mutations so the horizon is in place
-    // when each resource is tested.
+    // Phase 1: Control plane first.
     for (const remoteDel of incomingDeletions) {
       clock.observe(remoteDel.deletedAtLamport);
 
@@ -34,36 +55,39 @@ export class ReconciliationEngine {
       const localDel = await this.db.getDeletionRecord(remoteDel.resourceId);
 
       if (localDel) {
-        // Both sides deleted the same resource. saveDeletionRecord retains
-        // the earlier horizon — this is not a conflict, it's convergence.
+        /**
+         * Both sides deleted the same resource. `saveDeletionRecord` retains
+         * the earlier horizon — this is not a conflict, it's convergence.
+         */
         await this.db.saveDeletionRecord(remoteDel);
         continue;
       }
 
       if (localRes) {
-        // Local resource exists. Accept the remote deletion only if the local
-        // resource did not causally participate after the deletion (Definition 7).
+        /**
+         * Local resource exists. Accept the remote deletion only if the local
+         * resource did not causally participate after the deletion (Definition 7).
+         */
         if (strictlyDominates(localRes.lastMutationLamport, remoteDel.deletedAtLamport)) {
-          // Local mutation post-dates deletion: local wins, deletion discarded.
+          /** Local mutation post-dates deletion: local wins, deletion discarded. */
           continue;
         }
-        // No causal participation after deletion: accept.
+        /** No causal participation after deletion: accept. */
         await this.db.saveDeletionRecord(remoteDel);
         await this.db.deleteResource(remoteDel.resourceId);
         deletionsApplied++;
       } else {
-        // Topologically unknown resource. Record the deletion so any future
-        // data plane broadcast for this id is correctly handled (Invariant 5,
-        // retention requirement makes null unambiguous).
+        /**
+         * Topologically unknown resource. Record the deletion so any future
+         * data plane broadcast for this id is correctly handled (Invariant 5,
+         * retention requirement makes null unambiguous).
+         */
         await this.db.saveDeletionRecord(remoteDel);
         deletionsApplied++;
       }
     }
 
-    // 2. Data plane.
-    // Process incoming resource mutations. Invariant 5 is enforced here:
-    // a local deletion record discards the incoming update unless the update
-    // strictly dominates the deletion horizon.
+    // Phase 2: Data plane.
     for (const remoteRes of incomingResources) {
       clock.observe(remoteRes.lastMutationLamport);
 
@@ -72,12 +96,12 @@ export class ReconciliationEngine {
 
       if (localDel) {
         if (strictlyDominates(remoteRes.lastMutationLamport, localDel.deletedAtLamport)) {
-          // Remote resource causally participated after local deletion: restore.
+          /** Remote resource causally participated after local deletion: restore. */
           await this.db.removeDeletionRecord(remoteRes.id);
           await this.db.saveResource(remoteRes);
           resourcesApplied++;
         }
-        // else: discard. Remote does not dominate the deletion horizon.
+        /** Remote does not dominate the deletion horizon: discard incoming payload. */
         continue;
       }
 
