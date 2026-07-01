@@ -42,7 +42,7 @@ export class ReconciliationEngine {
   async reconcileBoundary(
     incomingResources: ChatResource[],
     incomingDeletions: DeletionRecord[]
-    serverResourceIds: Set<string> = new Set()
+    serverids: Set<string> = new Set()
   ): Promise<ReconciliationResult> {
     const clock = CoherenceClock.getInstance();
     let resourcesApplied = 0;
@@ -52,8 +52,8 @@ export class ReconciliationEngine {
     for (const remoteDel of incomingDeletions) {
       clock.observe(remoteDel.deletedAtLamport);
 
-      const localRes = await this.db.getResource(remoteDel.resourceId);
-      const localDel = await this.db.getDeletionRecord(remoteDel.resourceId);
+      const localRes = await this.db.getResource(remoteDel.id);
+      const localDel = await this.db.getDeletionRecord(remoteDel.id);
 
       if (localDel) {
         /**
@@ -75,7 +75,7 @@ export class ReconciliationEngine {
         }
         /** No causal participation after deletion: accept. */
         await this.db.saveDeletionRecord(remoteDel);
-        await this.db.deleteResource(remoteDel.resourceId);
+        await this.db.deleteResource(remoteDel.id);
         deletionsApplied++;
       } else {
         /**
