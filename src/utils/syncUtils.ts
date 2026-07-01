@@ -1,4 +1,5 @@
 // src/utils/syncUtils.ts
+import { ChatResource, DeletionRecord } from '../types/sync';
 
 export function mapToWire(resources: ChatResource[], deletions: DeletionRecord[]) {
   return {
