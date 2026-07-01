@@ -2,7 +2,7 @@
  * @module SyncTypes
  * @description Canonical synchronization and protocol type definitions. 
  * 
- * Contains no dependencies on React, DOM, or platform-specific APIs. All sub-systems 
+ * Contains no dependencies on React, DOM, or app-specific APIs. All sub-systems 
  * within the core replication protocol communicate exclusively via these unified structures.
  */
 
@@ -51,7 +51,7 @@ export interface ChatResource {
    * All outbound resource writes must explicitly register a value onto this field using 
    * `CoherenceClock.tick()`.
    */
-  clock: ClockTuple;
+  lastMutatationLamport: ClockTuple;  // @QUESTION: Rename this field (back) to 'clock'? 
   /** Specific execution engine model targeted (uninterpreted by protocol core). */
   model?: string;
   /** Third-party backend structural platform service router (uninterpreted by protocol core). */
