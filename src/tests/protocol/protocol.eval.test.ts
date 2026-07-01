@@ -8,9 +8,9 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ReconciliationEngine } from '../services/ReconciliationEngine';
-import { ChatResource, ClockTuple, DeletionRecord } from '../types/sync';
-import { CoherenceClock } from '../services/CoherenceClock';
+import { ReconciliationEngine } from '../../services/ReconciliationEngine';
+import { CoherenceClock } from '../../services/CoherenceClock';
+import { ChatResource, ClockTuple, DeletionRecord } from '../../types/sync';
 
 // ── Test Construction Helpers ──────────────────────────────────────────────
 
