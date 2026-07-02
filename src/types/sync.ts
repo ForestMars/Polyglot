@@ -51,7 +51,7 @@ export interface ChatResource {
    * All outbound resource writes must explicitly register a value onto this field using 
    * `CoherenceClock.tick()`.
    */
-  lastMutatationLamport: ClockTuple;  // @QUESTION: Rename this field (back) to 'clock'? 
+  lastMutationLamport: ClockTuple;  // @QUESTION: Rename this field (back) to 'clock'? 
   /** Specific execution engine model targeted (uninterpreted by protocol core). */
   model?: string;
   /** Third-party backend structural platform service router (uninterpreted by protocol core). */
