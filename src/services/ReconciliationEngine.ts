@@ -9,7 +9,8 @@
 
 import { ChatResource, DeletionRecord } from '../types/sync';
 import { PolyglotDatabase } from './db';
-import { strictlyDominates } from '../utils/ordering';
+import { strictlyDominates } from '../utils/ordering'; // don't use wrapper. 
+import { compareLamport } from '../utils/ordering'; // call function directly. 
 import { CoherenceClock } from './CoherenceClock';
 
 export interface ReconciliationResult {
@@ -42,7 +43,7 @@ export class ReconciliationEngine {
   async reconcileBoundary(
     incomingResources: ChatResource[],
     incomingDeletions: DeletionRecord[],
-    serverResourceids: Set<string> = new Set()
+    serverResourceIds: Set<string> = new Set()
   ): Promise<ReconciliationResult> {
     const clock = CoherenceClock.getInstance();
     let resourcesApplied = 0;
@@ -54,28 +55,32 @@ export class ReconciliationEngine {
 
       const localRes = await this.db.getResource(remoteDel.id);
       const localDel = await this.db.getDeletionRecord(remoteDel.id);
+      console.log('DEBUG 4c', { remoteDel, localRes, localDel });
 
+      
       if (localDel) {
-        /**
-         * Both sides deleted the same resource. `saveDeletionRecord` retains
-         * the earlier horizon — this is not a conflict, it's convergence.
-         */
-        await this.db.saveDeletionRecord(remoteDel);
+      /* Both sides deleted the same resource. `saveDeletionRecord` retains
+       * the earlier horizon — this is not a conflict, it's convergence.
+       * Replace only if the incoming deletion is earlier!
+       */
+        if (compareLamport(localDel.deletedAtLamport, remoteDel.deletedAtLamport) > 0) {
+          await this.db.saveDeletionRecord(remoteDel);
+        }
         continue;
-      }
+    }
 
       if (localRes) {
         /**
          * Local resource exists. Accept the remote deletion only if the local
          * resource did not causally participate after the deletion (Definition 7).
          */
-        if (strictlyDominates(localRes.lastMutationLamport, remoteDel.deletedAtLamport)) {
+        if (compareLamport(localRes.lastMutationLamport, remoteDel.deletedAtLamport) > 0) {
           /** Local mutation post-dates deletion: local wins, deletion discarded. */
           continue;
         }
         /** No causal participation after deletion: accept. */
         await this.db.saveDeletionRecord(remoteDel);
-        await this.db.deleteResource(remoteDel.id);
+        await this.db.deleteResource(remoteDel.id, remoteDel);
         deletionsApplied++;
       } else {
         /**
@@ -96,7 +101,7 @@ export class ReconciliationEngine {
       const localRes = await this.db.getResource(remoteRes.id);
 
       if (localDel) {
-        if (strictlyDominates(remoteRes.lastMutationLamport, localDel.deletedAtLamport)) {
+        if (compareLamport(remoteRes.lastMutationLamport, localDel.deletedAtLamport) > 0) {
           /** Remote resource causally participated after local deletion: restore. */
           await this.db.removeDeletionRecord(remoteRes.id);
           await this.db.saveResource(remoteRes);
@@ -111,6 +116,15 @@ export class ReconciliationEngine {
         resourcesApplied++;
       }
     }
+
+    /* / 3. Distributed Garbage Collection plane.
+    const allLocalDeletions = await this.db.getAllDeletionRecords();
+    for (const localDel of allLocalDeletions) {
+      if (!serverResourceIds.has(localDel.id)) {
+        await this.db.removeDeletionRecord(localDel.id);
+      }
+    }
+    */
 
     return { resourcesApplied, deletionsApplied };
   }
