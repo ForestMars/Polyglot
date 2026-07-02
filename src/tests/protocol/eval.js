@@ -8,7 +8,9 @@
 
 'use strict';
 
-const { Device, Server } = require('./protocol.js');
+const Protocol = require('./protocol.js');
+const Device = Protocol.Device;
+const Server = Protocol.Server;
 
 // ---------------------------------------------------------------------------
 // Evaluation Metrics & Environment Builders
