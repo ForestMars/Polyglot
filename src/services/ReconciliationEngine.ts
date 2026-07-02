@@ -55,8 +55,6 @@ export class ReconciliationEngine {
 
       const localRes = await this.db.getResource(remoteDel.id);
       const localDel = await this.db.getDeletionRecord(remoteDel.id);
-      console.log('DEBUG 4c', { remoteDel, localRes, localDel });
-
       
       if (localDel) {
       /* Both sides deleted the same resource. `saveDeletionRecord` retains
@@ -111,7 +109,7 @@ export class ReconciliationEngine {
         continue;
       }
 
-      if (!localRes || strictlyDominates(remoteRes.lastMutationLamport, localRes.lastMutationLamport)) {
+      if (!localRes || strictlyDominates(remoteRes.lastMutationLamport, localRes.lastMutationLamport) >0) {
         await this.db.saveResource(remoteRes);
         resourcesApplied++;
       }

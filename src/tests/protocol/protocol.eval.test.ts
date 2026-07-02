@@ -328,10 +328,9 @@ describe('Experiment 4: Lamport participation threshold', () => {
 
   it('4b: B accepts deletion when local clock does not dominate (41,B) ⊀ (100,A)', async () => {
     /** Client B maintains entity C under a lower timeline sequence stamped at (41, B). */
-    const db = makeDb([resource('C', 41, 'device_B')]);
+    const db = makeDb([resource('C', 41, 'device_A')]);
     const engine = new ReconciliationEngine(db as any);
-
-    const serverDeletion = deletion('C', 100, 'device_A');
+    const serverDeletion = deletion('C', 100, 'device_B');
 
     await reconcile(engine, [], [serverDeletion], new Set(['C']));
 
@@ -353,10 +352,9 @@ describe('Experiment 4: Lamport participation threshold', () => {
      * "device_A" > "device_B" lexicographically, making (75, A) dominate (75, B).
      * B's structural modification fails to dominate the horizon.
      */
-    const db = makeDb([resource('C', 75, 'device_B')]);
+    const db = makeDb([resource('C', 75, 'device_A')]);
     const engine = new ReconciliationEngine(db as any);
-
-    const serverDeletion = deletion('C', 75, 'device_A');
+    const serverDeletion = deletion('C', 75, 'device_B');
 
     await reconcile(engine, [], [serverDeletion], new Set(['C']));
 
