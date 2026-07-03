@@ -3,8 +3,8 @@
 // the current day of the week using MCP tools instead of hallucinating an answer
 
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import { messageRouter } from '../../src/services/messageRouter';
-import { mcpService } from '../../src/services/mcpService';
+import { messageRouter } from '../../services/messageRouter';
+import { mcpService } from '../../services/mcpService';
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
 
