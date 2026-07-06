@@ -3,7 +3,7 @@
  * @description Protocol core engine. Evaluates state correctness and enforces multi-plane invariants
  * at the causal boundary. 
  * 
- * This engine has no knowledge of React, DOM, sidebars, or UI state. It is strictly a pure data-plane 
+ * NB. This engine has no knowledge of React, DOM, sidebars, or UI state. It is strictly a pure data-plane 
  * and control-plane ordering coordinator.
  */
 
@@ -33,8 +33,11 @@ export class ReconciliationEngine {
    * These must be evaluated before data plane mutations so the horizon is in place when each 
    * resource is tested.
    * 2. **Data plane processing:** Process incoming resource mutations. Invariant 5 is 
-   * enforced here: a local deletion record discards the incoming update unless the update 
-   * strictly dominates the deletion horizon.
+   * enforced here: a local deletion record discards the incoming update
+   * unconditionally. Per-device finality means this device's deletion decision
+   * is not reopened by any subsequently received update, regardless of clock
+   * value (other devices remain free to independently retain or restore the
+   * resource in their own state.)
    * 
    * @param incomingResources - Collection of data plane mutations arriving from the network.
    * @param incomingDeletions - Collection of control plane deletion markers establishing horizons.
