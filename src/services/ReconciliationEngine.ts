@@ -61,7 +61,7 @@ export class ReconciliationEngine {
       
       if (localDel) {
       /* Both sides deleted the same resource. `saveDeletionRecord` retains
-       * the earlier horizon — this is not a conflict, it's convergence.
+       * the earlier horizon; this is not a conflict, it's convergence.
        * Replace only if the incoming deletion is earlier!
        */
         if (compareLamport(localDel.deletedAtLamport, remoteDel.deletedAtLamport) > 0) {
