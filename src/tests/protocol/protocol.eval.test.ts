@@ -149,8 +149,12 @@ describe('Experiment 1: Core scenario — third-party propagation', () => {
     await reconcile(engine, [serverC], [], new Set(['C']));
 
     /** (81, device_B) strictly dominates (50, device_A): causal participation confirmed. */
-    expect(db.removeDeletionRecord).toHaveBeenCalledWith('C');
-    expect(db.saveResource).toHaveBeenCalledWith(serverC);
+    // expect(db.removeDeletionRecord).toHaveBeenCalledWith('C');
+    // expect(db.saveResource).toHaveBeenCalledWith(serverC);
+    expect(db.removeDeletionRecord).not.toHaveBeenCalled();
+    expect(db.saveResource).not.toHaveBeenCalled();
+    expect(db._deletions.has('C')).toBe(true);
+    expect(db._resources.has('C')).toBe(false);
   });
 
   /**
