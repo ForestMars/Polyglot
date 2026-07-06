@@ -527,6 +527,10 @@ describe('Appendix V: Empirical Metrics & Architecture Comparisons', () => {
     console.log(`\t[INFO] Verified 137 conversations. Reconcile Median Latency: ${medianLatency.toFixed(4)}ms`);
   });
 
+
+
+
+
   it('V.3b correctness: reconcileBoundary produces expected post-state cardinality', async () => {
   const db = makeDb();
   const engine = new ReconciliationEngine(db as any);
@@ -571,4 +575,96 @@ describe('Appendix V: Empirical Metrics & Architecture Comparisons', () => {
     // Proves that naive LWW allows the retaining node to resurrect records against the deleter's intent
     expect(naiveLwwDb.get('C').isDeleted).toBe(false); 
   });
+
+  // ── Lightweight LWW Simulation Harness ─────────────────────────────────────
+// Models DELETE as a timestamped write competing with UPDATE on equal Lamport
+// terms — the "naive LWW" alternative described in Section V.4. This is a
+// simplified structural model, not a full alternative implementation of the
+// protocol; it exists to characterize behavioral divergence from eventual
+// coherence's Invariant 5, not to serve as a production-equivalent comparison.
+
+interface LwwEntry {
+  isDeleted: boolean;
+  lamport: number;
+  deviceId: string;
+}
+
+/**
+ * Applies a single incoming operation (update or delete) to a naive LWW store,
+ * where the operation with the higher Lamport timestamp always wins outright,
+ * regardless of whether it is a delete or an update.
+ */
+function applyLww(
+  store: Map<string, LwwEntry>,
+  id: string,
+  incoming: { lamport: number; deviceId: string; isDeleted: boolean }
+) {
+  const current = store.get(id);
+
+  if (!current || incoming.lamport > current.lamport) {
+    store.set(id, { isDeleted: incoming.isDeleted, lamport: incoming.lamport, deviceId: incoming.deviceId });
+  } else if (incoming.lamport === current.lamport && incoming.deviceId > current.deviceId) {
+    // lexicographic tie-break, mirroring the real protocol's Definition 7 comparison,
+    // applied here to a model that otherwise has no participation-check equivalent
+    store.set(id, { isDeleted: incoming.isDeleted, lamport: incoming.lamport, deviceId: incoming.deviceId });
+  }
+  // else: incoming is stale, discarded
+}
+
+  describe('V.4: Last-Write-Wins comparison model', () => {
+
+    it('LWW-1: dominant update reverses an active tombstone (baseline scenario)', async () => {
+      const lwwStore = new Map<string, LwwEntry>([
+        ['C', { isDeleted: true, lamport: 50, deviceId: 'device_A' }],
+      ]);
+
+      applyLww(lwwStore, 'C', { lamport: 81, deviceId: 'device_B', isDeleted: false });
+
+      // Under naive LWW, B's higher-timestamped update restores C outright —
+      // there is no equivalent of Invariant 5 protecting A's deletion.
+      expect(lwwStore.get('C')!.isDeleted).toBe(false);
+    });
+
+    it('LWW-2: dominant delete overrides an earlier concurrent update', async () => {
+      const lwwStore = new Map<string, LwwEntry>([
+        ['C', { isDeleted: false, lamport: 60, deviceId: 'device_B' }],
+      ]);
+
+      applyLww(lwwStore, 'C', { lamport: 90, deviceId: 'device_A', isDeleted: true });
+
+      // A later delete competing on equal terms correctly wins here — LWW is not
+      // "always wrong," it simply has no concept of deletion finality independent
+      // of timestamp ordering.
+      expect(lwwStore.get('C')!.isDeleted).toBe(true);
+    });
+
+    it('LWW-3: equal Lamport counters resolved by lexicographic device tie-break', async () => {
+      const lwwStore = new Map<string, LwwEntry>([
+        ['C', { isDeleted: true, lamport: 75, deviceId: 'device_A' }],
+      ]);
+
+      applyLww(lwwStore, 'C', { lamport: 75, deviceId: 'device_B', isDeleted: false });
+
+      // 'device_B' > 'device_A' lexicographically, so the update wins the tie —
+      // same tie-break direction as the real protocol, but applied without any
+      // causal participation check, since naive LWW has no such concept.
+      expect(lwwStore.get('C')!.isDeleted).toBe(false);
+    });
+
+    it('LWW-4: stale operation with lower Lamport timestamp is discarded', async () => {
+      const lwwStore = new Map<string, LwwEntry>([
+        ['C', { isDeleted: false, lamport: 100, deviceId: 'device_B' }],
+      ]);
+
+      applyLww(lwwStore, 'C', { lamport: 40, deviceId: 'device_A', isDeleted: true });
+
+      // Ordinary LWW staleness handling — included for completeness, not a
+      // divergence case; both models agree here.
+      expect(lwwStore.get('C')!.isDeleted).toBe(false);
+      expect(lwwStore.get('C')!.lamport).toBe(100);
+    });
+
+  });
+
+
 });
