@@ -118,7 +118,7 @@ export class ReconciliationEngine {
       }
     }
 
-    /* / 3. Distributed Garbage Collection plane.
+    // Phase 3: Distributed Garbage Collection plane.
     const allLocalDeletions = await this.db.getAllDeletionRecords();
     for (const localDel of allLocalDeletions) {
       if (!serverResourceIds.has(localDel.id)) {
