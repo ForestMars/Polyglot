@@ -468,7 +468,7 @@ describe('Appendix V: Empirical Metrics & Architecture Comparisons', () => {
    * Section V.3: Profile scaling verification over the specified 137 conversation matrix.
    * Confirms deterministic throughput and stable linear execution bounds.
    */
-  it('V.3: Evaluates scale overhead across a structural dataset of 137 conversations', async () => {
+  it('V.3a: Evaluates scale overhead across a structural dataset of 137 conversations', async () => {
     const db = makeDb();
     const engine = new ReconciliationEngine(db as any);
     
@@ -494,22 +494,54 @@ describe('Appendix V: Empirical Metrics & Architecture Comparisons', () => {
     const executionRuns = 10;
     const latencies: number[] = [];
 
-    // Execute across iteration blocks to verify deterministic performance constraints
+    // Synthesize a representative set of control plane deletions for the dataset
+    const serverDeletions: DeletionRecord[] = [
+      { id: 'scaled-conv-10', deletedAtLamport: { lamport: 500, deviceId: 'device_node_1' } },
+      { id: 'scaled-conv-50', deletedAtLamport: { lamport: 600, deviceId: 'device_node_2' } }
+    ];
+
     for (let run = 0; run < executionRuns; run++) {
+      // FIX 1: Reset the database state completely before every run
+      // This forces the engine to actually execute processing logic every time
+      const trialDb = makeDb(); 
+      const trialEngine = new ReconciliationEngine(trialDb as any);
+
       const start = performance.now();
-      await engine.reconcileBoundary(serverInventory, [], activeIds);
+      // FIX 2: Pass both data plane updates AND control plane deletions
+      await trialEngine.reconcileBoundary(serverInventory, serverDeletions, activeIds);
       const end = performance.now();
+      
       latencies.push(end - start);
+      
+      // Verify structural density on every run
+      // Both scaled-conv-10 and scaled-conv-50 are dropped via dominating Phase 1 deletions.
+      expect(trialDb._resources.size).toBe(scaleFactor - 2); // minus the overwritten hard deletion
     }
 
     const sorted = [...latencies].sort((a, b) => a - b);
     const medianLatency = sorted[Math.floor(sorted.length / 2)];
 
     // Assert dataset structure density characteristics
-    expect(db._resources.size).toBe(scaleFactor);
+    // expect(db._resources.size).toBe(scaleFactor);
     expect(medianLatency).toBeLessThan(50); // Direct memory processing boundary rule
     console.log(`\t[INFO] Verified 137 conversations. Reconcile Median Latency: ${medianLatency.toFixed(4)}ms`);
   });
+
+  it('V.3b correctness: reconcileBoundary produces expected post-state cardinality', async () => {
+  const db = makeDb();
+  const engine = new ReconciliationEngine(db as any);
+
+  const scaleFactor = 137;
+
+  const serverInventory = Array.from({ length: scaleFactor }, (_, i) =>
+    resource(`id-${i}`, 100 + i, `device_${i % 3}`)
+  );
+
+  await engine.reconcileBoundary(serverInventory, [], new Set());
+
+  expect(db._resources.size).toBe(scaleFactor);
+});
+
 
   /**
    * Section V.4: Comparative modeling demonstrating why the protocol's 
