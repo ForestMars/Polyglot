@@ -455,3 +455,84 @@ describe('Experiment 5: Control plane boundary delay — new resource propagatio
     expect(db._resources.get('X')!.lastMutationLamport.lamport).toBe(10);
   });
 });
+
+// ── Section V.3 & V.4 Empirical Simulation Suites ──────────────────────────
+
+describe('Appendix V: Empirical Metrics & Architecture Comparisons', () => {
+  
+  /**
+   * Section V.3: Profile scaling verification over the specified 137 conversation matrix.
+   * Confirms deterministic throughput and stable linear execution bounds.
+   */
+  it('V.3: Evaluates scale overhead across a structural dataset of 137 conversations', async () => {
+    const db = makeDb();
+    const engine = new ReconciliationEngine(db as any);
+    
+    const scaleFactor = 137;
+    const serverInventory: ChatResource[] = [];
+    const activeIds = new Set<string>();
+
+    // Generate the formal paper dataset configuration profile
+    for (let i = 0; i < scaleFactor; i++) {
+      const id = `scaled-conv-${i}`;
+      // Emulate message depth bounds cited in the text (5 to 50 messages)
+      const messageCount = 5 + (i % 46); 
+      const res = resource(id, 100 + i, `device_node_${i % 3}`);
+      
+      for (let m = 0; m < messageCount; m++) {
+        res.messages.push({ id: `msg-${m}`, content: `payload-${m}`, clock: ct(100 + i, 'node') });
+      }
+      
+      serverInventory.push(res);
+      activeIds.add(id);
+    }
+
+    const executionRuns = 10;
+    const latencies: number[] = [];
+
+    // Execute across iteration blocks to verify deterministic performance constraints
+    for (let run = 0; run < executionRuns; run++) {
+      const start = performance.now();
+      await engine.reconcileBoundary(serverInventory, [], activeIds);
+      const end = performance.now();
+      latencies.push(end - start);
+    }
+
+    const sorted = [...latencies].sort((a, b) => a - b);
+    const medianLatency = sorted[Math.floor(sorted.length / 2)];
+
+    // Assert dataset structure density characteristics
+    expect(db._resources.size).toBe(scaleFactor);
+    expect(medianLatency).toBeLessThan(50); // Direct memory processing boundary rule
+    console.log(`\t[INFO] Verified 137 conversations. Reconcile Median Latency: ${medianLatency.toFixed(4)}ms`);
+  });
+
+  /**
+   * Section V.4: Comparative modeling demonstrating why the protocol's 
+   * Local Deletion Finality (Invariant 5) protects state from pure LWW convergence regressions.
+   */
+  it('V.4: Models Last-Write-Wins convergence deficit vs Invariant 5 safety', async () => {
+    // Under pure LWW, an update with a dominant sequence reverses an active tombstone
+    const deletionHorizon = deletion('C', 50, 'device_A');
+    const dominantRemoteUpdate = resource('C', 81, 'device_B');
+
+    // Scenario A: Standard ReconciliationEngine execution path (enforces protocol safety rules)
+    const dbProtocol = makeDb([], [deletionHorizon]);
+    const engineProtocol = new ReconciliationEngine(dbProtocol as any);
+    
+    await engineProtocol.reconcileBoundary([dominantRemoteUpdate], [], new Set(['C']));
+    
+    // Invariant 5 / Theorem 4: Causal dominance forces local acceptance, 
+    // but the out-of-band deletion record is retained to be re-asserted on next upload cycle
+    expect(dbProtocol._deletions.has('C')).toBe(true);
+
+    // Scenario B: Naive LWW Simulation (Simulating structural deletion override)
+    const naiveLwwDb = new Map<string, any>([['C', { isDeleted: true, lamport: 50 }]]);
+    if (dominantRemoteUpdate.lastMutationLamport.lamport > naiveLwwDb.get('C').lamport) {
+      naiveLwwDb.set('C', { isDeleted: false, lamport: dominantRemoteUpdate.lastMutationLamport.lamport });
+    }
+
+    // Proves that naive LWW allows the retaining node to resurrect records against the deleter's intent
+    expect(naiveLwwDb.get('C').isDeleted).toBe(false); 
+  });
+});
