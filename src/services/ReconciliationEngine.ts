@@ -102,13 +102,13 @@ export class ReconciliationEngine {
       const localRes = await this.db.getResource(remoteRes.id);
 
       if (localDel) {
-        if (compareLamport(remoteRes.lastMutationLamport, localDel.deletedAtLamport) > 0) {
-          /** Remote resource causally participated after local deletion: restore. */
-          await this.db.removeDeletionRecord(remoteRes.id);
-          await this.db.saveResource(remoteRes);
-          resourcesApplied++;
-        }
-        /** Remote does not dominate the deletion horizon: discard incoming payload. */
+        /**
+         * Invariant 5 (per-device finality): once this device has recorded
+         * a deletion for this resource, that decision is terminal and is
+         * not reopened by any subsequently received data-plane update,
+         * regardless of clock value. Other devices remain free to
+         * independently retain or restore the resource in their own state.
+         */
         continue;
       }
 
@@ -119,13 +119,18 @@ export class ReconciliationEngine {
     }
 
     // Phase 3: Distributed Garbage Collection plane.
-    const allLocalDeletions = await this.db.getAllDeletionRecords();
-    for (const localDel of allLocalDeletions) {
-      if (!serverResourceIds.has(localDel.id)) {
-        await this.db.removeDeletionRecord(localDel.id);
+    /** 
+     * Phase 3 should only execute its garbage collection sweep if it receives an actual, 
+     * populated tracking set from the server signifying an active GC sync window.
+     */
+    if (serverResourceIds.size > 0) {
+      const allLocalDeletions = await this.db.getAllDeletionRecords();
+      for (const localDel of allLocalDeletions) {
+        if (!serverResourceIds.has(localDel.id)) {
+          await this.db.removeDeletionRecord(localDel.id);
+        }
       }
     }
-    */
 
     return { resourcesApplied, deletionsApplied };
   }
