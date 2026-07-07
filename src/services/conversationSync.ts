@@ -19,13 +19,14 @@ export async function saveConversation(resource: ChatResource): Promise<Conversa
     };
 
     // 2. Write the stamped state down to underlying database engine
-    await polyglotDb.saveResource(stampedResource);
-    
+    const wasSaved = await polyglotDb.saveResource(stampedResource);
+
     return {
       success: true,
-      changed: true,
+      changed: wasSaved,
       error: null
     };
+
   } catch (error) {
     console.error("[SyncCoordinator] Global save processing encountered exception:", error);
     return {
