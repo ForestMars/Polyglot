@@ -1,4 +1,4 @@
-
+// Deprecated code file. 
 import { indexedDbStorage } from './indexedDbStorage';
 
 // Call this at app startup to sync IndexedDB with server
