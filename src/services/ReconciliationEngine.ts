@@ -124,10 +124,12 @@ export class ReconciliationEngine {
      * populated tracking set from the server signifying an active GC sync window.
      */
     if (serverResourceIds.size > 0) {
-      const allLocalDeletions = await this.db.getAllDeletionRecords();
-      for (const localDel of allLocalDeletions) {
-        if (!serverResourceIds.has(localDel.id)) {
-          await this.db.removeDeletionRecord(localDel.id);
+      const allDeletions = await this.db.getAllDeletionRecords();
+      const serverResourceIds = new Set(incomingResources.map(r => r.id));
+
+      for (const localDel of allDeletions) {
+        if (!serverResourceIds.has(record.id) && !serverIds.has(record.id)) {
+          await this.db.removeDeletionRecord(record.id);
         }
       }
     }
