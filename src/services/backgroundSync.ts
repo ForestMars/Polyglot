@@ -244,9 +244,9 @@ export async function flushOutboundMutations(): Promise<void> {
   }
 }
 
-// GC: purge deletion records where the server has no record of the resource.
+// @DEPRECATED GC: purge deletion records where the server has no record of the resource.
 // Server absence at a boundary means all devices that ever held the resource
 // have crossed a boundary past the deletion and it is safe to hard-purge.
-const allDeletions = await this.db.getAllDeletionRecords();
-const serverResourceIds = new Set(incomingResources.map(r => r.id));
+// const allDeletions = await this.db.getAllDeletionRecords();
+// const serverResourceIds = new Set(incomingResources.map(r => r.id));
 

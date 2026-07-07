@@ -99,22 +99,34 @@ export class PolyglotDatabase {
       });
   }
 
-  async saveResource(resource: ChatResource): Promise<void> {
+  /**
+   * Writes a resource's data-plane state. Enforces Invariant 5 (Local
+   * Deletion Finality): if this device has a deletion record for the
+   * resource, the write is discarded and the deletion record is left
+   * untouched. Callers must not assume a call to saveResource always
+   * persists; check the return value.
+   */
+  async saveResource(resource: ChatResource): Promise<boolean> {
     const database = await this.ensureReady();
+    const existingDeletion = await this.getDeletionRecord(resource.id);
+    if (existingDeletion) {
+      return false;
+    }
+
     const tx = database.transaction(["chats", "metadata"], "readwrite");
-    
+
     // 1. Save the resource content
     await tx.objectStore("chats").put(resource);
-    
+
     // 2. Co-commit the clock metadata inside the same atomic transaction
     const clock = CoherenceClock.getInstance();
     const meta = (await tx.objectStore("metadata").get("sync_state")) || { key: "sync_state", deviceId: clock.getDeviceId() };
-    meta.lastLamport = Math.max(meta.lastLamport || 0, clock.currentLocal().lamport);
+    meta.lamportCounter = Math.max(meta.lamportCounter || 0, clock.currentLocal().lamport);
     await tx.objectStore("metadata").put(meta);
-    
-    await tx.done;
-  }
 
+    await tx.done;
+    return true;
+  }
 
   /**
    * Removes a resource from the data plane store and writes its deletion
