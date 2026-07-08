@@ -166,10 +166,23 @@ export class PolyglotDatabase {
    * Does not touch the chats store — callers that also need the resource
    * removed call deleteResource instead, or remove it separately.
    */
+  
+    // const database = await this.ensureReady();
+    // await database.put("deletions", record);
+
   async saveDeletionRecord(record: DeletionRecord): Promise<void> {
     const database = await this.ensureReady();
-    await database.put("deletions", record);
+    const existing = await database.get("deletions", record.id) as DeletionRecord | undefined;
+    if (existing) {
+      const keep = earlierRecord(existing, record);
+      await database.put("deletions", keep);
+    } else {
+      await database.put("deletions", record);
+    }
   }
+
+
+
 
   /**
    * Removes a deletion record without restoring the resource. Used when a
