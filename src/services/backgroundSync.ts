@@ -102,6 +102,14 @@ export async function syncWithServer(): Promise<SyncResult> {
     }
 
     const data = await response.json();
+
+    console.log('[sync] Server response:', JSON.stringify({
+    missingCount: (data.missing || []).length,
+    deletionsCount: (data.deletions || []).length,
+    missing: (data.missing || []).map(c => c.id),
+    }));
+
+
     const incomingResources: ChatResource[] = [];
     const incomingDeletions: DeletionRecord[] = [];
 
