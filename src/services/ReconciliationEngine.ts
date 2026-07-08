@@ -4,9 +4,10 @@
  * at the causal boundary. 
  * 
  * NB. This engine has no knowledge of React, DOM, sidebars, or UI state. It is strictly a pure data-plane 
- * and control-plane ordering coordinator.
+ * and control-plane ordering coordinator. Shouldn't need to say that but here we are. 
  */
 
+// @CLEANUP: remove wrapper calls 
 import { ChatResource, DeletionRecord } from '../types/sync';
 import { PolyglotDatabase } from './db';
 import { strictlyDominates } from '../utils/ordering'; // don't use wrapper. 
@@ -61,8 +62,7 @@ export class ReconciliationEngine {
       
       if (localDel) {
       /* Both sides deleted the same resource. `saveDeletionRecord` retains
-       * the earlier horizon; this is not a conflict, it's convergence.
-       * Replace only if the incoming deletion is earlier!
+       * the earlier horizon; replace only if the incoming deletion is earlier.
        */
         if (compareLamport(localDel.deletedAtLamport, remoteDel.deletedAtLamport) > 0) {
           await this.db.saveDeletionRecord(remoteDel);
