@@ -142,6 +142,17 @@ export function deleteChat(chatId, clientLamport) {
     return null; // Already deleted or never existed.
   }
 
+  console.log('[chatStore] addOrUpdateChats:', {
+    id: filtered.id,
+    title: filtered.title,
+    incomingMsgCount: (filtered.messages || []).length,
+    existingMsgCount: (existing?.messages || []).length,
+    tauIncoming,
+    tauExisting: existing?.updatedAtLamport ?? existing?.serverMergedAtLamport ?? null,
+    willOverwriteMessages: (filtered.messages || []).length < (existing?.messages || []).length,
+  });
+
+
   const serverTau = tickClock(store, clientLamport);
   store.chats[chatId] = {
     ...existing,
