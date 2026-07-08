@@ -7,7 +7,7 @@
  * and control-plane ordering coordinator. Shouldn't need to say that but here we are. 
  */
 
-// @CLEANUP: remove wrapper calls 
+// NB. Phase 1 calls compareLamport; Phase 2 calls strictlyDominates (wrapper)
 import { ChatResource, DeletionRecord } from '../types/sync';
 import { PolyglotDatabase } from './db';
 import { strictlyDominates } from '../utils/ordering'; // don't use wrapper. 
