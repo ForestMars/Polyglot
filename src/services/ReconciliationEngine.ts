@@ -125,11 +125,11 @@ export class ReconciliationEngine {
      */
     if (serverResourceIds.size > 0) {
       const allDeletions = await this.db.getAllDeletionRecords();
-      const serverResourceIds = new Set(incomingResources.map(r => r.id));
+      // const serverResourceIds = new Set(incomingResources.map(r => r.id));
 
       for (const localDel of allDeletions) {
-        if (!serverResourceIds.has(record.id) && !serverIds.has(record.id)) {
-          await this.db.removeDeletionRecord(record.id);
+        if (!serverResourceIds.has(localDel.id) && !serverResourceIds.has(localDel.id)) {
+          await this.db.removeDeletionRecord(localDel.id);
         }
       }
     }
