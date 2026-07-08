@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# debug-setup.sh - Let's check what's going wrong
+
+echo "=== Checking environment variables ==="
+source .notion
+echo "NOTION_TOKEN: $NOTION_TOKEN"
+echo "NOTION_VERSION: $NOTION_VERSION"
+
+echo -e "\n=== Testing direct Notion API access ==="
+if [ -z "$NOTION_TOKEN" ]; then
+  echo "ERROR: NOTION_TOKEN is empty or not set"
+else
+  echo "Testing with token: ${NOTION_TOKEN:0:15}..."
+  curl -X POST \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $NOTION_TOKEN" \
+    -H "Notion-Version: 2022-06-28" \
+    -d '{"page_size": 1}' \
+    https://api.notion.com/v1/search
+fi
+
+echo -e "\n\n=== Checking MCP server process ==="
+ps aux | grep notion-mcp-server | grep -v grep
+
+echo -e "\n=== Testing if MCP server is responding at all ==="
+curl -v http://localhost:9001/mcp
