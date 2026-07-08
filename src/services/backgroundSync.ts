@@ -143,11 +143,8 @@ export async function syncWithServer(): Promise<SyncResult> {
       incomingDeletions
     );
 
-    for (const record of allDeletions) {
-      if (!serverResourceIds.has(record.id)) {
-       await this.db.removeDeletionRecord(record.id);
-      }
-    }
+
+
 
     const meta = await polyglotDb.getSyncMetadata();
     if (meta) {
