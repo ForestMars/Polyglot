@@ -22,7 +22,7 @@ console.log('Loaded email signature:', EMAIL_SIGNATURE.substring(0, 50) + '...')
 wss.on('connection', (ws) => {
   ws.on('message', async (data) => {
     const msg = JSON.parse(data);
-    
+
     if (msg.method === 'tools/list') {
       ws.send(JSON.stringify({
         jsonrpc: '2.0',
@@ -34,7 +34,7 @@ wss.on('connection', (ws) => {
             inputSchema: {
               type: 'object',
               properties: {
-                to: { 
+                to: {
                   oneOf: [
                   { type: 'string', description: 'Single recipient email address' },
                   { type: 'array', items: { type: 'string' }, description: 'Multiple recipient email addresses' }
@@ -49,7 +49,7 @@ wss.on('connection', (ws) => {
         }
       }));
     }
-    
+
     if (msg.method === 'tools/call' && msg.params.name === 'send_email') {
       try {
         await sendEmail({ ...msg.params.arguments, signature: EMAIL_SIGNATURE });
@@ -57,9 +57,9 @@ wss.on('connection', (ws) => {
           jsonrpc: '2.0',
           id: msg.id,
           result: {
-            content: [{ 
-              type: 'text', 
-              text: `Email sent to ${msg.params.arguments.to}` 
+            content: [{
+              type: 'text',
+              text: `Email sent to ${msg.params.arguments.to}`
             }]
           }
         }));
