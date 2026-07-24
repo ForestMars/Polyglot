@@ -1,14 +1,14 @@
 {
   "servers": [
     {
-      "name": "day-server",
-      "description": "Provides current day of week",
-      "url": "ws://localhost:9001"
+      "id": "mcp-v2-server",
+      "display_name": "Coda 2 MCP server",
+      "url": "ws://localhost:5555"
     }
     ,
     {
-      "name": "email-tool",
-      "description": "Local email tool (Gmail)",
+      "id": "email-tool",
+      "display_name": "Local email tool (Gmail)",
       "url": "ws://localhost:9002"
     }
   ]
