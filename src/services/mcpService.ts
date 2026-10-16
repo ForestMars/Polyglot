@@ -27,7 +27,7 @@ class McpService {
 
   async initialize() {
     console.log('🔌 Initializing MCP service...');
-    
+
     // Load servers from /config/mcp.json (served by the app). Do not hardcode local servers here.
     try {
       console.log('🌐 Attempting to fetch /config/mcp.json...');
@@ -75,7 +75,7 @@ class McpService {
       }
     }
     console.log(`📋 Found ${this.servers.length} MCP servers in config:`, this.servers.map(s => s.name));
-    
+
     // If no servers were provided in config, do not auto-detect or hardcode any local servers.
     // Operator (or deployment) should provide `/config/mcp.json` listing local tool servers when needed.
 
@@ -89,7 +89,7 @@ class McpService {
         console.error(`❌ Failed to connect to ${server.name}:`, error);
       }
     }
-    
+
     console.log(`🛠️ MCP initialization complete. Total tools available: ${this.tools.length}`);
 
     // Cache a plain-text system prompt containing discovered tools for reuse by the app.
@@ -151,14 +151,14 @@ async detectAndExecuteTool(content: string): Promise<{ executed: boolean; result
 
   if (to && subject) {
     console.log('[mcpService] Detected tool call: send_email', { to, subject, body });
-    
+
     try {
       const result = await this.callTool('send_email', 'email-tool', {
         to,
         subject,
         body: body || '(No message body)'
       });
-      
+
       return {
         executed: true,
         result: result || 'Email sent successfully',
@@ -175,7 +175,7 @@ async detectAndExecuteTool(content: string): Promise<{ executed: boolean; result
   }
 
   return { executed: false, originalContent: content };
-  } 
+  }
 
   /**
    * Return the cached system prompt built at initialization (or empty string).
@@ -185,7 +185,7 @@ async detectAndExecuteTool(content: string): Promise<{ executed: boolean; result
   }
 
 
-  
+
 
   /**
    * Return a plain-text summary of available tools suitable for insertion into a system prompt.
@@ -204,7 +204,7 @@ EXAMPLE:
 User: Send an email to john@example.com with subject "Hello"
 Assistant: [drafts and gets confirmation]
 User: yes
-Assistant: 
+Assistant:
 \`\`\`tool_code
 send_email(to="john@example.com", subject="Hello", body="The body text")
 \`\`\`
@@ -215,11 +215,11 @@ Use these tools when they can help answer the user's question.`;
   private async connectToServer(server: McpServer): Promise<void> {
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(server.url);
-      
+
       // Set up tool discovery promise before connection
       const toolDiscoveryPromise = new Promise<void>((resolveTools, rejectTools) => {
         this.pendingToolDiscovery.set(server.name, { resolve: resolveTools, reject: rejectTools });
-        
+
         // Add timeout for tool discovery
         setTimeout(() => {
           if (this.pendingToolDiscovery.has(server.name)) {
@@ -228,13 +228,13 @@ Use these tools when they can help answer the user's question.`;
           }
         }, 10000);
       });
-      
+
       ws.onopen = async () => {
         console.log(`🟢 WebSocket connection established to ${server.name}`);
         this.connections.set(server.name, ws);
         console.log(`🔍 Discovering tools from ${server.name}...`);
         this.discoverTools(server.name);
-        
+
         // Wait for tool discovery to complete
         try {
           await toolDiscoveryPromise;
@@ -243,7 +243,7 @@ Use these tools when they can help answer the user's question.`;
           reject(error);
         }
       };
-      
+
       ws.onerror = (error) => {
         console.error(`🔴 WebSocket connection failed to ${server.name}:`, error);
         // Clean up pending tool discovery
@@ -252,7 +252,7 @@ Use these tools when they can help answer the user's question.`;
         }
         reject(error);
       };
-      
+
       ws.onmessage = (event) => {
         this.handleMessage(server.name, JSON.parse(event.data));
       };
@@ -262,7 +262,7 @@ Use these tools when they can help answer the user's question.`;
   private discoverTools(serverName: string) {
     const ws = this.connections.get(serverName);
     if (!ws) return;
-    
+
     console.log(`📡 Sending tools/list request to ${serverName}...`);
     ws.send(JSON.stringify({
       jsonrpc: '2.0',
@@ -279,7 +279,7 @@ Use these tools when they can help answer the user's question.`;
       }));
       console.log(`🛠️ Received ${serverTools.length} tools from ${serverName}:`, serverTools.map(t => t.name));
       this.tools.push(...serverTools);
-      
+
       // Resolve the tool discovery promise
       const pending = this.pendingToolDiscovery.get(serverName);
       if (pending) {
@@ -287,7 +287,7 @@ Use these tools when they can help answer the user's question.`;
         pending.resolve();
       }
     }
-    
+
     // Handle errors
     if (message.error) {
       console.error(`❌ Error from ${serverName}:`, message.error);
@@ -303,6 +303,7 @@ Use these tools when they can help answer the user's question.`;
     const ws = this.connections.get(serverName);
     if (!ws) {
       console.error(`❌ No connection to server ${serverName} for tool ${toolName}`);
+      console.error('the server is ${serverName} with ${args}');
       return null;
     }
 
@@ -310,7 +311,7 @@ Use these tools when they can help answer the user's question.`;
 
     return new Promise((resolve) => {
       const id = Date.now();
-      
+
       const handler = (event: MessageEvent) => {
         const msg = JSON.parse(event.data);
         if (msg.id === id) {
@@ -320,7 +321,7 @@ Use these tools when they can help answer the user's question.`;
           resolve(result);
         }
       };
-      
+
       ws.addEventListener('message', handler);
       ws.send(JSON.stringify({
         jsonrpc: '2.0',
