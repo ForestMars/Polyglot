@@ -22,6 +22,7 @@
     "test:run": "vitest run",
     "test:ci": "vitest run --coverage --passWithNoTests",
     "tool:email": "bun tools/email-tool/server.ts",
+    "tool:time": "bun tools/day-tool/day-server.js",
     "type-check": "tsc --noEmit",
     "ingest-rag": "node --loader ts-node/esm src/scripts/ingestRagFolder.ts"
   },
