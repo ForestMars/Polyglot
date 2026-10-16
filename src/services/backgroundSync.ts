@@ -40,9 +40,9 @@ function mapToWire(outboundResources: any[], outboundDeletions: any[], clockSnap
       lastModified: typeof r.lastModified?.toISOString === 'function' ? r.lastModified.toISOString() : new Date(r.lastModified).toISOString(),
       updatedAtLamport: r.lastMutationLamport ? [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId] : [0, clockSnapshot.deviceId]
     })),
-    deletions: outboundDeletions.map(d => ({
+    deletionRecords: outboundDeletions.map(d => ({
       id: d.resourceId || d.id,
-      lamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
+      deletedAtLamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
     })),
   };
 }
