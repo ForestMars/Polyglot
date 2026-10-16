@@ -1,4 +1,4 @@
-// server.ts
+// tools/email/server.ts
 import { WebSocket, WebSocketServer } from 'ws';
 import { sendEmail } from './src/gmail.ts';
 import { readFileSync } from 'fs';
