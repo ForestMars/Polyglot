@@ -41,7 +41,7 @@ function mapToWire(outboundResources: any[], outboundDeletions: any[], clockSnap
       updatedAtLamport: r.lastMutationLamport ? [r.lastMutationLamport.lamport, r.lastMutationLamport.deviceId] : [0, clockSnapshot.deviceId]
     })),
     deletions: outboundDeletions.map(d => ({
-      id: d.resourceId || d.id, 
+      id: d.resourceId || d.id,
       lamport: d.deletedAtLamport ? [d.deletedAtLamport.lamport, d.deletedAtLamport.deviceId] : [0, clockSnapshot.deviceId]
     })),
   };
@@ -86,7 +86,7 @@ export async function syncWithServer(): Promise<SyncResult> {
   try {
     console.log('[sync] Executing unified synchronization boundary pass...');
 
-    const outboundResources = await polyglotDb.listConversations(true); 
+    const outboundResources = await polyglotDb.listConversations(true);
     const outboundDeletions = await polyglotDb.listDeletions();
     const clockSnapshot = CoherenceClock.getInstance().snapshot();
 
@@ -133,13 +133,13 @@ export async function syncWithServer(): Promise<SyncResult> {
     for (const d of data.deletions || []) {
       try {
         // Safe fallbacks to handle both 'chatId' and 'id' payloads from the backend
-        const deletionId = d.chatId || d.id; 
+        const deletionId = d.chatId || d.id;
         if (!deletionId) throw new Error("Deletion entry contains no valid identifier field ('chatId' or 'id')");
 
         incomingDeletions.push({
           id: deletionId,
           resourceId: deletionId,
-          deletedAtLamport: parseServerClockTuple(d.lamport || d.updatedAtLamport, deletionId),
+          deletedAtLamport: parseServerClockTuple(d.deletedAtLamport || d.lamport || d.updatedAtLamport, deletionId),
         });
       } catch (err) {
         console.error(`[sync] Skipping malformed deletion control entry:`, err);
@@ -188,7 +188,7 @@ export function ensureSocketRegistered(ws: WebSocket, onSyncComplete: () => Prom
     try {
       const payload = JSON.parse(event.data);
       if (payload && payload.id && (payload.clock || payload.updatedAtLamport)) {
-        
+
         const singleResource: ChatResource = {
           id: payload.id,
           title: payload.title || 'Untitled Chat',
@@ -254,4 +254,3 @@ export async function flushOutboundMutations(): Promise<void> {
 // have crossed a boundary past the deletion and it is safe to hard-purge.
 // const allDeletions = await this.db.getAllDeletionRecords();
 // const serverResourceIds = new Set(incomingResources.map(r => r.id));
-
