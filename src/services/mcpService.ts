@@ -153,17 +153,54 @@ async detectAndExecuteTool(content: string): Promise<{ executed: boolean; result
     console.log('[mcpService] Detected tool call: send_email', { to, subject, body });
 
     try {
-      const result = await this.callTool('send_email', 'email-tool', {
-        to,
-        subject,
-        body: body || '(No message body)'
-      });
+      /* const result = await this.callTool('send_email', 'email-tool', {
+      *  to,
+      *  subject,
+      *  body: body || '(No message body)'
+      *       });
+      */
+      const emailServer = this.servers.find(
+        server => server.name === 'email-tool'
+      );
+
+      if (!emailServer) {
+        console.error(
+          '[mcpService] MCP server "email-tool" is missing from config'
+        );
+        return {
+          executed: false,
+          error: 'MCP server "email-tool" is not configured'
+        };
+      }
+
+      const result = await this.callTool(
+        'send_email',
+        emailServer.name,
+        { to, subject, body }
+      );
+
+      if (!result) {
+        return {
+          executed: false,
+          error: 'Failed to execute send_email'
+        };
+      }
 
       return {
         executed: true,
-        result: result || 'Email sent successfully',
-        originalContent: content
+        result
       };
+
+
+
+
+      /* return {
+       * executed: true,
+       * result: result || 'Email sent successfully',
+       * originalContent: content
+      }; */
+
+
     } catch (error) {
       console.error('[mcpService] Tool execution failed:', error);
       return {
