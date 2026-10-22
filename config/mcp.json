@@ -1,14 +1,14 @@
 {
   "servers": [
     {
-      "id": "mcp-v2-server",
-      "display_name": "Coda 2 MCP server",
+      "name": "mcp-v2-server",
+      "description": "Coda 2 MCP server",
       "url": "ws://localhost:5555"
     }
     ,
     {
-      "id": "email-tool",
-      "display_name": "Local email tool (Gmail)",
+      "name": "email-tool",
+      "description": "Local email tool (Gmail)",
       "url": "ws://localhost:9002"
     }
   ]
