@@ -8,6 +8,7 @@ import { OpenRouterService } from "./providers/openrouter";
 import { TogetherService } from "./providers/together";
 import { GroqService } from "./providers/groq";
 import { MistralService } from "./providers/mistral";
+import { OvenRouterService } from "./providers/ovenrouter";
 import { mcpService } from "@/services/mcpService";
 
 export interface ChatRequest {
@@ -137,6 +138,8 @@ export class ApiService {
             messages,
             request.apiKey,
           );
+        case "ovenrouter":
+          return await this.handleOvenRouterRequest(messages, baseUrl);
         default:
           throw new Error(`Unsupported provider: ${provider}`);
       }
@@ -387,6 +390,30 @@ export class ApiService {
     };
   }
 
+  private async handleOvenRouterRequest(
+    messages: Array<{ role: "user" | "assistant" | "system"; content: string }>,
+    baseUrl?: string,
+  ): Promise<ChatResponse> {
+    const ovenRouterService = new OvenRouterService(baseUrl);
+
+    const startTime = Date.now();
+    const response = await ovenRouterService.chat({
+      messages: messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+    });
+    const endTime = Date.now();
+
+    return {
+      content: response.content,
+      provider: "ovenrouter",
+      model: response.model,
+      timestamp: new Date(response.created_at * 1000),
+      responseTime: endTime - startTime,
+    };
+  }
+
   async checkProviderHealth(
     provider: string,
     baseUrl?: string,
@@ -397,6 +424,8 @@ export class ApiService {
           ? new OllamaService(baseUrl)
           : this.ollamaService;
         return await ollamaService.healthCheck();
+      case "ovenrouter":
+        return await new OvenRouterService(baseUrl).healthCheck();
       case "openai":
       case "anthropic":
       case "openrouter":
