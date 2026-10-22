@@ -96,6 +96,7 @@ export class ApiService {
       console.warn("⚠️ Failed to prepend MCP system prompt:", err);
     }
 
+    // @TODO Move configuration into declarative yaml. 
     try {
       switch (provider) {
         case "ollama":
