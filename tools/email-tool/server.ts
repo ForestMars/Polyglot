@@ -53,6 +53,31 @@ wss.on('connection', (ws) => {
     if (msg.method === 'tools/call' && msg.params.name === 'send_email') {
       try {
         await sendEmail({ ...msg.params.arguments, signature: EMAIL_SIGNATURE });
+
+        const e = error as Error & {
+          code?: string;
+          response?: string;
+          responseCode?: number;
+          command?: string;
+        };
+
+        console.error("[email-tool] send_email failed:", {
+          name: e?.name,
+          message: e?.message ?? String(error),
+          code: e?.code,
+          response: e?.response,
+          responseCode: e?.responseCode,
+          command: e?.command,
+          stack: e?.stack,
+          raw: error,
+        });
+
+
+
+
+
+
+
         ws.send(JSON.stringify({
           jsonrpc: '2.0',
           id: msg.id,
