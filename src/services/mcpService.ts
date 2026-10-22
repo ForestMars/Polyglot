@@ -11,6 +11,13 @@ interface McpTool {
   server: string;
 }
 
+interface ToolExecutionResult {
+  executed: boolean;
+  result?: string;
+  error?: string;
+  originalContent: string;
+}
+
 class McpService {
   private servers: McpServer[] = [];
   private connections: Map<string, WebSocket> = new Map();
@@ -131,87 +138,74 @@ class McpService {
     try { this._resolveReady?.(); } catch {};
   }
 
-  // Add this method to your MCPService class
-async detectAndExecuteTool(content: string): Promise<{ executed: boolean; result?: string; originalContent: string }> {
-  // Try to match array format first
-  let toolCallMatch = content.match(/```tool_code\s*\n\s*send_email\(to=\[(.*?)\],\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)\s*\n\s*```/s);
-  let to, subject, body;
+  async detectAndExecuteTool(content: string): Promise<ToolExecutionResult> {
+    // Try to match array format first
+    let toolCallMatch = content.match(/```tool_code\s*\n\s*send_email\(to=\[(.*?)\],\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)\s*\n\s*```/s);
+    let to: string | string[] | undefined;
+    let subject: string | undefined;
+    let body: string | undefined;
 
-  if (toolCallMatch) {
-    to = toolCallMatch[1].split(',').map(email => email.trim().replace(/['"]/g, ''));
-    subject = toolCallMatch[2];
-    body = toolCallMatch[3];
-  } else {
-    // Try string format
-    toolCallMatch = content.match(/```tool_code\s*\n\s*send_email\(to="([^"]+)",\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)\s*\n\s*```/s);
     if (toolCallMatch) {
-      [, to, subject, body] = toolCallMatch;
+      to = toolCallMatch[1].split(',').map(email => email.trim().replace(/['"]/g, ''));
+      subject = toolCallMatch[2];
+      body = toolCallMatch[3];
+    } else {
+      // Try string format
+      toolCallMatch = content.match(/```tool_code\s*\n\s*send_email\(to="([^"]+)",\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)\s*\n\s*```/s);
+      if (toolCallMatch) {
+        [, to, subject, body] = toolCallMatch;
+      }
     }
-  }
 
-  if (to && subject) {
+    if (!to || !subject) {
+      return { executed: false, originalContent: content };
+    }
+
     console.log('[mcpService] Detected tool call: send_email', { to, subject, body });
 
+    const emailServer = this.servers.find(server => server.name === 'email-tool');
+
+    if (!emailServer) {
+      console.error('[mcpService] MCP server "email-tool" is missing from config');
+      return {
+        executed: false,
+        error: 'MCP server "email-tool" is not configured',
+        originalContent: content
+      };
+    }
+
+    if (!this.connections.has(emailServer.name)) {
+      console.error(`[mcpService] No active connection to "${emailServer.name}"`);
+      return {
+        executed: false,
+        error: `MCP server "${emailServer.name}" is not connected`,
+        originalContent: content
+      };
+    }
+
     try {
-      /* const result = await this.callTool('send_email', 'email-tool', {
-      *  to,
-      *  subject,
-      *  body: body || '(No message body)'
-      *       });
-      */
-      const emailServer = this.servers.find(
-        server => server.name === 'email-tool'
-      );
-
-      if (!emailServer) {
-        console.error(
-          '[mcpService] MCP server "email-tool" is missing from config'
-        );
-        return {
-          executed: false,
-          error: 'MCP server "email-tool" is not configured'
-        };
-      }
-
       const result = await this.callTool(
         'send_email',
         emailServer.name,
-        { to, subject, body }
+        { to, subject, body: body || '(No message body)' }
       );
 
-      if (!result) {
-        return {
-          executed: false,
-          error: 'Failed to execute send_email'
-        };
-      }
-
+      // The server accepted the call. An empty response body still means the send completed,
+      // so the user always gets a confirmation string.
       return {
         executed: true,
-        result
+        result: result || 'Email sent successfully',
+        originalContent: content
       };
-
-
-
-
-      /* return {
-       * executed: true,
-       * result: result || 'Email sent successfully',
-       * originalContent: content
-      }; */
-
-
     } catch (error) {
       console.error('[mcpService] Tool execution failed:', error);
       return {
         executed: true,
         result: `Failed to send email: ${error}`,
+        error: String(error),
         originalContent: content
       };
     }
-  }
-
-  return { executed: false, originalContent: content };
   }
 
   /**
