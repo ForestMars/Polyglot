@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 // Load signature once at startup
 const EMAIL_SIGNATURE = readFileSync(join(__dirname, 'config', 'sig.txt'), 'utf-8');
 
-// Here's where the magic hapens, obvi.
+// Here's where the magic happens, obvi.
 const SEND_EMAIL_DESCRIPTION = readFileSync(join(__dirname, 'config', 'tool-descript.txt'), 'utf-8');
 
 const wss = new WebSocketServer({ port: 9002 });
@@ -35,11 +35,10 @@ wss.on('connection', (ws) => {
               type: 'object',
               properties: {
                 to: {
-                  oneOf: [
-                  { type: 'string', description: 'Single recipient email address' },
-                  { type: 'array', items: { type: 'string' }, description: 'Multiple recipient email addresses' }
-                ],
-                description: 'Recipient email address' },
+                  type: ['string', 'array'],
+                  items: { type: 'string' },
+                  description: 'Recipient email address or array of addresses'
+                },
                 subject: { type: 'string', description: 'Email subject' },
                 body: { type: 'string', description: 'Email body' }
               },
@@ -54,6 +53,17 @@ wss.on('connection', (ws) => {
       try {
         await sendEmail({ ...msg.params.arguments, signature: EMAIL_SIGNATURE });
 
+        ws.send(JSON.stringify({
+          jsonrpc: '2.0',
+          id: msg.id,
+          result: {
+            content: [{
+              type: 'text',
+              text: `Email sent to ${Array.isArray(msg.params.arguments.to) ? msg.params.arguments.to.join(', ') : msg.params.arguments.to}`
+            }]
+          }
+        }));
+      } catch (error: any) {
         const e = error as Error & {
           code?: string;
           response?: string;
@@ -72,29 +82,12 @@ wss.on('connection', (ws) => {
           raw: error,
         });
 
-
-
-
-
-
-
-        ws.send(JSON.stringify({
-          jsonrpc: '2.0',
-          id: msg.id,
-          result: {
-            content: [{
-              type: 'text',
-              text: `Email sent to ${msg.params.arguments.to}`
-            }]
-          }
-        }));
-      } catch (error) {
         ws.send(JSON.stringify({
           jsonrpc: '2.0',
           id: msg.id,
           error: {
             code: -1,
-            message: error.message
+            message: e?.message || 'Unknown error occurred while sending email'
           }
         }));
       }
