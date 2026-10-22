@@ -93,6 +93,14 @@ const DEFAULT_PROVIDERS = [
     defaultModel: "gemini-pro",
   },
   {
+    id: "ovenrouter",
+    name: "OvenRouter (Local Gateway)",
+    apiKeys: [],
+    models: ["cascade"],
+    defaultModel: "cascade",
+    isLocal: true,
+  },
+  {
     id: "ollama",
     name: "Ollama (Local)",
     apiKeys: [],
@@ -140,6 +148,7 @@ export const ChatInterface = () => {
   const {
     settings,
     updateSetting,
+    saveSettings,
     isLoading: isSettingsLoading,
   } = useSettings();
   const isPrivate = settings?.isPrivate ?? false;
@@ -162,6 +171,35 @@ export const ChatInterface = () => {
     selectedProvider &&
     selectedModel &&
     (currentProvider?.isLocal || selectedApiKey);
+
+  // Apply the PROVIDER startup override once per page load. Vite injects it from
+  // `PROVIDER=<id> bun run dev`; manual provider changes afterwards are left alone.
+  const startupProviderApplied = useRef(false);
+  useEffect(() => {
+    if (!settings || startupProviderApplied.current) return;
+    startupProviderApplied.current = true;
+
+    const requested =
+      typeof __DEFAULT_PROVIDER__ === "undefined" ? "" : __DEFAULT_PROVIDER__;
+    if (!requested) return;
+
+    const target = DEFAULT_PROVIDERS.find((p) => p.id === requested);
+    if (!target) {
+      console.warn(
+        `PROVIDER="${requested}" is not a known provider (known: ${DEFAULT_PROVIDERS.map((p) => p.id).join(", ")})`,
+      );
+      return;
+    }
+    if (settings.selectedProvider === target.id) return;
+
+    saveSettings({
+      selectedProvider: target.id,
+      selectedModel: target.defaultModel,
+      selectedApiKey: "",
+    }).catch((error) =>
+      console.error("Failed to apply PROVIDER override:", error),
+    );
+  }, [settings, saveSettings]);
 
   // Fetch models when provider changes
   useEffect(() => {

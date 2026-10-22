@@ -371,7 +371,7 @@ export const SettingsPanel = ({
         )}
 
         {/* Ollama Configuration - Only show for Ollama */}
-        {selectedProvider && currentProvider?.isLocal && (
+        {selectedProvider && currentProvider?.id === "ollama" && (
           <div className="space-y-3">
             <Label>Ollama Configuration</Label>
             <div className="space-y-2">
