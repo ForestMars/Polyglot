@@ -13,9 +13,11 @@ interface McpTool {
 
 interface ToolExecutionResult {
   executed: boolean;
-  result?: string;
-  error?: string;
   originalContent: string;
+  // Raw outcome of the call, for the caller to feed back to the model.
+  toolName?: string;
+  toolResultMessage?: string;
+  error?: string;
 }
 
 class McpService {
@@ -138,6 +140,11 @@ class McpService {
     try { this._resolveReady?.(); } catch {};
   }
 
+  /**
+   * Detects a tool_code block in model output and executes it.
+   * Returns the raw outcome in `toolResultMessage`. The caller appends that to the
+   * conversation and asks the model for its reply, so the model writes the confirmation.
+   */
   async detectAndExecuteTool(content: string): Promise<ToolExecutionResult> {
     // Try to match array format first
     let toolCallMatch = content.match(/```tool_code\s*\n\s*send_email\(to=\[(.*?)\],\s*subject="([^"]+)"(?:,\s*body="([^"]+)")?\)\s*\n\s*```/s);
@@ -161,7 +168,9 @@ class McpService {
       return { executed: false, originalContent: content };
     }
 
-    console.log('[mcpService] Detected tool call: send_email', { to, subject, body });
+    const toolName = 'send_email';
+    const args = { to, subject, body: body || '(No message body)' };
+    console.log('[mcpService] Detected tool call: send_email', args);
 
     const emailServer = this.servers.find(server => server.name === 'email-tool');
 
@@ -169,8 +178,10 @@ class McpService {
       console.error('[mcpService] MCP server "email-tool" is missing from config');
       return {
         executed: false,
+        originalContent: content,
+        toolName,
         error: 'MCP server "email-tool" is not configured',
-        originalContent: content
+        toolResultMessage: `Tool result for send_email: FAILED. The MCP server "email-tool" is not configured. No email was sent.`
       };
     }
 
@@ -178,32 +189,37 @@ class McpService {
       console.error(`[mcpService] No active connection to "${emailServer.name}"`);
       return {
         executed: false,
+        originalContent: content,
+        toolName,
         error: `MCP server "${emailServer.name}" is not connected`,
-        originalContent: content
+        toolResultMessage: `Tool result for send_email: FAILED. The MCP server "${emailServer.name}" is not connected. No email was sent.`
       };
     }
 
     try {
-      const result = await this.callTool(
-        'send_email',
-        emailServer.name,
-        { to, subject, body: body || '(No message body)' }
-      );
+      const serverResult = await this.callTool(toolName, emailServer.name, args);
+      console.log('[mcpService] send_email server result:', serverResult);
 
-      // The server accepted the call. An empty response body still means the send completed,
-      // so the user always gets a confirmation string.
+      const detail = serverResult
+        ? `Server response: ${serverResult}`
+        : 'The server returned no content, which it also does on a normal successful send.';
+
       return {
         executed: true,
-        result: result || 'Email sent successfully',
-        originalContent: content
+        originalContent: content,
+        toolName,
+        toolResultMessage:
+          `Tool result for send_email: the call completed without error. ` +
+          `Recipient: ${Array.isArray(to) ? to.join(', ') : to}. Subject: "${subject}". ${detail}`
       };
     } catch (error) {
       console.error('[mcpService] Tool execution failed:', error);
       return {
-        executed: true,
-        result: `Failed to send email: ${error}`,
+        executed: false,
+        originalContent: content,
+        toolName,
         error: String(error),
-        originalContent: content
+        toolResultMessage: `Tool result for send_email: FAILED with error: ${String(error)}. No email was sent.`
       };
     }
   }
